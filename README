@@ -1,0 +1,687 @@
+                         WordNet::Similarity
+                        =====================
+                             version 0.03
+
+                         Copyright (c) 2003
+                Siddharth Patwardhan, patw0006@d.umn.edu
+                   Ted Pedersen, tpederse@d.umn.edu
+                   University of Minnesota, Duluth
+
+
+This package consists of Perl modules along with supporting Perl programs
+that implement the semantic relatedness measures described by Leacock
+Chodorow (1998), Jiang Conrath (1997), Resnik (1995), Lin (1998), Hirst St
+Onge (1998) and the adapted Lesk measure by Banerjee and Pedersen
+(2002). The Perl modules are designed as object classes with
+methods that take as input two word senses. The semantic relatedness of
+these word senses is returned by these methods. A quantitative measure of
+the degree to which two word senses are related has wide ranging
+applications in numerous areas, such as word sense disambiguation,
+information retrieval, etc. For example, in order to determine which sense
+of a given word is being used in a particular context, the sense having the
+highest relatedness with its context word senses is most likely to be the
+sense being used. Similarly, in information retrieval, retrieving documents
+containing highly related concepts are more likely to have higher precision
+and recall values.
+
+A command line interface to these modules is also present in the
+package. The simple, user-friendly interface returns the relatedness
+measure of two given words. A number of switches and options have been
+provided to modify the output and enhance it with trace information and
+other useful output. Details of the usage are provided in other sections of
+this README. Supporting utilities for generating information content files
+from various corpora are also available in the package. The information
+content files are required by three of the measures for computing the
+relatedness of concepts.
+
+The following sections describe the organization of this software package
+and how to use it. A few typical examples are given to help clearly
+understand the usage of the modules and the supporting utilities.
+
+
+
+SEMANTIC RELATEDNESS
+====================
+
+We observe that humans find it extremely easy to say if two words are
+related and if one word is more related to a given word than another. For
+example, if we come across two words -- 'car' and 'bicycle', we know they
+are related as both are means of transport. Also, we easily observe that
+'bicycle' is more related to 'car' than 'fork' is. But is there some way to
+assign a quantitative value to this relatedness? Some ideas have been put
+forth by researchers to quantify the concept of relatedness of words, with
+encouraging results.
+
+Six of these different measures of relatedness have been implemented in
+this software package. Apart from these a simple edge counting approach and
+a random method has also been provided. These measures rely heavily on the
+vast store of knowledge available in the online electronic dictionary --
+WordNet. So, we use a Perl interface for WordNet called WordNet::QueryData
+to make it easier for us to access WordNet. The modules in this package
+REQUIRE that the WordNet::QueryData module be installed on the system
+before these modules are installed.
+
+
+
+CONTENTS OF THE PACKAGE
+=======================
+
+The package contains the semantic relatedness modules, some support Perl
+utilities and some sample configuration files, data files and programs.
+
+
+Modules
+-------
+
+All the modules that will be installed in the Perl system directory are
+present in the '/lib' directory tree of the package. These include the
+semantic relatedness modules -- jcn.pm, res.pm, lin.pm, lch.pm, hso.pm,
+lesk.pm, edge.pm and random.pm -- present in the WordNet/Similarity
+subdirectory and the supporting modules get_wn_info.pm and
+string_compare.pm. There also exists a WordNet/Similarity.pm module that
+currently contains only Perl documentation and version information. All
+these modules, once installed in the Perl system directory, can be directly
+used by Perl programs.
+
+
+Supporting Perl Utilities
+-------------------------
+
+The '/utils' subdirectory of the package contains supporting Perl
+programs. 'similarity.pl' is a commandline interface to the relatedness
+modules. A number of Perl programs that generate information content files
+from various corpora are provided.
+
+
+Samples
+-------
+
+The '/samples' subdirectory of the package contains sample configuration
+files for the modules, sample programs showing usage of the modules and
+sample data files (information content and relation files).
+
+
+
+INSTALLATION OF THE MODULES
+===========================
+
+To build these modules and the default data files, set up the WNHOME
+environment variable to contain the path to WordNet, and then type the
+following: 
+
+   perl Makefile.PL
+   make
+   make test
+
+To install modules type the following as root:
+
+   make install
+
+The installation assumes that WordNet::Querydata is installed in the Perl
+system path and is accessible via the @INC list of paths.  The QueryData
+module determines the location of WordNet from the WNHOME environment
+variable. So, make sure you have WNHOME set up to contain the path of the
+directory where WordNet is installed (eg. /usr/local/WordNet-1.7.1). If
+WNHOME is not set up, by default the 'perl Makefile.PL' looks for WordNet
+in /usr/local/WordNet-1.7.1 on a unix system or in 
+C:\Program Files\WordNet\1.7.1 on a Windows system. If it is not possible
+to set up WNHOME on your system, use the --WNHOME option during the 'perl
+Makefile.PL' step, to specify the path of your WordNet installation. For
+example: 
+
+perl Makefile.PL --WNHOME /home/sid/wordnet1.7
+
+The above steps will install the modules and the supporting default data
+files in the Perl system path. It is very likely that you will require root
+or supervisor privileges to install these modules in the Perl system path.
+
+In order to install these in a user-specified path you would need to
+specify this as an option during the 'perl Makefile.PL' step. For example,
+in order to install the modules under '/home/sid/lib' I would run the
+command
+
+   perl Makefile.PL PREFIX=/home/sid/lib
+
+In order to include and use modules installed in non-standard directories
+(paths not present in the Perl @INC list of paths), you may need to add a
+line like so
+
+   use lib '/home/sid/lib';
+
+in your Perl program that uses the installed modules. The above
+instructions should be sufficient for standard and slightly non-standard
+installations. However, if you need to modify other makefile options you
+should look at the ExtUtils::MakeMaker docmentation. Modifying other
+makefile options is not recommended unless you really, absolutely and
+completely know what you're doing.
+
+
+
+SYSTEM REQUIREMENTS
+===================
+
+The following should be installed on your system so as to be able to use 
+this software.
+
+1. Perl version 5.6: This package has been written in Perl which is freely
+available from www.perl.org. This package assumes that Perl is installed in
+the directory /usr/local/bin. If so, the support programs can directly be
+run at the command line as 'similarity.pl ...' or 'semCorFreq.pl ...',
+etc. However, if Perl is not installed at this location, you would need to
+explicitly invoke them as 'perl similarity.pl ... ' or 'perl freqCount.pl
+...', etc.
+
+2. WordNet: All the measures are based on WordNet. WordNet must be
+installed on your system. WordNet is freely downloadable from
+http://www.cogsci.princeton.edu/~wn/ WordNet version 1.7.1 was used during
+the development and testing of the package, however it should work with
+other versions of WordNet as well. The WordNet::QueryData Perl module is
+used to access WordNet. This module requires that an environment variable
+'WNHOME', containing the path to the WordNet files, be set up. For further
+details, please see the WordNet::QueryData documentation.
+
+3. WordNet::QueryData: This is the Perl interface to WordNet written by
+Jason Rennie. QueryData should be accessible on the @INC path of Perl. (Can
+be freely downloaded from http://www.ai.mit.edu/~jrennie/WordNet/). 
+QueryData 1.27 was used during the development. Also we observed that that
+due to some major changes in QueryData from its previous versions, this
+software does not work with the earlier versions of QueryData. If you have
+an earlier version of QueryData (1.18 or earlier) you may need to upgrade
+QueryData. 
+
+
+
+THE MODULES
+===========
+
+Using the relatedness modules
+-----------------------------
+
+The semantic relatedness modules in this distribution are built as classes
+that expose the following methods:
+  new()
+  getRelatedness()
+  getError()
+  getTraceString()
+
+- new()
+
+The first thing that is done in order to use one of the semantic
+relatedness measures is to create an object of the measure. This is done by
+calling the 'new' method of that measure or module. For all the semantic
+relatedness measures provided in this package, the 'new' method takes two
+parameters -- 
+  (a) a WordNet::QueryData object (REQUIRED)
+  (b) the name of a configuration file for that module (Optional)
+This method initializes an object of the requested measure, using the
+configuration file data, or with default values if a configuration file is
+not provided. A reference to this object is returned by the 'new' method
+and must be saved by the calling program, if any of the other methods of
+this module are to be called. It is possible to create multiple objects of
+the same module (possibly initialized differently by specifying different
+configuration files for each). The format of the configuration files is
+discussed later in this section.
+
+An 'undef' value returned by the 'new' method, indicates that it was unable
+to create an object. It is also possible that non-fatal errors occur during
+the creation of the object. In such a case an object is created by the 'new'
+method using default conditions. However, a non-fatal error condition flag
+is set within the object, which can be retrieved using the getError()
+method. It is advisable to check for this error condition after the
+creation of every such object.
+
+- getRelatedness()
+
+The 'getRelatedness' method is called on the created object to determine
+the semantic relatedness of two concepts (synsets in WordNet) as computed
+by that measure. The input parameters are two WordNet synsets, represented
+in the word#pos#sense format returned/used by WordNet::QueryData. In this
+format each synset is represented by a word from that synset, its
+part-of-speech and its sense number. For example, if the second sense of
+'teacher' as a noun occurs in a synset containing synonyms for 'teacher',
+then this synset can be represented by the string 'teacher#n#2'. The
+'getRelatedness' method takes as input two strings of this form and returns
+a floating point value, which is the semantic relatedness of these (as
+computed by the measure).
+
+- getError()
+
+During a call to either the 'new' method or the 'getRelatedness' method of
+a measure, if a fatal or non-fatal error occurs, the module sets an error
+flag within the created object and sets an error string within (the
+exception to this is when the module is unable to create an object upon a
+call to the 'new' method, in which case it simply returns 'undef'). Both
+the error condition flag and the error string can be retrieved using the
+'getError' method on the created object. The method is called without any
+parameters and it returns an array containing the error flag as the first
+element and the error string as the second element. The error flag can take
+the values 0, 1 or 2. A value of 0 indicates that there was no error or
+warning since the last call to 'getError'. 1 indicates that there was/were
+non-fatal error(s) (warnings) since the last call to 'getError'. A value of
+2 usually indicates that the errors were serious enough to warrant the
+termination of the program. However, how these errors are handled is
+completely upto the programmer writing the Perl program. It is advisable
+that the error flag be checked after every call to either 'new' or
+'getRelatedness', but this is not a necessary step and the error condition
+may be tested at less regular intervals also.
+
+- getTraceString()
+
+If traces are enabled, a trace string generated during the last call to the
+'getRelatedness' method is stored within the object. This trace string can
+be retrieved using the 'getTraceString' method. This method is called with
+no parameters and returns a scalar containing the most recently generated
+trace string. By default traces are not enabled. Traces can be enabled by
+specifying this as an option in the configuration file for the
+measure. Instructions for writing configuration files for the measures
+follow later in this section.
+
+
+Examples of typical usage
+-------------------------
+
+To create an object of the Resnik measure, we would have the following
+lines of code in the Perl program.
+
+   use WordNet::Similarity::res;
+   $object = WordNet::Similarity::res->new($wn, '/home/sid/resnik.conf');
+
+The reference of the initialized object is stored in the scalar variable
+'$object'. '$wn' contains a WordNet::QueryData object that should have been
+created earlier in the program. The second parameter to the 'new' method is
+the path of the configuration file for the resnik measure. If the 'new'
+method is unable to create the object, '$object' would be undefined. This,
+as well as any other error/warning may be tested.
+
+   die "Unable to create resnik object.\n" if(!defined $object);
+   ($err, $errString) = $object->getError();
+   die $errString."\n" if($err);
+
+To create a Leacock-Chodorow measure object, using default values, i.e. no
+configuration file, we would have the following:
+
+   use WordNet::Similarity::lch;
+   $measure = WordNet::Similarity::lch->new($wn);
+
+To find the sematic relatedness of the first sense of the noun 'car' and
+the second sense of the noun 'bus' using the resnik measure, we would write
+the following piece of code:
+
+   $relatedness = $object->getRelatedness('car#n#1', 'bus#n#2');
+  
+To get traces for the above computation:
+
+   print $object->getTraceString();
+
+However, traces must be enabled using configuration files. By default
+traces are turned off.
+
+
+Configuration files
+-------------------
+
+The behaviour of the measures of semantic relatedness can be controlled by
+using configuration files. These configuration files specify how certain
+parameters are initialized within the object. A configuration file may be
+specififed as a parameter during the creation of an object using the new
+method. 
+
+The configuration files follow a fixed file format. Every configuration
+file starts the name of the module ON THE FIRST LINE of the file. For
+example, a configuration file for the Resnik module will have on the first
+line 'WordNet::Similarity::res'. This is followed by the various
+parameters, each on a new line and having the form 'name::value'. The
+'value' of a parameter is optional (in case of boolean parameters). In case
+'value' is omitted, we would have just 'name::' on that line. Comments are
+supported in the configuration file. Anything following a '#' is ignored in
+the configuration file.
+
+Sample configuration files are present in the '/samples' subdirectory of
+the package. Each of the modules has specific parameters that can be
+set/reset using the configuration files. Please read the manpages or the
+perldocs of the respective modules for details on the parameters specific
+to each of the modules. For instance, 'man WordNet::Similarity::res' or
+'perldoc WordNet::Similarity::res' should display the documentation for the
+Resnik module.
+
+
+Information Content
+-------------------
+
+Three of the measures provided within the package require information
+content values of concepts (WordNet synsets) for computing the semantic
+relatedness of concepts. Resnik (1995) describes a method for computing the
+information content of concepts from large corpora of text. In order to
+compute information content of concepts, according to the method described
+in the paper, we require the frequency of occurrence of every concept in a
+large corpus of text. We provide these frequency counts to the three
+measures (Resnik, Jiang-Conrath and Lin measures) in files that we call
+information content files. These files contain a list of WordNet synset
+offsets along with their part of speech and frequency count. The files are
+also used to determine the topmost node of the noun and verb 'is-a'
+hierarchies in WordNet. The information content file that should be used by
+a module is specified in the configuration file of that module. If no
+information content file is specified, then the default information content
+file, generated at the time of the installation of the WordNet::Similarity
+modules, is used. A description of the format of these files follows. The
+FIRST LINE of this file must contain the version of WordNet that the file
+was created with. This should be present as a string of the form 
+
+wnver::<version>
+
+For example, if WordNet version 1.7.1 was used for creation of the
+information content file, the following line would be present at the start
+of the information content file.
+
+wnver::1.7.1
+
+The rest of the file contains on each line a WordNet synset offset,
+part-of-speech and a frequency count, in the form
+
+<offset><part-of-speech> <frequency> [ROOT]
+
+without any leading or trailing spaces. For example, one of the lines of an
+information content file may be as follows.
+
+63723n 667
+
+where '63723' is a 'noun' synset offset and 667 is its frequency
+count. Suppose the noun synset with offset 1740 is the root node of one of 
+the noun taxonomies and has a frequency count of 17625. Then this synset
+would appear in an information content file as follows:
+
+1740n 17625 ROOT
+
+The ROOT tags are extremely significant in determining the top of the 
+hierarchies and must not be omitted. Typically, frequency counts for the
+noun and verb hierarchies are present in each information content file. A
+number of support programs to generate these files from various corpora are
+present in the '/utils' directory of the package. A sample information
+content file has been provided in the '/samples' directory of the package.
+
+
+
+SUPPORTING PERL UTILITIES
+=========================
+
+The '/utils' directory of the pacakge contains a few support Perl programs,
+that use the WordNet::Similarity modules or generate data files for it.
+
+
+similarity.pl
+-------------
+
+The similarity.pl program provides a commandline interface to the
+relatedness modules.
+
+- Usage
+
+Usage: similarity.pl [{--type TYPE [--allsenses] [--offsets] [--trace] 
+         [--file FILENAME] [--wnpath PATH] WORD1 WORD2 |--help |--version }] 
+
+Displays the semantic relatedness of the base forms of
+WORD1 and WORD2 using various relatedness measures described
+in Budanitsky Hirst (2001).
+ 
+Options:
+  --type        Switch to select the type of measure to be used while 
+                calculating the semantic relatedness. The following 
+                strings are defined.
+                 'WordNet::Similarity::lch'    Leacock Chodorow measure.
+                 'WordNet::Similarity::jcn'    Jiang Conrath measure.
+                 'WordNet::Similarity::res'    Resnik measure.
+                 'WordNet::Similarity::lin'    Lin measure.
+                 'WordNet::Similarity::hso'    Hirst St. Onge measure.
+		 'WordNet::Similarity::lesk'   Adapted Lesk measure.
+		 'WordNet::Similarity::edge'   Simple edge counts (inverted).
+		 'WordNet::Similarity::random' A random measure.
+  --allsenses   Displays the relatedness between every sense pair of the
+                two input words WORD1 and WORD2.
+  --offsets     Displays all synsets (in the output, including traces) as
+                synset offsets and part of speech, instead of the
+                word#partOfSpeech#senseNumber format used by QueryData.
+                With this option any WordNet synset is displayed as
+                word#partOfSpeech#synsetOffset in the output.
+  --trace       Switches on 'Trace' mode. Displays as output on STDOUT,
+                the various stages of the processing.
+  --file        Allows the user to specify an input file FILENAME
+                containing pairs of word whose semantic relatedness needs
+                to be measured. The file is assumed to be a plain text
+                file with pairs of words separated by newlines, and the
+                words of each pair separated by a space.
+  --wnpath      Option to specify the path of the WordNet data files
+                as PATH. (Defaults to /usr/local/wordnet1.7/dict on Unix
+                systems and C:\wn17\dict on Windows systems)
+  --help        Displays this help screen.
+  --version     Displays version information.
+ 
+NOTE: The environment variables WNHOME and WNSEARCHDIR, if present,
+are used to determine the location of the WordNet data files.
+Use '--wnpath' to override this.
+
+Compound words may also be given as input to similarity.pl. They may be
+specified using underscores for spaces (as in WordNet) or may be enclosed
+within double quotes.
+
+For example:
+
+similarity.pl --type WordNet::Similarity::jcn school private_school
+
+similarity.pl --type WordNet::Similarity::lch "interest rate" bank
+
+Here 'private school' and 'interest rate' are the compound words intended
+in the two examples, respectively. 
+
+ANOTHER NOTE: Using the '--file' option however, does not allow us to use
+both methods of entering compound words in the input file. The compound
+words in the input file may be entered only using underscores for spaces
+(the double quotes option is not available for input via the input file).
+
+- Interpreting the output
+
+In the simplest case interpreting the output is rather straightforward.
+This is the case when just the semantic relatedness of two words has been
+requested. The output, in this case, consists of the two words and the
+relatedness value. However, when the '--allsenses' option or the '--trace'
+option is specified, the program needs to display in the output, WordNet
+synsets. In order to do this, we decided to adopt the convention introduced
+by Jason Rennie in the WordNet::QueryData module to represent the WordNet
+synsets.According to this convention a synset is represented by
+    (1) a representative word from that synset 
+    (2) its part of speech and 
+    (3) a number specifying the sense number of the word (in this synset) 
+For example, consider the synset (teacher, instructor) from the noun data
+file of WordNet. Here the words 'teacher' as well as 'instructor' are each
+in their first sense. Using the above convention this synset may be
+represented by 'teacher#n#1' or by 'instructor#n#1'.
+
+Besides this, if '--offsets' commandline option is used, a small variation
+of the above convention is used that displays the offset of the synset (in
+the WordNet data file) instead of the sense number. The above synset could
+then be represented by 'teacher#n#8562747' or 'instructor#n#8562747', since
+8562747 if the offset of this synset in the noun data file of WordNet 1.7.
+
+The first convention was adopted as the default, since synset offsets vary
+between different versions of WordNet, while sense numbers of words would
+more or less remain constant.
+
+- Typical usage examples
+
+(1) Suppose you wanted to find the measure of relatedness between 'car' and
+    'bicycle', using the Jiang-Conrath measure.
+
+	similarity.pl --type WordNet::Similarity::jcn car bicycle
+
+(2) Suppose you need to find the relatedness of 'comb' and 'hair' using the
+    Leacock-Chodorow measure and also your WordNet database files happen to
+    be located at /wordnet1.7/dict, then you would have
+
+	similarity.pl --type WordNet::Similarity::lch --wnpath /wordnet1.7/dict comb hair
+
+   If the --wnpath option is not given, the program looks for the path to
+   the data files in the WNHOME and the WNSEARCHDIR environment
+   variables. If these have also not been specified, then by default the
+   program assumes that the WordNet data files reside in the directory
+   /usr/local/wordnet1.7/dict on a unix machine and in C:\wn17\dict on a
+   windows machine.
+
+(3) An example using a data file as input to the program (using the
+    Jiang-Conrath measure for this example)
+
+	similarity.pl --type WordNet::Similarity::jcn --file testfile
+
+(4) Displaying relatedness between all senses of the two words along with
+    traces.
+
+	similarity.pl --type WordNet::Similarity::lch --allsenses --traces paper pencil
+
+(5) To display version information.
+
+	similarity.pl --version
+
+(6) To display detailed help.
+
+	similarity.pl --help
+
+
+infocontent.pl
+--------------
+
+Three of the measures provided within the package require information
+content values of concepts (WordNet synsets) for computing the semantic
+relatedness of concepts. We provide these measures with frequency counts of
+WordNet synsets computed from large corpora of text, in files called
+information content files. A number of programs have been provided in the
+'/utils' subdirectory to generate information content files from various
+different corpora of text available. 
+
+BNCFreq.pl	  -- from the BNC corpus. 
+brownFreq.pl	  -- from the Brown corpus. 
+semCor17Freq.pl   -- from SemCor 1.7 (ignoring the sense tags). 
+semTagFreq.pl     -- from SemCor 1.7 (using the sense tags). 
+treebankFreq.pl	  -- from the Treebank corpus.
+rawtextFreq.pl    -- from raw text.
+
+All the six have a similar interface, however there are slight differences
+in the way the programs are called on the command-line due to the
+differences in the organization and format of the various corpora. But the
+following sub-sections give the typical usage and examples of all these
+programs. Please use the '--help' switch of each of the programs for the
+exact usage and help.
+
+- Usage
+
+<utility> [{--compfile COMPFILE --outfile OUTFILE [--stopfile STOPFILE] PATH 
+               | --help 
+               | --version }]
+
+Here <utility> is one of the Perl programs provided, that generates an
+information content file from a large corpus of text. This program computes
+the information content of concepts, by counting the frequency of their
+occurrence in a corpus. PATH specifies the files of the corpus or the root
+of the directory tree containing the text of the corpus.
+Options:
+  --compfile       Used to specify the file COMPFILE containing the
+                   list of compounds in WordNet.
+  --outfile        Specifies the output file OUTFILE.
+  --stopfile       STOPFILE is a list of stop listed words that will
+                   not be considered in the frequency count.
+  --help           Displays this help screen.
+  --version        Displays version information.
+
+A sample COMPFILE containing the list of compounds in WordNet 1.7 is
+present is the '/samples' subdirectory. A utility called compounds.pl has
+been provided in the '/utils' subdirectory. This utility generates a list
+of compounds present in your version of WordNet.
+
+- Some typical examples
+
+(1) In order to generate the information content file from the BNC, we type
+    the command:
+
+       BNCFreq.pl --compfile ../samples/compounds.txt --outfile infoBNC.dat /home/sid/BNCWorld/Texts
+
+    Here '/home/sid/BNCWorld/Texts' is the path containing the BNC. Ouptut
+    information content file infoBNC.dat is generated and 'compounds.txt'
+    is used for the list of compound in WordNet.
+
+(2) Frequency counts generated from the Brown corpus, using a stop-list.
+
+       brownFreq.pl --compfile compounds.txt --outfile infoBrown.dat --stopfile stop.txt /home/sid/Brown/*
+
+    Uses the file 'stop.txt' containing stop words -- words that are
+    ignored while counting the frequencies.
+
+
+
+COPYRIGHT AND LICENCE
+=====================
+
+This suite of programs is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your option) 
+any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with 
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple 
+Place - Suite 330, Boston, MA  02111-1307, USA.
+
+Note: The text of the GNU General Public License is provided in the file 
+'GPL' that you should have received with this distribution. 
+
+Copyright (C) 2003 Siddharth Patwardhan and Ted Pedersen
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself. 
+
+
+
+ACKNOWLEDGEMENTS
+================
+
+We would like to thank the following for their support and contribution
+towards the development of this package. We thank Jason Rennie for his
+QueryData package, the WordNet guys at Princeton for WordNet, Resnik,
+Hirst, St. Onge, Jiang, Conrath, Lin, Leacock and Chodorow for their
+algorithms and work on the relatedness measures. We also thank Bano
+(Satanjeev Banerjee) for his work on the adapted lesk module.
+
+
+
+REFERENCES
+==========
+
+(1) Leacock C. and Chodorow M. 1998. Combining local context and WordNet
+    similarity for word sense identification. In Fellbaum 1998,
+    pp. 265-283.
+
+(2) Jiang J. and Conrath D. 1997. Semantic similarity based on corpus
+    statistics and lexical taxonomy. In Proceedings of International
+    Conference on Research in Computational Linguistics, Taiwan.
+
+(3) Resnik P. 1995. Using information content to evaluate semantic
+    similarity. In Proceedings of the 14th International Joint Conference
+    on Artificial Intelligence, pages 448-453, Montreal.
+
+(4) Lin D. 1998. An information-theoretic definition of similarity. In
+    Proceedings of the 15th International Conference on Machine Learning,
+    Madison, WI.
+
+(5) Hirst G. and St-Onge D. 1998. Lexical Chains as representations of
+    context for the detection and correction of malapropisms. In Fellbaum
+    1998, pp. 305-332.
+
+(6) Budanitsky A. and Hirst G. 2001. Semantic distance in WordNet: An
+    experimental, application-oriented evaluation of five measures. In
+    Workshop on WordNet and Other Lexical Resources, Second meeting of the
+    North American Chapter of the Association for Computational
+    Linguistics. Pittsburgh, PA.
+
+(7) Fellbaum C., editor. WordNet: An electronic lexical database. MIT Press, 
+    1998. 
+
+(README: Last Updated 03/10/2003 -- Sid.)

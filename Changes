@@ -1,0 +1,33 @@
+Revision history for WordNet::Similarity.
+(Last modified -- 03/10/2003 -- Sid.)
+
+
+02/10/2003 WordNet::Similarity ver 0.01
+
+(1) Created CPAN modules from distance ver 0.11.
+
+(2) Modules are completely object oriented.
+
+(3) Added Adapted Lesk semantic relatedness measure -- lesk.pm.
+
+(4) Added simple edge counting semantic relatedness measure -- edge.pm.
+
+(5) Added a random relatedness measure -- random.pm.
+
+(6) jcn, res and lin measures now support verb hierarchies.
+
+(7) Information content files can now be specified as parameters to the
+    modules. 
+
+(8) Tools provided to build information content files from various publicly
+    available corpora.
+
+(9) Various parameters now control the behavior of the modules. These
+    parameters are passed to the modules through 'configuration files'.
+
+
+03/10/2003 WordNet::Similarity ver 0.03
+
+(1) Removed trace bug in hso.pm.
+
+(2) Added test cases for all modules.
