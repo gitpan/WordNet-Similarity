@@ -1,5 +1,5 @@
-# WordNet::Similarity::jcn.pm version 0.04
-# (Updated 05/02/2003 -- Sid)
+# WordNet::Similarity::jcn.pm version 0.05
+# (Updated 06/03/2003 -- Sid)
 #
 # Semantic Similarity Measure package implementing the semantic 
 # distance measure described by Jiang and Conrath (1997).
@@ -44,7 +44,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 
 # 'new' method for the jcn class... creates and returns a WordNet::Similarity::jcn object.
@@ -111,10 +111,11 @@ sub _initialize
     $self->{'doCache'} = 1;
     $self->{'simCache'} = ();
     $self->{'traceCache'} = ();
+    $self->{'cacheQ'} = ();
+    $self->{'maxCacheSize'} = 1000;
     
     # Initialize tracing.
     $self->{'trace'} = 0;
-    $self->{'traceString'} = "";
 
     # Parse the config file and
     # read parameters from the file.
@@ -307,13 +308,10 @@ sub _initialize
 
     # [trace]
     $self->{'traceString'} = "";
-    if($self->{'trace'})
-    {
-	$self->{'traceString'} .= "WordNet::Similarity::jcn object created:\n";
-	$self->{'traceString'} .= "trace :: ".($self->{'trace'})."\n";
-	$self->{'traceString'} .= "cache :: ".($self->{'doCache'})."\n";
-	$self->{'traceString'} .= "information content file :: $infoContentFile\n";
-    }
+    $self->{'traceString'} .= "WordNet::Similarity::jcn object created:\n";
+    $self->{'traceString'} .= "trace :: ".($self->{'trace'})."\n" if(defined $self->{'trace'});
+    $self->{'traceString'} .= "cache :: ".($self->{'doCache'})."\n" if(defined $self->{'doCache'});
+    $self->{'traceString'} .= "information content file :: $infoContentFile\n" if(defined $infoContentFile);
     # [/trace]
 
     # Check for a strange Root_Node_Frequency=0 condition. Normally, not possible.
@@ -426,7 +424,7 @@ sub getRelatedness
     {
 	if(defined $self->{'traceCache'}->{"${wps1}::$wps2"})
 	{
-	    $self->{'traceString'} = $self->{'traceCache'}->{"${wps1}::$wps2"};
+	    $self->{'traceString'} = $self->{'traceCache'}->{"${wps1}::$wps2"} if($self->{'trace'});
 	}
 	return $self->{'simCache'}->{"${wps1}::$wps2"};
     }
@@ -434,7 +432,7 @@ sub getRelatedness
     # Now get down to really finding the relatedness of these two.
     $offset1 = $wn->offset($wps1);
     $offset2 = $wn->offset($wps2);
-    $self->{'traceString'} = "";
+    $self->{'traceString'} = "" if($self->{'trace'});
 
     if(!$offset1 || !$offset2)
     {
@@ -479,7 +477,26 @@ sub getRelatedness
 		$self->{'traceString'} .= ")  ";
 	    }
 	}
-	$self->{'traceString'} .= "\n\n";
+	$self->{'traceString'} .= "\nConcept1: $wps1 (Freq=";
+	if($self->{'offsetFreq'}->{$pos}->{$offset1})
+	{
+	    $self->{'traceString'} .= $self->{'offsetFreq'}->{$pos}->{$offset1};
+	}
+	else
+	{
+	    $self->{'traceString'} .= "0";
+	}
+	$self->{'traceString'} .= ")\n";
+	$self->{'traceString'} .= "Concept2: $wps2 (Freq=";
+	if($self->{'offsetFreq'}->{$pos}->{$offset2})
+	{
+	    $self->{'traceString'} .= $self->{'offsetFreq'}->{$pos}->{$offset2};
+	}
+	else
+	{
+	    $self->{'traceString'} .= "0";
+	}
+	$self->{'traceString'} .= ")\n\n";
     }
     # [/trace]
 
@@ -544,6 +561,22 @@ sub getRelatedness
 	if($self->{'offsetFreq'}->{$pos}->{0} && $self->{'offsetFreq'}->{$pos}->{0} > 0.01)
 	{
 	    $score = 1/(-log(($self->{'offsetFreq'}->{$pos}->{0} - 0.01)/($self->{'offsetFreq'}->{$pos}->{0})));
+
+	    if($self->{'doCache'})
+	    {
+		$self->{'simCache'}->{"${wps1}::$wps2"} = $score;
+		$self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
+		push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
+		if($self->{'maxCacheSize'} >= 0)
+		{
+		    while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
+		    {
+			my $delItem = shift(@{$self->{'cacheQ'}});
+			delete $self->{'simCache'}->{$delItem};
+			delete $self->{'traceCache'}->{$delItem};
+		    }
+		}
+	    }
 	    return $score;
 	}
 	else
@@ -553,8 +586,22 @@ sub getRelatedness
     }
 
     $score = ($minDist != 0) ? (1/$minDist) : 0;
-    $self->{'simCache'}->{"${wps1}::$wps2"} = $score if($self->{'doCache'});
-    $self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'doCache'});
+
+    if($self->{'doCache'})
+    {
+	$self->{'simCache'}->{"${wps1}::$wps2"} = $score;
+	$self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
+	push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
+	if($self->{'maxCacheSize'} >= 0)
+	{
+	    while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
+	    {
+		my $delItem = shift(@{$self->{'cacheQ'}});
+		delete $self->{'simCache'}->{$delItem};
+		delete $self->{'traceCache'}->{$delItem};
+	    }
+	}
+    }
 
     return $score;
 }
@@ -565,7 +612,8 @@ sub getTraceString
 {
     my $self = shift;
     my $returnString = $self->{'traceString'};
-    $self->{'traceString'} = "";
+    $self->{'traceString'} = "" if($self->{'trace'});
+    $returnString =~ s/\n+$/\n/;
     return $returnString;
 }
 
@@ -818,7 +866,7 @@ sub _printSet
 	$opstr .= "$wps ";
     }
     $opstr =~ s/\s+$//;
-    $self->{'traceString'} .= $opstr;
+    $self->{'traceString'} .= $opstr if($self->{'trace'});
 }
 
 1;
@@ -832,21 +880,21 @@ of word senses according to the method described by Jiang and Conrath
 
 =head1 SYNOPSIS
 
-use WordNet::Similarity::jcn;
+  use WordNet::Similarity::jcn;
 
-use WordNet::QueryData;
+  use WordNet::QueryData;
 
-my $wn = WordNet::QueryData->new();
+  my $wn = WordNet::QueryData->new();
 
-my $rel = WordNet::Similarity::jcn->new($wn);
+  my $rel = WordNet::Similarity::jcn->new($wn);
 
-my $value = $rel->getRelatedness("car#n#1", "bus#n#2");
+  my $value = $rel->getRelatedness("car#n#1", "bus#n#2");
 
-($error, $errorString) = $rel->getError();
+  ($error, $errorString) = $rel->getError();
 
-die "$errorString\n" if($error);
+  die "$errorString\n" if($error);
 
-print "car (sense 1) <-> bus (sense 2) = $value\n";
+  print "car (sense 1) <-> bus (sense 2) = $value\n";
 
 =head1 DESCRIPTION
 
@@ -857,7 +905,7 @@ using the information content values of the WordNet concepts.
 
 =head1 USAGE
 
-  The semantic relatedness modules in this distribution are built as classes
+The semantic relatedness modules in this distribution are built as classes
 that expose the following methods:
   new()
   getRelatedness()
@@ -868,7 +916,7 @@ See the WordNet::Similarity(3) documentation for details of these methods.
 
 =head1 TYPICAL USAGE EXAMPLES
 
-  To create an object of the jcn measure, we would have the following
+To create an object of the jcn measure, we would have the following
 lines of code in the perl program. 
 
    use WordNet::Similarity::jcn;
@@ -900,13 +948,13 @@ traces are turned off.
 
 =head1 CONFIGURATION FILE
 
-  The behaviour of the measures of semantic relatedness can be controlled by
+The behaviour of the measures of semantic relatedness can be controlled by
 using configuration files. These configuration files specify how certain
 parameters are initialized within the object. A configuration file may be
 specififed as a parameter during the creation of an object using the new
 method. The configuration files must follow a fixed format.
 
-  Every configuration file starts the name of the module ON THE FIRST LINE of
+Every configuration file starts the name of the module ON THE FIRST LINE of
 the file. For example, a configuration file for the jcn module will have
 on the first line 'WordNet::Similarity::jcn'. This is followed by the various
 parameters, each on a new line and having the form 'name::value'. The
@@ -915,22 +963,25 @@ parameters, each on a new line and having the form 'name::value'. The
 supported in the configuration file. Anything following a '#' is ignored till
 the end of the line.
 
-  The module parses the configuration file and recognizes the following 
+The module parses the configuration file and recognizes the following 
 parameters:
-  (a) 'trace::' -- can take values 0, 1 or 2 or the value can be omitted,
-      in which case it sets the trace level to 1. Trace level 0 implies
-      no traces. Trace level 1 and 2 imply tracing is 'on', the only 
-      difference being the way in which the synsets are displayed in the 
-      traces. For trace level 1, the synsets are represented as word#pos#sense
-      strings, while for level 2, the synsets are represented as 
-      word#pos#offset strings.
-  (b) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
-      which case it takes the value 1, i.e. switches 'on' caching. A value of 
-      0 switches caching 'off'. By default caching is enabled.
-  (c) 'infocontent::' -- The value for this parameter should be a string that
-      specifies the path of an information content file containing the 
-      frequency of occurrence of every WordNet concept in a large corpus. The
-      format of this file is specified in a later section.
+  
+(a) 'trace::' -- can take values 0, 1 or 2 or the value can be omitted,
+in which case it sets the trace level to 1. Trace level 0 implies
+no traces. Trace level 1 and 2 imply tracing is 'on', the only 
+difference being the way in which the synsets are displayed in the 
+traces. For trace level 1, the synsets are represented as word#pos#sense
+strings, while for level 2, the synsets are represented as 
+word#pos#offset strings.
+  
+(b) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
+which case it takes the value 1, i.e. switches 'on' caching. A value of 
+0 switches caching 'off'. By default caching is enabled.
+  
+(c) 'infocontent::' -- The value for this parameter should be a string that
+specifies the path of an information content file containing the 
+frequency of occurrence of every WordNet concept in a large corpus. The
+format of this file is specified in a later section.
 
 =head1 INFORMATION CONTENT
 
@@ -953,30 +1004,30 @@ these files follows. The FIRST LINE of this file MUST contain the version
 of WordNet that the file was created with. This should be present as a string 
 of the form 
 
-wnver::<version>
+  wnver::<version>
 
 For example, if WordNet version 1.7.1 was used for creation of the
 information content file, the following line would be present at the start
 of the information content file.
 
-wnver::1.7.1
+  wnver::1.7.1
 
 The rest of the file contains on each line a WordNet synset offset, 
 part-of-speech and a frequency count, in the form
 
-<offset><part-of-speech> <frequency> [ROOT]
+  <offset><part-of-speech> <frequency> [ROOT]
 
 without any leading or trailing spaces. For example, one of the lines of an
 information content file may be as follows.
 
-63723n 667
+  63723n 667
 
 where '63723' is a noun synset offset and 667 is its frequency
 count. If a synset with offset 1740 is the root of a noun 'is-a' taxonomy in
 WordNet and its frequency count is 17265, it will appear in the information 
 content file as follows:
 
-1740n 17265 ROOT
+  1740n 17265 ROOT
 
 The ROOT tags are extremely significant in determining the top of the 
 hierarchies and must not be omitted. Typically, frequency counts for the noun
@@ -988,9 +1039,11 @@ perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
 http://www.d.umn.edu/~patw0006
 
-http://www.cogsci.princeton.edu/~wn/
+http://www.cogsci.princeton.edu/~wn
 
-http://www.ai.mit.edu/people/jrennie/WordNet/
+http://www.ai.mit.edu/people/jrennie/WordNet
+
+http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 

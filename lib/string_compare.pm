@@ -38,6 +38,8 @@ use Exporter;
 
 @EXPORT = qw (string_compare_initialize string_compare_getStringOverlaps);
 
+$VERSION = '0.03';
+
 my $stemmingReqd;
 my $wn;
 my $stemmer;

@@ -1,18 +1,18 @@
-# WordNet::Similarity::lesk.pm version 0.05
-# (Updated 06/03/2003 -- Sid)
+# WordNet::Similarity::vector.pm version 0.05
+# (Updated 06/09/2003 -- Sid)
 #
 # Module to accept two WordNet synsets and to return a floating point
-# number that indicates how similar those two synsets are, using an
-# adaptation of the Lesk method as outlined in <ACL/IJCAI/EMNLP paper,
-# Satanjeev Banerjee, Ted Pedersen>
+# number that indicates how similar those two synsets are, using a
+# gloss vector overlap measure based on "context vectors" described by 
+# Schütze (1998).
 #
 # Copyright (c) 2003,
-# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-# banerjee+@cs.cmu.edu
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
 # Siddharth Patwardhan, University of Minnesota, Duluth
 # patw0006@d.umn.edu
+# Ted Pedersen, University of Minnesota, Duluth
+# tpederse@d.umn.edu
+# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+# banerjee+@cs.cmu.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -32,18 +32,14 @@
 # Boston, MA  02111-1307, USA.
 
 
-package WordNet::Similarity::lesk;
+package WordNet::Similarity::vector;
 
 use strict;
-
+use PDL;
 use Exporter;
-
 use get_wn_info;
-
-use string_compare;
-
 use stem;
-
+use dbInterface;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @ISA = qw(Exporter);
@@ -57,11 +53,11 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 $VERSION = '0.05';
 
 
-# 'new' method for the lesk class... creates and returns a WordNet::Similarity::lesk object.
-# INPUT PARAMS  : $className  .. (WordNet::Similarity::lesk) (required)
+# 'new' method for the vector class... creates and returns a WordNet::Similarity::vector object.
+# INPUT PARAMS  : $className  .. (WordNet::Similarity::vector) (required)
 #                 $wn         .. The WordNet::QueryData object (required).
 #                 $configFile .. Name of the config file for getting the parameters (optional).
-# RETURN VALUE  : $lesk        .. The newly created lesk object.
+# RETURN VALUE  : $vector     .. The newly created vector object.
 sub new
 {
     my $className;
@@ -80,7 +76,7 @@ sub new
     $self->{'wn'} = $wn;
     if(!$wn)
     {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->new()) - ";
+	$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->new()) - ";
 	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
 	$self->{'error'} = 2;
     }
@@ -93,7 +89,7 @@ sub new
 }
 
 
-# Initialization of the WordNet::Similarity::lesk object... parses the config file and sets up 
+# Initialization of the WordNet::Similarity::vector object... parses the config file and sets up 
 # global variables, or sets them to default values.
 # INPUT PARAMS  : $paramFile .. File containing the module specific params.
 # RETURN VALUES : (none)
@@ -103,8 +99,12 @@ sub _initialize
     my $paramFile;
     my $relationFile;
     my $stopFile;
+    my $compFile;
+    my $vectorDB;
+    my $documentCount;
     my $wn;
     my $gwi;
+    my $db;
     my %stopHash = ();
 
     # Reference to the object.
@@ -128,13 +128,19 @@ sub _initialize
     $self->{'traceCache'} = ();
     $self->{'cacheQ'} = ();
     $self->{'maxCacheSize'} = 1000;
+    $self->{'vCache'} = ();
+    $self->{'vCacheQ'} = ();
+    $self->{'vCacheSize'} = 80;
     
     # Initialize tracing.
     $self->{'trace'} = 0;
+    $self->{'traceString'} = "";
 
-    # Stemming? Normalizing?
+    # Stemming? Cutoff? Compounds?
     $self->{'doStem'} = 0;
-    $self->{'doNormalize'} = 0;
+#   $self->{'cutoff'} = -1;
+    $self->{'compounds'} = {};
+    $self->{'stopHash'} = {};
 
     # Parse the config file and
     # read parameters from the file.
@@ -144,117 +150,79 @@ sub _initialize
     {
 	my $modname;
 	
-	if(open(PARAM, $paramFile))
+	if(!open(PARAM, $paramFile))
 	{
-	    $modname = <PARAM>;
-	    $modname =~ s/[\r\f\n]//g;
-	    $modname =~ s/\s+//g;
-	    if($modname =~ /^WordNet::Similarity::lesk/)
-	    {
-		while(<PARAM>)
-		{
-		    s/[\r\f\n]//g;
-		    s/\#.*//;
-		    s/\s+//g;
-		    if(/^trace::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'trace'} = 2;
-			$self->{'trace'} = $tmp if($tmp =~ /^[012]$/);
-		    }
-		    elsif(/^relation::(.*)/)
-		    {
-			$relationFile = $1;
-		    }
-		    elsif(/^stop::(.*)/)
-		    {
-			$stopFile = $1;
-		    }
-		    elsif(/^stem::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'doStem'} = 1;
-			$self->{'doStem'} = $tmp if($tmp =~ /^[01]$/);
-		    }
-		    elsif(/^normalize::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'doNormalize'} = 1;
-			$self->{'doNormalize'} = $tmp if($tmp =~ /^[01]$/);
-		    }
-		    elsif(/^cache::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'doCache'} = 1;
-			$self->{'doCache'} = $tmp if($tmp =~ /^[01]$/);
-		    }
-		    elsif($_ ne "")
-		    {
-			s/::.*//;
-			$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lesk->_initialize()) - ";
-			$self->{'errorString'} .= "Unrecognized parameter '$_'. Ignoring.";
-			$self->{'error'} = 1;
-		    }
-		}
-	    }
-	    else
-	    {
-		$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
-		$self->{'errorString'} .= "$paramFile does not appear to be a config file.";
-		$self->{'error'} = 2;
-		return;
-	    }
-	    close(PARAM);
-	}
-	else
-	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
+	    $self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
 	    $self->{'errorString'} .= "Unable to open config file $paramFile.";
 	    $self->{'error'} = 2;
 	    return;
 	}
-    }
-
-    # Look for the default relation file if not specified by the user.
-    # Search the @INC path in WordNet/Similarity.
-    if(!(defined $relationFile))
-    {
-	my $path;
-	my $header;
-	my @possiblePaths = ();
-
-	# Look for all possible default data files installed.
-	foreach $path (@INC)
+	$modname = <PARAM>;
+	$modname =~ s/[\r\f\n]//g;
+	$modname =~ s/\s+//g;
+	if($modname !~ /^WordNet::Similarity::vector/)
 	{
-	    if(-e $path."/WordNet/relation.dat")
+	    close PARAM;
+	    $self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
+	    $self->{'errorString'} .= "$paramFile does not appear to be a config file.";
+	    $self->{'error'} = 2;
+	    return;
+	}
+	while(<PARAM>)
+	{
+	    s/[\r\f\n]//g;
+	    s/\#.*//;
+	    s/\s+//g;
+	    if(/^trace::(.*)/)
 	    {
-		push @possiblePaths, $path."/WordNet/relation.dat";
+		my $tmp = $1;
+		$self->{'trace'} = 1;
+		$self->{'trace'} = $tmp if($tmp =~ /^[01]$/);
 	    }
-	    elsif(-e $path."\\WordNet\\relation.dat")
+	    elsif(/^relation::(.*)/)
 	    {
-		push @possiblePaths, $path."\\WordNet\\relation.dat";
+		$relationFile = $1;
+	    }
+	    elsif(/^vectordb::(.*)/)
+	    {
+		$vectorDB = $1;
+	    }
+	    elsif(/^stop::(.*)/)
+	    {
+		$stopFile = $1;
+	    }
+	    elsif(/^compounds::(.*)/)
+	    {
+		$compFile = $1;
+	    }
+	    elsif(/^stem::(.*)/)
+	    {
+		my $tmp = $1;
+		$self->{'doStem'} = 1;
+		$self->{'doStem'} = $tmp if($tmp =~ /^[01]$/);
+	    }
+	    elsif(/^cache::(.*)/)
+	    {
+		my $tmp = $1;
+		$self->{'doCache'} = 1;
+		$self->{'doCache'} = $tmp if($tmp =~ /^[01]$/);
+	    }
+#	    elsif(/^cutoff::(.*)/)
+#	    {
+#		my $tmp = $1;
+#		$self->{'cutoff'} = $tmp if($tmp =~ /^(([0-9]+(\.[0-9]+)?)|(\.[0-9]+))$/);
+#	    }
+	    elsif($_ ne "")
+	    {
+		s/::.*//;
+		$self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->_initialize()) - ";
+		$self->{'errorString'} .= "Unrecognized parameter '$_'. Ignoring.";
+		$self->{'error'} = 1;
 	    }
 	}
-
-	# If there are multiple possibilities, get the one in the correct format.
-	foreach $path (@possiblePaths)
-	{
-	    if(open(RELATIONS, $path))
-	    {
-		$header = <RELATIONS>;
-		$header =~ s/[\r\f\n]//g;
-		$header =~ s/\s+//g;
-		if($header =~ /LeskRelationFile/)
-		{
-		    $relationFile = $path;
-		    close(RELATIONS);
-		    last;
-		}
-		close(RELATIONS);
-	    }
-	}
+	close(PARAM);
     }
-
+    
     # Load the stop list.
     if($stopFile)
     {
@@ -265,15 +233,43 @@ sub _initialize
 	    while($line = <STOP>)
 	    {
 		$line =~ s/[\r\f\n]//g;
-		$line =~ s/\s//g;
-		$stopHash{$line} = 1;		
+		$line =~ s/^\s+//;
+		$line =~ s/\s+$//;
+		$line =~ s/\s+/_/g;
+		$stopHash{$line} = 1;
+		$self->{'stopHash'}->{$line} = 1;
 	    }
 	    close(STOP);   
 	}
 	else
 	{
-	    $self->{'errorString'} .= "\nWarning (WordNet::Similarity::lesk->_initialize()) - ";
+	    $self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->_initialize()) - ";
 	    $self->{'errorString'} .= "Unable to open $stopFile.";
+	    $self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+	}
+    }
+
+    # Load the compounds.
+    if($compFile)
+    {
+	my $line;
+
+	if(open(COMP, $compFile))
+	{
+	    while($line = <COMP>)
+	    {
+		$line =~ s/[\r\f\n]//g;
+		$line =~ s/^\s+//;
+		$line =~ s/\s+$//;
+		$line =~ s/\s+/_/g;
+		$self->{'compounds'}->{$line} = 1;		
+	    }
+	    close(COMP);   
+	}
+	else
+	{
+	    $self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->_initialize()) - ";
+	    $self->{'errorString'} .= "Unable to open $compFile.";
 	    $self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
 	}
     }
@@ -292,18 +288,88 @@ sub _initialize
 	$self->{'gwi'} = $gwi;
     }
 
-    # Load the relations data.
-    if($relationFile)
+    # Initialize the word vector database interface...
+    if(!defined $vectorDB)
+    {	
+	$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
+	$self->{'errorString'} .= "Word Vector database file not specified. Use configuration file.";
+	$self->{'error'} = 2;
+	return;
+    }
+
+    # Get the documentCount...
+    $db = dbInterface->new($vectorDB, "DocumentCount");
+    if(!$db)
     {
+	$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
+	$self->{'errorString'} .= "Unable to open word vector database.";
+	$self->{'error'} = 2;
+	return;
+    }
+    ($documentCount) = $db->getKeys();
+    $db->finalize();
+
+    # Load the word vector dimensions...
+    $db = dbInterface->new($vectorDB, "Dimensions");
+    if(!$db)
+    {
+      $self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
+	    $self->{'errorString'} .= "Unable to open word vector database.";
+	    $self->{'error'} = 2;
+	    return;
+    }
+    my @keys = $db->getKeys();
+    my $key;
+    $self->{'numberOfDimensions'} = scalar(@keys);
+    foreach $key (@keys)
+    {
+	my $ans = $db->getValue($key);
+	my @prts = split(/\s+/, $ans);
+	$self->{'wordIndex'}->{$key} = $prts[0];
+	$self->{'indexWord'}->[$prts[0]] = $key;
+    }
+    $db->finalize();
+    
+    # Set up the interface to the word vectors...
+    $db = dbInterface->new($vectorDB, "Vectors");
+    if(!$db)
+    {
+	$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
+	$self->{'errorString'} .= "Unable to open word vector database.";
+	$self->{'error'} = 2;
+	return;
+    }
+    @keys = $db->getKeys();
+    foreach $key (@keys)
+    {
+	my $vec = $db->getValue($key);
+	if(defined $vec)
+	{
+	    $self->{'table'}->{$key} = $vec;
+	}
+    }
+    $db->finalize();
+
+    # If relation file not specified... manually add the relations to
+    # be used...
+    if(!(defined $relationFile))
+    {
+	$self->{'weights'}->[0] = 1;
+	$self->{'functions'}->[0]->[0]->[0] = "glosexample";
+	$self->{'functions'}->[0]->[1]->[0] = "glosexample";
+    }
+    else
+    {
+	# Load the relations data
 	my $header;
 	my $relation;
-
+	
 	if(open(RELATIONS, $relationFile))
 	{
 	    $header = <RELATIONS>;
 	    $header =~ s/[\r\f\n]//g;
 	    $header =~ s/\s+//g;
-	    if($header =~ /LeskRelationFile/)
+	    if($header =~ /VectorRelationFile/)
 	    {
 		my $index = 0;
 		$self->{'functions'} = ();
@@ -318,7 +384,8 @@ sub _initialize
 		    # them into the @functions triple dimensioned array!
 		    
 		    # remove leading/trailing spaces from the relation
-		    $relation =~ s/^\s*(\S*?)\s*$/$1/;
+		    $relation =~ s/^\s*//;
+		    $relation =~ s/\s*$//;
 		    
 		    # now extract the weight if any. if no weight, assume 1
 		    if($relation =~ /(\S+)\s+(\S+)/)
@@ -335,7 +402,7 @@ sub _initialize
 		    # there are two blocks of functions!
 		    if($relation !~ /(.*)-(.*)/)
 		    {
-			$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
+			$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
 			$self->{'errorString'} .= "Bad file format ($relationFile).";
 			$self->{'error'} = 2;
 			close(RELATIONS);
@@ -360,7 +427,7 @@ sub _initialize
 			my $fn = $functionArray[$#functionArray];
 			if(!($gwi->can($fn)))
 			{
-			    $self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
+			    $self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
 			    $self->{'errorString'} .= "Undefined function ($functionArray[$#functionArray]) in relations file.";
 			    $self->{'error'} = 2;
 			    close(RELATIONS);
@@ -379,7 +446,7 @@ sub _initialize
 			    my $fn3 = $functionArray[$k+1];
 			    if(!($gwi->can($fn2)))
 			    {
-				$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
+				$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
 				$self->{'errorString'} .= "Undefined function ($functionArray[$k]) in relations file.";
 				$self->{'error'} = 2;
 				close(RELATIONS);
@@ -391,7 +458,7 @@ sub _initialize
 			    
 			    if($input != $output)
 			    {
-				$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
+				$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
 				$self->{'errorString'} .= "Invalid function combination - $functionArray[$k]($functionArray[$k+1]).";
 				$self->{'error'} = 2;
 				close(RELATIONS);
@@ -416,7 +483,7 @@ sub _initialize
 	    }
 	    else
 	    {
-		$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
+		$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
 		$self->{'errorString'} .= "Bad file format ($relationFile).";
 		$self->{'error'} = 2;
 		close(RELATIONS);
@@ -426,38 +493,29 @@ sub _initialize
 	}
 	else
 	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
+	    $self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
 	    $self->{'errorString'} .= "Unable to open $relationFile.";
 	    $self->{'error'} = 2;
 	    return;
 	}
     }
-    else
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
-	$self->{'errorString'} .= "No default relations file found.";
-	$self->{'error'} = 2;
-	return;
-    }
     
-    # initialize string compare module. No stemming in string
-    # comparison, so put 0.
-    &string_compare_initialize(0, %stopHash);
-
     # [trace]
-    $self->{'traceString'} = "";
-    $self->{'traceString'} .= "WordNet::Similarity::lesk object created:\n";
+    $self->{'traceString'} = "WordNet::Similarity::vector object created:\n";
     $self->{'traceString'} .= "trace          :: ".($self->{'trace'})."\n" if(defined $self->{'trace'});
     $self->{'traceString'} .= "cache          :: ".($self->{'doCache'})."\n" if(defined $self->{'doCache'});
     $self->{'traceString'} .= "stem           :: ".($self->{'doStem'})."\n" if(defined $self->{'doStem'});
-    $self->{'traceString'} .= "normalize      :: ".($self->{'doNormalize'})."\n" if(defined $self->{'doNormalize'});
-    $self->{'traceString'} .= "relation File  :: $relationFile\n" if($relationFile);
-    $self->{'traceString'} .= "stop File      :: $stopFile\n" if($stopFile);
+#   $self->{'traceString'} .= "cutoff         :: ".($self->{'cutoff'})."\n" if(defined $self->{'cutoff'} && $self->{'cutoff'} >= 0);
+    $self->{'traceString'} .= "max Cache Size :: ".($self->{'maxCacheSize'})."\n" if(defined $self->{'maxCacheSize'});
+    $self->{'traceString'} .= "relation File  :: $relationFile\n" if(defined $relationFile);
+    $self->{'traceString'} .= "stop List      :: $stopFile\n" if(defined $stopFile);
+    $self->{'traceString'} .= "compounds file :: $compFile\n" if(defined $compFile);
+    $self->{'traceString'} .= "word Vector DB :: $vectorDB\n" if(defined $vectorDB);
     # [/trace]
 }
 
 
-# The adapted Lesk relatedness measure subroutine ...
+# The gloss vector relatedness measure subroutine ...
 # INPUT PARAMS  : $wps1     .. one of the two wordsenses.
 #                 $wps2     .. the second wordsense of the two whose 
 #                              semantic relatedness needs to be measured.
@@ -470,11 +528,12 @@ sub getRelatedness
     my $wps2 = shift;
     my $wn = $self->{'wn'};
     my $gwi = $self->{'gwi'};
+    my $db = $self->{'db'};
 
     # Check the existence of the WordNet::QueryData object.
     if(!$wn)
     {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->getRelatedness()) - ";
+	$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->getRelatedness()) - ";
 	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
 	$self->{'error'} = 2;
 	return undef;
@@ -486,7 +545,7 @@ sub getRelatedness
     # Undefined input cannot go unpunished.
     if(!$wps1 || !$wps2)
     {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lesk->getRelatedness()) - Undefined input values.";
+	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->getRelatedness()) - Undefined input values.";
 	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
 	return undef;
     }
@@ -494,14 +553,14 @@ sub getRelatedness
     # Security check -- are the input strings in the correct format (word#pos#sense).
     if($wps1 !~ /^\S+\#([nvar])\#\d+$/)
     {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lesk->getRelatedness()) - ";
+	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->getRelatedness()) - ";
 	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
 	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
 	return undef;
     }
     if($wps2 !~ /^\S+\#([nvar])\#\d+$/)
     {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lesk->getRelatedness()) - ";
+	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->getRelatedness()) - ";
 	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
 	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
 	return undef;
@@ -515,14 +574,40 @@ sub getRelatedness
 	return $self->{'simCache'}->{"${wps1}::$wps2"};
     }
 
-    # see if any traces reqd. if so, put in the synset arrays. 
-    if($self->{'trace'})
+    # Are the gloss vectors present in the cache...
+    if(defined $self->{'vCache'}->{$wps1} && defined $self->{'vCache'}->{$wps2})
     {
-	# ah so we do need SOME traces! put in the synset names. 
-	$self->{'traceString'}  = "Synset 1: $wps1\n";
-	$self->{'traceString'} .= "Synset 2: $wps2\n";
+	if($self->{'trace'})
+	{
+	    # ah so we do need SOME traces! put in the synset names. 
+	    $self->{'traceString'} .= "Synset 1: $wps1 (Gloss Vector found in Cache)\n";
+	    $self->{'traceString'} .= "Synset 2: $wps2 (Gloss Vector found in Cache)\n";
+	}	
+	my $a = $self->{'vCache'}->{$wps1};
+	my $b = $self->{'vCache'}->{$wps2};
+	my $cos = inner($a, $b);
+	my $score = $cos->sclr();
+
+	# that does all the scoring. Put in cache if doing cacheing. Then
+	# return the score.    
+	if($self->{'doCache'})
+	{
+	    $self->{'simCache'}->{"${wps1}::$wps2"} = $score;
+	    $self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
+	    push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
+	    if($self->{'maxCacheSize'} >= 0)
+	    {
+		while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
+		{
+		    my $delItem = shift(@{$self->{'cacheQ'}});
+		    delete $self->{'simCache'}->{$delItem};
+		    delete $self->{'traceCache'}->{$delItem};
+		}
+	    }
+	}
+	return $score;
     }
-    
+
     # we shall put the first synset in a "set" of itself, and the
     # second synset in another "set" of itself. These sets may
     # increase in size as the functions are applied (since some
@@ -542,6 +627,8 @@ sub getRelatedness
     # and now go thru the functions array, get the strings and do the scoring
     my $i = 0;
     my %overlaps;
+    my $firstString = "";
+    my $secondString = "";
     while(defined $self->{'functions'}->[$i])
     {
 	my $functionsString = "";
@@ -586,7 +673,7 @@ sub getRelatedness
 	}
 	
 	# finally we should have one cute little string!
-	my $firstString = $arguments[0];
+	$firstString .= $arguments[0];
 	
 	# next do all this for the string for the second set
 	@arguments = @secondSet;
@@ -599,106 +686,89 @@ sub getRelatedness
 	    $j++;
 	}
 	
-	my $secondString = $arguments[0];
-	
-	# so those are the two strings for this relation pair. get the
-	# string overlaps
-	undef %overlaps;
-	%overlaps = &string_compare_getStringOverlaps($firstString, $secondString);
-	
-	# now get the number of words (discouting the markers) in
-	# these two strings, if normalizing requested
-	my $numWords1 = 0;
-	my $numWords2 = 0;
-	
-	if($self->{'doNormalize'})
-	{
-	    $numWords1 = 0;
-	    my $tempString = $firstString;
-	    $tempString =~ s/^\s*//;
-	    $tempString =~ s/\s*$//;
-	    $tempString =~ s/\s+/ /;
-	    
-	    foreach (split /\s+/, $tempString)
-	    {
-		next if(/EEE\d{5}EEE/);
-		next if(/GGG\d{5}GGG/);
-		next if(/SSS\d{5}SSS/);
-		$numWords1++;
-	    }
-	    
-	    $numWords2 = 0;
-	    $tempString = $secondString;
-	    $tempString =~ s/^\s*//;
-	    $tempString =~ s/\s*$//;
-	    $tempString =~ s/\s+/ /;
-	    
-	    foreach (split /\s+/, $tempString)
-	    {
-		next if(/EEE\d{5}EEE/);
-		next if(/GGG\d{5}GGG/);
-		next if(/SSS\d{5}SSS/);
-		$numWords2++;
-	    }
-	}
-	
-	my $overlapsTraceString = "";
-	my $key;
-	foreach $key (keys %overlaps)
-	{
-	    # find the length of the key, square it, multiply with its
-	    # value and finally with the weight associated with this
-	    # relation pair to get the score for this particular
-	    # overlap.
-	    
-	    my @tempArray = split(/\s+/, $key);
-	    my $value = ($#tempArray + 1) * ($#tempArray + 1) * $overlaps{$key};
-	    $functionsScore += $value;
-	    
-	    # put this overlap into the trace string, if necessary
-	    if($self->{'trace'} == 1)
-	    {
-		$overlapsTraceString .= "$overlaps{$key} x \"$key\"  ";
-	    }
-	}
-	
-	# normalize the function score computed above if required
-	if($self->{'doNormalize'} && ($numWords1 * $numWords2))
-	{
-	    $functionsScore /= ($numWords1 * $numWords2);
-	}
-	
-	# weight functionsScore with weight of this function
-	$functionsScore *= $self->{'weights'}->[$i];
-	
-	# add to main score for this sense
-	$score += $functionsScore;
-	
-	# if we have an overlap, send functionsString, functionsScore
-	# and overlapsTraceString to trace string, if trace string requested
-	if($self->{'trace'} == 1 && $overlapsTraceString ne "")
-	{
-	    $self->{'traceString'} .= "$functionsString: $functionsScore\n";
-	    $funcStringPrinted = 1;
-	    
-	    $self->{'traceString'} .= "Overlaps: $overlapsTraceString\n";
-	}
-	
+	$secondString .= $arguments[0];
+		
 	# check if the two strings need to be reported in the trace.
-	if($self->{'trace'} == 2)
+	if($self->{'trace'})
 	{
 	    if(!$funcStringPrinted)
 	    {
-		$self->{'traceString'} .= "$functionsString";
+		$self->{'traceString'} .= "$functionsString\n";
 		$funcStringPrinted = 1;
 	    }
-	    
-	    $self->{'traceString'} .= "String 1: \"$firstString\"\n";
-	    $self->{'traceString'} .= "String 2: \"$secondString\"\n";
 	}
 	
 	$i++;
     }
+
+    # Preprocess...
+    $firstString =~ s/\'//g;
+    $firstString =~ s/[^a-z0-9]+/ /g;
+    $firstString =~ s/^\s+//;
+    $firstString =~ s/\s+$//;
+    $firstString = $self->_compoundify($firstString);
+    $secondString =~ s/\'//g;
+    $secondString =~ s/[^a-z0-9]+/ /g;
+    $secondString =~ s/^\s+//;
+    $secondString =~ s/\s+$//;
+    $secondString = $self->_compoundify($secondString);
+    
+    # Get vectors... score...
+    my $a;
+    my $b;
+    my $trr;
+
+    # see if any traces reqd. if so, put in the synset arrays. 
+    if($self->{'trace'})
+    {
+	# ah so we do need SOME traces! put in the synset names. 
+	$self->{'traceString'} .= "Synset 1: $wps1";
+    }
+    if(defined $self->{'vCache'}->{$wps1})
+    {
+	$a = $self->{'vCache'}->{$wps1};
+	$self->{'traceString'} .= " (Gloss vector found in cache)\n" if($self->{'trace'});
+    }
+    else
+    {
+	($a, $trr) = $self->_getVector($firstString);
+	$self->{'traceString'} .= "\nString: \"$firstString\"\n$trr\n" if($self->{'trace'});
+	$a = norm($a);
+	$self->{'vCache'}->{$wps1} = $a;
+	push(@{$self->{'vCacheQ'}}, $wps1);
+	while(scalar(@{$self->{'vCacheQ'}}) > $self->{'vCacheSize'})
+	{
+	    my $wps = shift(@{$self->{'vCacheQ'}});
+	    delete $self->{'vCache'}->{$wps}
+	}
+    }
+
+    if($self->{'trace'})
+    {
+	# ah so we do need SOME traces! put in the synset names. 
+	$self->{'traceString'} .= "Synset 2: $wps2";
+    }
+    if(defined $self->{'vCache'}->{$wps2})
+    {
+	$b = $self->{'vCache'}->{$wps2};
+	$self->{'traceString'} .= " (Gloss vector found in cache)\n" if($self->{'trace'});
+    }
+    else
+    {
+	($b, $trr) = $self->_getVector($secondString);
+	$self->{'traceString'} .= "\nString: \"$secondString\"\n$trr\n" if($self->{'trace'});
+	$b = norm($b);
+	$self->{'vCache'}->{$wps2} = $b;
+	push(@{$self->{'vCacheQ'}}, $wps2);
+	while(scalar(@{$self->{'vCacheQ'}}) > $self->{'vCacheSize'})
+	{
+	    my $wps = shift(@{$self->{'vCacheQ'}});
+	    delete $self->{'vCache'}->{$wps}
+	}
+    }
+
+    my $cos = inner($a, $b);
+    $score = $cos->sclr();
     
     # that does all the scoring. Put in cache if doing cacheing. Then
     # return the score.    
@@ -728,7 +798,6 @@ sub getTraceString
     my $self = shift;
     my $returnString = $self->{'traceString'}."\n";
     $self->{'traceString'} = "" if($self->{'trace'});
-    $returnString =~ s/\n+$/\n/;
     return $returnString;
 }
 
@@ -745,29 +814,132 @@ sub getError
     return ($error, $errorString);
 }
 
+# Method to compute a context vector from a given body of text...
+sub _getVector
+{
+    my $self = shift;
+    my $text = shift;
+    my $ret = zeroes($self->{'numberOfDimensions'});
+    return $ret if(!defined $text);
+    my @words = split(/\s+/, $text);
+    my $word;
+    my %types;
+    my $fstFlag = 1;
+    my $localTraces = "";
+
+    # [trace]
+    if($self->{'trace'})
+    {
+	$localTraces .= "Word Vectors for: ";
+    }
+    # [/trace]
+
+    foreach $word (@words)
+    {
+	$types{$word} = 1 if($word !~ /[XGES]{3}\d{5}[XGES]{3}/);
+    }
+    foreach $word (keys %types)
+    {
+	if(defined $self->{'table'}->{$word} && !defined $self->{'stopHash'}->{$word})
+	{
+	    my %pieces = split(/\s+/, $self->{'table'}->{$word});
+	    my $kk;
+
+	    # [trace]
+	    if($self->{'trace'})
+	    {
+		$localTraces .= ", " if(!$fstFlag);
+		$localTraces .= "$word";
+		$fstFlag = 0;
+	    }
+	    # [/trace]
+
+	    foreach $kk (keys %pieces)
+	    {
+		$ret->index($kk) += $pieces{$kk};
+	    }
+	}
+    }
+    
+    return ($ret, $localTraces);
+}
+
+# Method that determines all possible compounds in a line of text.
+sub _compoundify
+{
+    my $self = shift;
+    my $block = shift;
+    my $string;
+    my $done;
+    my $temp;
+    my $firstPointer;
+    my $secondPointer;
+    my @wordsArray;
+    
+    return undef if(!defined $block);
+    
+    # get all the words into an array
+    @wordsArray = ();
+    while ($block =~ /(\w+)/g)
+    {
+	push @wordsArray, $1;
+    }
+    
+    # now compoundify, GREEDILY!!
+    $firstPointer = 0;
+    $string = "";
+    
+    while($firstPointer <= $#wordsArray)
+    {
+	$secondPointer = $#wordsArray;
+	$done = 0;
+	while($secondPointer > $firstPointer && !$done)
+	{
+	    $temp = join ("_", @wordsArray[$firstPointer..$secondPointer]);
+	    if(exists $self->{'compounds'}->{$temp})
+	    {
+		$string .= "$temp "; 
+		$done = 1;
+	    }
+	    else 
+	    { 
+		$secondPointer--; 
+	    }
+	}
+	if(!$done) 
+	{ 
+	    $string .= "$wordsArray[$firstPointer] "; 
+	}
+	$firstPointer = $secondPointer + 1;
+    }
+    $string =~ s/ $//;
+
+    return $string;
+}
 
 1;
+
 __END__
 
 =head1 NAME
 
-WordNet::Similarity::lesk - Perl module for computing semantic relatedness
-of word senses using gloss overlaps as decribed by Banerjee and Pedersen 
-(2002) -- a method that adapts the Lesk approach to WordNet.
+WordNet::Similarity::vector - Perl module for computing semantic relatedness
+of word senses using second order co-occurrence vectors of glosses of the word
+senses.
 
 =head1 SYNOPSIS
 
-  use WordNet::Similarity::lesk;
+  use WordNet::Similarity::vector;
 
   use WordNet::QueryData;
 
   my $wn = WordNet::QueryData->new();
 
-  my $lesk = WordNet::Similarity::lesk->new($wn);
+  my $vector = WordNet::Similarity::vector->new($wn);
 
-  my $value = $lesk->getRelatedness("car#n#1", "bus#n#2");
+  my $value = $vector->getRelatedness("car#n#1", "bus#n#2");
 
-  ($error, $errorString) = $lesk->getError();
+  ($error, $errorString) = $vector->getError();
 
   die "$errorString\n" if($error);
 
@@ -775,12 +947,12 @@ of word senses using gloss overlaps as decribed by Banerjee and Pedersen
 
 =head1 DESCRIPTION
 
-Lesk (1985) proposed that the relatedness of two words is proportional to
-to the extent of overlaps of their dictionary definitions. Banerjee and 
-Pedersen (2002) extended this notion to use WordNet as the dictionary
-for the word definitions. This notion was further extended to use the rich
-network of relationships between concepts present is WordNet. This adapted
-lesk measure has been implemented in this module.
+Schütze (1998) creates what he calls context vectors (second order 
+co-occurrence vectors) of pieces of text for the purpose of Word Sense
+Discrimination. This idea is adopted by Patwardhan and Pedersen to represent the 
+word senses by second-order co-occurrence vectors of their dictionary (WordNet) 
+definitions. The relatedness of two senses is then computed as the cosine of 
+their representative gloss vectors.
 
 =head1 USAGE
 
@@ -795,32 +967,32 @@ See the WordNet::Similarity(3) documentation for details of these methods.
 
 =head1 TYPICAL USAGE EXAMPLES
 
-To create an object of the lesk measure, we would have the following
+To create an object of the vector measure, we would have the following
 lines of code in the perl program. 
 
-   use WordNet::Similarity::lesk;
-   $measure = WordNet::Similarity::lesk->new($wn, '/home/sid/lesk.conf');
+  use WordNet::Similarity::vector;
+  $measure = WordNet::Similarity::vector->new($wn, '/home/sid/vector.conf');
 
 The reference of the initialized object is stored in the scalar variable
 '$measure'. '$wn' contains a WordNet::QueryData object that should have been
 created earlier in the program. The second parameter to the 'new' method is
-the path of the configuration file for the lesk measure. If the 'new'
+the path of the configuration file for the vector measure. If the 'new'
 method is unable to create the object, '$measure' would be undefined. This, 
 as well as any other error/warning may be tested.
 
-   die "Unable to create object.\n" if(!defined $measure);
-   ($err, $errString) = $measure->getError();
-   die $errString."\n" if($err);
+  die "Unable to create object.\n" if(!defined $measure);
+  ($err, $errString) = $measure->getError();
+  die $errString."\n" if($err);
 
 To find the sematic relatedness of the first sense of the noun 'car' and
 the second sense of the noun 'bus' using the measure, we would write
 the following piece of code:
 
-   $relatedness = $measure->getRelatedness('car#n#1', 'bus#n#2');
+  $relatedness = $measure->getRelatedness('car#n#1', 'bus#n#2');
   
 To get traces for the above computation:
 
-   print $measure->getTraceString();
+  print $measure->getTraceString();
 
 However, traces must be enabled using configuration files. By default
 traces are turned off.
@@ -834,8 +1006,8 @@ specififed as a parameter during the creation of an object using the new
 method. The configuration files must follow a fixed format.
 
 Every configuration file starts the name of the module ON THE FIRST LINE of
-the file. For example, a configuration file for the lesk module will have
-on the first line 'WordNet::Similarity::lesk'. This is followed by the various
+the file. For example, a configuration file for the vector module will have
+on the first line 'WordNet::Similarity::vector'. This is followed by the various
 parameters, each on a new line and having the form 'name::value'. The
 'value' of a parameter is optional (in case of boolean parameters). In case
 'value' is omitted, we would have just 'name::' on that line. Comments are
@@ -844,31 +1016,32 @@ the end of the line.
 
 The module parses the configuration file and recognizes the following 
 parameters:
-  
+
 (a) 'trace::' -- The value of this parameter specifies the level of
 tracing that should be employed for generating the traces. This value
 is an integer 0, 1 or 2. A value of 0 switches tracing off. A value of
 1 displays as traces only the gloss overlaps found. A value of 2 displays
 as traces, all the text being compared.
-  
-(b) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
-which case it takes the value 1, i.e. switches 'on' caching. A value of 
-0 switches caching 'off'. By default caching is enabled.
-  
+
+(b) 'vectordb::' -- Value is a Berkeley DB database file containing word 
+vectors, i.e. co-occurrence vectors for all the words in the WordNet 
+glosses.
+
 (c) 'stop::' -- The value is a string that specifies the path of a file 
-containing a list of stop words that should be ignored for the gloss
-overlaps.
-  
-(d) 'stem::' -- can take values 0 or 1 or the value can be omitted, in 
+containing a list of stop words that should be ignored in the gloss 
+vectors.
+
+(d) 'compounds::' -- The value is a string that specifies the path of a file 
+containing a list of compound words in WordNet.
+
+(e) 'stem::' -- can take values 0 or 1 or the value can be omitted, in 
 which case it takes the value 1, i.e. switches 'on' stemming. A value of 
 0 switches stemming 'off'. When stemming is enabled, all the words of the
-glosses are stemmed before their overlaps are determined.
-  
-(e) 'normalize::' -- can take values 0 or 1 or the value can be omitted, in 
-which case it takes the value 1, i.e. switches 'on' normalizing of the score. 
-A value of 0 switches normalizing 'off'. When normalizing is enabled, the 
-score obtained by counting the gloss overlaps is normalized by the size
-of the glosses. The details are described in Banerjee Pedersen (2002).
+glosses are stemmed before their vectors are created.
+
+(f) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
+which case it takes the value 1, i.e. switches 'on' caching. A value of 
+0 switches caching 'off'. By default caching is enabled.
 
 =head1 SEE ALSO
 

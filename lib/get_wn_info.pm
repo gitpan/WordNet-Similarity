@@ -1,5 +1,5 @@
-# get_wn_info.pm version 0.03
-# (Updated 03/10/2003 -- Sid)
+# get_wn_info.pm version 0.05
+# (Updated 05/23/2003 -- Sid)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
@@ -31,11 +31,8 @@
 package get_wn_info;
 
 use stem;
-
 use strict;
-
 use Exporter;
-
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @ISA = qw(Exporter);
@@ -46,7 +43,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.03';
+$VERSION = '0.05';
 
 # function to set up the wordnet object and the various boundary indices
 sub new
@@ -768,6 +765,66 @@ sub syns
 	    ($self->{'synonymBoundaryIndex'})++;
 	}
     }	
+    
+    # and we are done!
+    return($returnString);
+}
+
+# function to take a set of synsets and to return the concatenation of
+# their glosses (including the examples)
+sub glosexample
+{
+    my $self = shift;
+    my $wn = $self->{'wn'};
+    my $stemmer = $self->{'stemmer'};
+    my @synsets = @_;
+    my $returnString = "";
+    
+    # check if this is a request for the input-output types of this
+    # function
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 2);
+    }
+    
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
+    {
+	# check if in word-pos-sense format
+	if ($synsets[$i] !~ /\#\w\#\d+/)
+	{
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
+	    exit;
+	}
+	
+	# get the glos
+	my $glosString;
+	($glosString) = $wn->querySense($synsets[$i], "glos");
+	
+	# regularize the glos
+	$glosString =~ s/\'//g;
+	$glosString =~ s/[^\w]/ /g;
+	$glosString =~ s/\s+/ /g;
+	$glosString = lc($glosString);
+
+	# stem the glos if asked for 
+	$glosString = $stemmer->stemString($glosString, 1) if ($self->{'stem'});
+	
+	$glosString =~ s/^\s*/ /;
+	$glosString =~ s/\s*$/ /;
+	
+	# append to return string
+	$returnString .= $glosString;
+	
+	# put in boundary if more glosses coming!
+	if ($i < $#synsets) 
+	{ 
+	    my $boundary = sprintf("XXX%05dXXX", $self->{'glosBoundaryIndex'});
+	    $returnString .= $boundary;
+	    ($self->{'glosBoundaryIndex'})++;
+	}
+    }
     
     # and we are done!
     return($returnString);

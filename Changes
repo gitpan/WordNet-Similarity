@@ -1,9 +1,50 @@
 Revision history for WordNet::Similarity.
-(Last modified -- 05/02/2003 -- Sid.)
+(Last modified -- 06/03/2003 -- Sid.)
 
 
 
-04/22/2003 WordNet::Similarity ver 0.04
+06/03/2003 WordNet::Similarity ver 0.05
+
+(1)  Added new measure of semantic relatedness, based on co-occurrence
+     vectors of WordNet glosses.
+
+(2)  Set up the package so that similarity.pl and the other perl 
+     utilities get installed in "/usr/local/bin".
+
+(3)  Complete rewrite of similarity.pl with cleaner code and added
+     functionality:
+
+     * Multiple parts of speech can be specified as car#nv (noun and verb
+       forms of car) or cool#nar (noun, adjective and adverb forms of
+       cool).
+
+     * Word senses can now be specified as car#n#2, jump#v#2, etc.
+
+     * Added functionality to similarity.pl to use a local install of
+       WordNet::Similarity modules (in non-standard directories).
+
+     * Output of similarity.pl now specifies the senses that represent the
+       relatedness of two words.
+
+(4)  Enforced limit on the cache size of modules.
+
+(5)  Updated README to reflect the changes and to specify options for
+     local installs of similarity.pl and the other utilities.
+
+(6)  Fixed the perl docs (remove leading spaces).
+
+(7)  Added mailing list address to documentation --
+     (http://groups.yahoo.com/group/wn-similarity).
+
+(8)  Improved jcn and lin tracing ("bird-crane" problem obvious now).
+
+(9)  Added new utility wordVectors.pl required for
+     WordNet::Similarity::vector module.
+
+
+
+
+05/02/2003 WordNet::Similarity ver 0.04
 
 (1)  *Fixed* newline in traces.
 

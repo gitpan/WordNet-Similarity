@@ -1,5 +1,5 @@
-# WordNet::Similarity::edge.pm version 0.04
-# (Updated 03/25/2003 -- Sid)
+# WordNet::Similarity::edge.pm version 0.05
+# (Updated 06/03/2003 -- Sid)
 #
 # Semantic Similarity Measure package implementing the simple
 # edge counting semantic relatedness measure.
@@ -44,7 +44,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 
 # 'new' method for the edge class... creates and returns a WordNet::Similarity::edge object.
@@ -81,12 +81,9 @@ sub new
     
     # [trace]
     $self->{'traceString'} = "";
-    if($self->{'trace'})
-    {
-	$self->{'traceString'} .= "WordNet::Similarity::edge object created:\n";
-	$self->{'traceString'} .= "trace :: ".($self->{'trace'})."\n";
-	$self->{'traceString'} .= "cache :: ".($self->{'doCache'})."\n";
-    }
+    $self->{'traceString'} .= "WordNet::Similarity::edge object created:\n";
+    $self->{'traceString'} .= "trace :: ".($self->{'trace'})."\n" if(defined $self->{'trace'});
+    $self->{'traceString'} .= "cache :: ".($self->{'doCache'})."\n" if(defined $self->{'doCache'});
     # [/trace]
 
     return $self;
@@ -121,10 +118,12 @@ sub _initialize
     $self->{'doCache'} = 1;
     $self->{'simCache'} = ();
     $self->{'traceCache'} = ();
+    $self->{'cacheQ'} = ();
+    $self->{'maxCacheSize'} = 1000;
     
     # Initialize tracing.
     $self->{'trace'} = 0;
-    $self->{'traceString'} = "";
+    $self->{'traceString'} = "" if($self->{'trace'});
 
     # Parse the config file and
     # read parameters from the file.
@@ -280,7 +279,7 @@ sub getRelatedness
     {
 	if(defined $self->{'traceCache'}->{"${wps1}::$wps2"})
 	{
-	    $self->{'traceString'} = $self->{'traceCache'}->{"${wps1}::$wps2"};
+	    $self->{'traceString'} = $self->{'traceCache'}->{"${wps1}::$wps2"} if($self->{'trace'});
 	}
 	return $self->{'simCache'}->{"${wps1}::$wps2"};
     }
@@ -361,7 +360,7 @@ sub getRelatedness
     {
 	$self->{'traceString'} .= "LCS: ";
 	$self->_printSet($pos, $LCSOffset);
-	$self->{'traceString'} .= "  Path length: $minDist.\n\n";
+	$self->{'traceString'} .= "  Path length: $minDist.\n";
     }
     # [/trace]
 
@@ -375,8 +374,21 @@ sub getRelatedness
     elsif($minDist > 0)
     {
 	$score = 1/$minDist;
-	$self->{'simCache'}->{"${wps1}::$wps2"} = $score if($self->{'doCache'});
-	$self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'doCache'});
+	if($self->{'doCache'})
+	{
+	    $self->{'simCache'}->{"${wps1}::$wps2"} = $score;
+	    $self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'doCache'} && $self->{'trace'});
+	    push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
+	    if($self->{'maxCacheSize'} >= 0)
+	    {
+		while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
+		{
+		    my $delItem = shift(@{$self->{'cacheQ'}});
+		    delete $self->{'simCache'}->{$delItem};
+		    delete $self->{'traceCache'}->{$delItem};
+		}
+	    }
+	}
 	return $score;
     }
     else
@@ -394,7 +406,8 @@ sub getTraceString
 {
     my $self = shift;
     my $returnString = $self->{'traceString'};
-    $self->{'traceString'} = "";
+    $self->{'traceString'} = "" if($self->{'trace'});
+    $returnString =~ s/\n+$/\n/;
     return $returnString;
 }
 
@@ -527,7 +540,7 @@ sub _printSet
 	$opstr .= "$wps ";
     }
     $opstr =~ s/\s+$//;
-    $self->{'traceString'} .= $opstr;
+    $self->{'traceString'} .= $opstr if($self->{'trace'});
 }
 
 1;
@@ -540,21 +553,21 @@ of word senses by counting edges in the WordNet hierarchy.
 
 =head1 SYNOPSIS
 
-use WordNet::Similarity::edge;
+  use WordNet::Similarity::edge;
 
-use WordNet::QueryData;
+  use WordNet::QueryData;
 
-my $wn = WordNet::QueryData->new();
+  my $wn = WordNet::QueryData->new();
 
-my $measure = WordNet::Similarity::edge->new($wn);
+  my $measure = WordNet::Similarity::edge->new($wn);
 
-my $value = $measure->getRelatedness("car#n#1", "bus#n#2");
+  my $value = $measure->getRelatedness("car#n#1", "bus#n#2");
 
-($error, $errorString) = $measure->getError();
+  ($error, $errorString) = $measure->getError();
 
-die "$errorString\n" if($error);
+  die "$errorString\n" if($error);
 
-print "car (sense 1) <-> bus (sense 2) = $value\n";
+  print "car (sense 1) <-> bus (sense 2) = $value\n";
 
 =head1 DESCRIPTION
 
@@ -565,7 +578,7 @@ obtained is inverted in order to get a value of semantic relatedness.
 
 =head1 USAGE
 
-  The semantic relatedness modules in this distribution are built as classes
+The semantic relatedness modules in this distribution are built as classes
 that expose the following methods:
 
   new()
@@ -577,7 +590,7 @@ See the WordNet::Similarity(3) documentation for details of these methods.
 
 =head1 TYPICAL USAGE EXAMPLES
 
-  To create an object of the edge measure, we would have the following
+To create an object of the edge measure, we would have the following
 lines of code in the perl program. 
 
    use WordNet::Similarity::edge;
@@ -609,13 +622,13 @@ traces are turned off.
 
 =head1 CONFIGURATION FILE
 
-  The behaviour of the measures of semantic relatedness can be controlled by
+The behaviour of the measures of semantic relatedness can be controlled by
 using configuration files. These configuration files specify how certain
 parameters are initialized within the object. A configuration file may be
 specififed as a parameter during the creation of an object using the new
 method. The configuration files must follow a fixed format.
 
-  Every configuration file starts the name of the module ON THE FIRST LINE of
+Every configuration file starts the name of the module ON THE FIRST LINE of
 the file. For example, a configuration file for the edge module will have
 on the first line 'WordNet::Similarity::edge'. This is followed by the various
 parameters, each on a new line and having the form 'name::value'. The
@@ -623,18 +636,20 @@ parameters, each on a new line and having the form 'name::value'. The
 'value' is omitted, we would have just 'name::' on that line. Comments are
 supported in the configuration file. Anything following a '#' is ignored.
 
-  The module parses the configuration file and recognizes the following 
+The module parses the configuration file and recognizes the following 
 parameters:
-  (a) 'trace::' -- can take values 0, 1 or 2 or the value can be omitted,
-      in which case it sets the trace level to 1. Trace level 0 implies
-      no traces. Trace level 1 and 2 imply tracing is 'on' the only 
-      difference being in the way in which the synsets are displayed in the 
-      output. For trace level 1, the synsets are represented as word#pos#sense
-      strings, while for level 2, the synsets are represented as 
-      word#pos#offset strings.
-  (b) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
-      which case it takes the value 1, i.e. switches 'on' caching. A value of 
-      0 switches caching 'off'. By default caching is enabled.
+
+(a) 'trace::' -- can take values 0, 1 or 2 or the value can be omitted,
+in which case it sets the trace level to 1. Trace level 0 implies
+no traces. Trace level 1 and 2 imply tracing is 'on' the only 
+difference being in the way in which the synsets are displayed in the 
+output. For trace level 1, the synsets are represented as word#pos#sense
+strings, while for level 2, the synsets are represented as 
+word#pos#offset strings.
+
+(b) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
+which case it takes the value 1, i.e. switches 'on' caching. A value of 
+0 switches caching 'off'. By default caching is enabled.
 
 =head1 SEE ALSO
 
@@ -642,9 +657,11 @@ perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
 http://www.d.umn.edu/~patw0006
 
-http://www.cogsci.princeton.edu/~wn/
+http://www.cogsci.princeton.edu/~wn
 
-http://www.ai.mit.edu/people/jrennie/WordNet/
+http://www.ai.mit.edu/people/jrennie/WordNet
+
+http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 

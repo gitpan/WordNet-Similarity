@@ -5,7 +5,7 @@
 
 ##################### We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..10\n"; }
+BEGIN { $| = 1; print "1..11\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use WordNet::Similarity;
 use WordNet::QueryData;
@@ -17,6 +17,7 @@ use WordNet::Similarity::hso;
 use WordNet::Similarity::lesk;
 use WordNet::Similarity::edge;
 use WordNet::Similarity::random;
+use WordNet::Similarity::vector;
 $loaded = 1;
 print "ok 1\n";
 
@@ -196,5 +197,28 @@ if($random)
 else
 {
     print "not ok 10\n";
+}
+
+############ Load vector
+
+$vector = WordNet::Similarity::vector->new($wn);
+if($vector)
+{
+    ($err, $errString) = $vector->getError();
+    if($err)
+    {
+	# Vector module REQUIRES a config file...
+	# So it is Ok if it returns an error during
+	# initialization without config file.
+        print "ok 11\n";
+    }
+    else
+    {
+        print "not ok 11\n";
+    }
+}
+else
+{
+    print "not ok 11\n";
 }
 

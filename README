@@ -1,17 +1,20 @@
                          WordNet::Similarity
                         =====================
-                             version 0.04
+                             version 0.05
 
                          Copyright (c) 2003
                 Siddharth Patwardhan, patw0006@d.umn.edu
                    Ted Pedersen, tpederse@d.umn.edu
                    University of Minnesota, Duluth
 
+	       http://groups.yahoo.com/group/wn-similarity
+	      http://search.cpan.org/dist/WordNet-Similarity
+
 
 This package consists of Perl modules along with supporting Perl programs
 that implement the semantic relatedness measures described by Leacock
 Chodorow (1998), Jiang Conrath (1997), Resnik (1995), Lin (1998), Hirst St
-Onge (1998) and the adapted Lesk measure by Banerjee and Pedersen
+Onge (1998) and the adapted gloss overlap measure by Banerjee and Pedersen
 (2002). The Perl modules are designed as object classes with
 methods that take as input two word senses. The semantic relatedness of
 these word senses is returned by these methods. A quantitative measure of
@@ -33,6 +36,11 @@ this README. Supporting utilities for generating information content files
 from various corpora are also available in the package. The information
 content files are required by three of the measures for computing the
 relatedness of concepts.
+
+Discussion about the package and online help for the package is available
+on the wn-similarity mailing list. To join the list, go to 
+
+  http://groups.yahoo.com/group/wn-similarity
 
 The following sections describe the organization of this software package
 and how to use it. A few typical examples are given to help clearly
@@ -76,12 +84,12 @@ Modules
 All the modules that will be installed in the Perl system directory are
 present in the '/lib' directory tree of the package. These include the
 semantic relatedness modules -- jcn.pm, res.pm, lin.pm, lch.pm, hso.pm,
-lesk.pm, edge.pm and random.pm -- present in the WordNet/Similarity
-subdirectory and the supporting modules get_wn_info.pm and
-string_compare.pm. There also exists a WordNet/Similarity.pm module that
-currently contains only Perl documentation and version information. All
-these modules, once installed in the Perl system directory, can be directly
-used by Perl programs.
+lesk.pm, vector.pm, edge.pm and random.pm -- present in the 
+WordNet/Similarity subdirectory and the supporting modules get_wn_info.pm 
+and string_compare.pm. There also exists a WordNet/Similarity.pm module 
+that currently contains only Perl documentation and version information. 
+All these modules, once installed in the Perl system directory, can be 
+directly used by Perl programs.
 
 
 Supporting Perl Utilities
@@ -89,16 +97,20 @@ Supporting Perl Utilities
 
 The '/utils' subdirectory of the package contains supporting Perl
 programs. 'similarity.pl' is a commandline interface to the relatedness
-modules. A number of Perl programs that generate information content files
-from various corpora are provided.
+modules. A number of Perl programs, that generate information content files
+from various corpora, are provided. As part of the standard install, these
+are also installed into the system directories, and can be accessed from
+any working directory if the common system directories (/usr/bin,
+/usr/local/bin, etc) are in your path.
 
 
 Samples
 -------
 
-The '/samples' subdirectory of the package contains sample configuration
-files for the modules, sample programs showing usage of the modules and
-sample data files (information content and relation files).
+If you downloaded this package as a tar-gzipped file from the web, you will
+find a '/samples' subdirectory in the package,  which contains sample
+configuration files for the modules, sample programs showing usage of the
+modules and sample data files (information content and relation files).
 
 
 
@@ -136,7 +148,7 @@ files in the Perl system path. It is very likely that you will require root
 or supervisor privileges to install these modules in the Perl system path.
 
 In order to install these in a user-specified path you would need to
-specify this as an option during the 'perl Makefile.PL' step. For example,
+provide this as an option during the 'perl Makefile.PL' step. For example,
 in order to install the modules under '/home/sid/lib' I would run the
 command
 
@@ -160,10 +172,10 @@ using the default information content file generated during installation of
 the modules. If, however, the version of WordNet being used on your system
 has changed since that time, or for some reason the modules are unable to
 locate the default information content files, then alternate information
-content files can be specified only via a configuration file for each of
-the modules. Format and creation of configuration files has been discussed
-in a later section. Utilities to generate information content files have
-been provided in the package. 
+content files can be specified only by using a configuration file
+corresponding to each of the modules. Format and creation of configuration 
+files has been discussed in a later section. Utilities to generate 
+information content files have been provided in the package. 
 
 
 
@@ -197,7 +209,17 @@ QueryData 1.27 was used during the development. Also we observed that that
 due to some major changes in QueryData from its previous versions, this
 software does not work with the earlier versions of QueryData. If you have
 an earlier version of QueryData (1.18 or earlier) you may need to upgrade
-QueryData. 
+QueryData.
+
+4. Berkeley DB and the perl interface to Berkeley DB (BerkeleyDB v0.19): If
+you are using the WordNet::Similarity::vector measure, then you need to
+have Berkeley DB installed on your system. You also need the perl interface
+(BerkeleyDB.pm) be installed on the system. This package was tested with
+version 0.20 of the BerkeleyDB perl module and version 4.1 of the Berkeley
+DB database.
+
+5. PDL: WordNet::Similarity::vector uses the PDL perl module. Make sure PDL
+installed before using the WordNet::Similarity::vector measure.
 
 
 
@@ -418,7 +440,10 @@ SUPPORTING PERL UTILITIES
 =========================
 
 The '/utils' directory of the pacakge contains a few support Perl programs,
-that use the WordNet::Similarity modules or generate data files for it.
+that use the WordNet::Similarity modules or generate data files for it. As
+part of the standard installation these are installed into the system
+directories (such as /usr/bin or /usr/local/bin) from where they can be
+easily accessed.
 
 
 similarity.pl
@@ -429,17 +454,19 @@ relatedness modules.
 
 - Usage
 
-Usage: similarity.pl [{--type TYPE [--config CONFIGFILE] [--allsenses]
-         [--offsets] [--trace] [--file FILENAME] [--wnpath PATH] WORD1 WORD2
-         |--help |--version }] 
+Usage: similarity.pl [{--type TYPE [--config CONFIGFILE] [--allsenses] [--offsets] [--trace] [--wnpath PATH] [--simpath SIMPATH] {--file FILENAME | WORD1 WORD2}
+                     |--help
+                     |--version }]
 
-Displays the semantic similarity between the base forms of
-WORD1 and WORD2 using various similarity measures described
-in Budanitsky Hirst (2001). The parts of speech of WORD1 and/or
-WORD2 can be restricted by appending the part of speech (n, v, a, r)
-to the word. (For eg. car#n will consider only the noun forms of the
-word 'car' and walk#v will consider only the verb forms of the word
-'walk')
+Displays the semantic similarity between the base forms of WORD1 and
+WORD2 using various similarity measures described in Budanitsky Hirst
+(2001). The parts of speech of WORD1 and/or WORD2 can be restricted
+by appending the part of speech (n, v, a, r) to the word.
+(For eg. car#n will consider only the noun forms of the word 'car' and
+walk#nv will consider the verb and noun forms of 'walk').
+Individual senses of can also be given as input, in the form of
+word#pos#sense strings (For eg., car#n#1 represents the first sense of
+the noun 'car').
 
 Options:
 --type        Switch to select the type of similarity measure
@@ -450,14 +477,16 @@ Options:
                'WordNet::Similarity::res'    The Resnik measure.
                'WordNet::Similarity::lin'    The Lin measure.
                'WordNet::Similarity::hso'    The Hirst St. Onge measure.
-               'WordNet::Similarity::lesk'   Adapted Lesk measure.
+               'WordNet::Similarity::lesk'   Adapted gloss overlap measure.
+               'WordNet::Similarity::vector' Gloss Vector measure.
                'WordNet::Similarity::edge'   Simple edge-counts (inverted).
                'WordNet::Similarity::random' A random measure.
 --config      Module-specific configuration file CONFIGFILE. This file
               contains the configuration that is used by the
               WordNet::Similarity modules during initialization. The format
               of this file is specific to each modules and is specified in
-	      the module man pages and in earlier sections of this README.
+              the module man pages and in the documentation of the
+              WordNet::Similarity package.
 --allsenses   Displays the relatedness between every sense pair of the
               two input words WORD1 and WORD2.
 --offsets     Displays all synsets (in the output, including traces) as
@@ -467,15 +496,19 @@ Options:
               word#partOfSpeech#synsetOffset in the output.
 --trace       Switches on 'Trace' mode. Displays as output on STDOUT,
               the various stages of the processing. This option overrides
-              the trace option in the configuration file (if specified).
+              the trace option in the module configuration file (if
+              specified).
 --file        Allows the user to specify an input file FILENAME
               containing pairs of word whose semantic similarity needs
               to be measured. The file is assumed to be a plain text
               file with pairs of words separated by newlines, and the
               words of each pair separated by a space.
 --wnpath      Option to specify the path of the WordNet data files
-              as PATH. (Defaults to /usr/local/wordnet1.7/dict on Unix
-              systems and C:\wn17\dict on Windows systems)
+              as PATH. (Defaults to /usr/local/WordNet-1.7.1/dict on Unix
+              systems and C:\WordNet\1.7.1\dict on Windows systems)
+--simpath     If the relatedness module to be used, is locally installed,
+              then SIMPATH can be used to indicate the location of the local
+              install of the measure.
 --help        Displays this help screen.
 --version     Displays version information.
 
@@ -490,7 +523,11 @@ modules. If, however, the version of WordNet being used has changed since
 that time, or for some reason the modules are unable to locate the default
 information content files, then alternate information content files can be
 specified only via the configuration file. Utilities to generate
-information content files have been provided in the package.
+information content files have been provided in the package. For the
+WordNet::Similarity::vector measure, it is mandatory to provide the
+location of a word vector data file and this can be only done by using the
+'--config' option. In short, the '--config' option is REQUIRED for the
+WordNet::Similarity::vector measure.
 
 Compound words may also be given as input to similarity.pl. They may be
 specified using underscores for spaces (as in WordNet) or may be enclosed
@@ -505,22 +542,31 @@ similarity.pl --type WordNet::Similarity::lch "interest rate" bank
 Here 'private school' and 'interest rate' are the compound words intended
 in the two examples, respectively. 
 
-The part of speech of the input word(s) may be restricted to a single part
-of speech by appending strings "#n", "#v", "#a" or "#r" (for nouns, verbs,
-adjectives and adverbs). 
+ANOTHER NOTE: Using the '--file' option however, does not allow us to use
+both methods of entering compound words in the input file. The compound
+words in the input file may be entered only using underscores for spaces
+(the double quotes option is not available for input via the input file).
+
+The part of speech of the input word(s) may be restricted to one or more 
+parts of speech by appending '#' followed by a combination of one or more
+of 'n', 'v', 'a' or 'r' (for nouns, verbs, adjectives and adverbs) to the
+one or both words. 
+
+A particular sense of a particular word may also be specified as input in
+the word#pos#sense format. Here 'pos' is exactly one of 'n', 'v', 'a' or
+'r'.
 
 For example:
 
 similarity.pl --type WordNet::Similarity::jcn school#n child#n
 
-similarity.pl --type WordNet::Similarity::lesk "interest rate#n" bank
+similarity.pl --type WordNet::Similarity::lesk "interest rate#n" bank#nv
 
 similarity.pl --type WordNet::Similarity::hso telephone talk#v
 
-ANOTHER NOTE: Using the '--file' option however, does not allow us to use
-both methods of entering compound words in the input file. The compound
-words in the input file may be entered only using underscores for spaces
-(the double quotes option is not available for input via the input file).
+similarity.pl --type WordNet::Similarity::vector word#n#2 newspaper#v
+
+similarity.pl --type WordNet::Similarity::random chat#n#1 talk#v#2
 
 - Interpreting the output
 
@@ -582,7 +628,8 @@ more or less remain constant.
 	similarity.pl --type WordNet::Similarity::lch --allsenses --trace paper pencil
 
 (5) Displaying the relatedness between the verb form of 'talk' and all
-    parts of speech of 'speaker', with traces using the Lesk measure.
+    parts of speech of 'speaker', with traces using the adapted gloss
+    overlap measure.
 
 	similarity.pl --type WordNet::Similarity::lesk --trace speaker talk#v
 
@@ -657,6 +704,11 @@ Options:
 		   originally used. We implemented a different scheme of
 		   counting described in our publication (Patwardhan,
 		   Banerjee and Pedersen [9]).
+  --smooth         Specifies the smoothing to be used on the probabilities
+                   computed. SCHEME specifies the type of smoothing to
+                   perform. It is a string, which can be only be 'ADD1'
+                   as of now. Other smoothing schemes will be added in
+                   future releases.
   --help           Displays this help screen.
   --version        Displays version information.
 
@@ -677,12 +729,58 @@ option in compounds.pl, like so
 
        compounds.pl --wnpath /usr/local/wordnet1.6/dict > compounds.dat
 
+- The utility-specific idiosyncracies
+
+(a) BNCFreq.pl -- This utility creates the information content file from
+the word frequencies counted from the BNC. The data files in the BNC are
+XML tagged files present in a 2-level directory structure. In a typical BNC
+install, the data files of the BNC reside in /BNCWorld/Texts subpath of the
+BNC installation. This is the path that needs to be specified to BNCFreq.pl
+to count the frequency of words:
+
+       BNCFreq.pl [OPTIONS] /home/sid/BNC/BNCWorld/Texts
+
+(b) brownFreq.pl -- The version of the Brown corpus that we used,
+contained the data files in the BROWN1 and BROWN2 subdirectories of the
+Brown corpus installation. Both directories contain the same data formatted
+a little differently. These files are provided to the brownFreq.pl
+utility as a list of files (commonly specified by wildcards, as follows):
+
+       brownFreq.pl [OPTIONS] /home/sid/Brown/BROWN1/*.TXT
+
+(c) semCor17Freq.pl -- SemCor 1.7 was downloaded from Dr. Rada Mihalcea's
+website http://www.cs.unt.edu/~rada/software.html and is a sense tagged
+version of the Brwon Corpus. The tagged data files are present in the
+/brown1/tagfiles subdirectory of the extracted package. These files are
+provided to the semCor17Freq.pl utility as a list of files (using
+wildcards):
+
+       semCor17Freq.pl [OPTIONS] /home/sid/semcor17/brown1/tagfiles/*
+
+(d) semTagFreq.pl -- These information content files are computed from
+SemCor 1.7 (using the sense tags). The word frequencies for these have
+already been computed and are distributed as a part of the standard
+distribution of WordNet. Thus only the location of the WordNet data files
+need be specified for this utility (using the WNHOME environment variable
+or the '--wnpath' option).
+
+(e) treebankFreq.pl -- This utility computes the information content files
+from the Treebank corpus (only the Wall Street Journal articles). The Wall
+Street Journal articles are usually present in the /raw/wsj subdirectory of
+the Treebank installation. Only this needs to be specified when using this
+utility:
+
+       treebankFreq.pl [OPTIONS] /home/sid/treebank/raw/wsj
+
+(f) rawtextFreq.pl -- To compute the information content files from raw
+text, only the raw text file(s) need to be specified as the input.
+
 - Some typical examples
 
 (1) In order to generate the information content file from the BNC, we type
     the command:
 
-       BNCFreq.pl --compfile ../samples/compounds.dat --outfile infoBNC.dat /home/sid/BNCWorld/Texts
+       BNCFreq.pl --compfile ../samples/compounds.dat --outfile infoBNC.dat /home/sid/BNC/BNCWorld/Texts
 
     Here '/home/sid/BNCWorld/Texts' is the path containing the BNC. Ouptut
     information content file infoBNC.dat is generated and 'compounds.dat'
@@ -713,6 +811,40 @@ option in compounds.pl, like so
     '--smooth ADD1' requests the program to use Add-1 smoothing of the
     frequency counts. It adds 1 to all frequency counts to prevent any 0
     frequency values.
+
+
+wordVectors.pl
+--------------
+
+The WordNet::Similarity::vector module requires a BerkeleyDB file
+containing co-occurrence vectors for all the words in the WordNet
+glosses. The utility wordVectors.pl has been provided to generate such a
+database file. This utility generates co-occurrence vectors from the
+WordNet glosses themselves. Utilities to generate these from other corpora
+will be provided in future releases of this software.
+
+Usage: wordVectors.pl [{ [--compfile COMPOUNDS] [--stopfile STOPLIST] [--wnpath WNPATH] [--noexamples] [--cutoff VALUE] DBFILE 
+                      | --help 
+                      | --version }]
+
+This program writes out word vectors computed from WordNet in a
+BerkeleyDB database (Hash) specified by filename DBFILE.
+Options:
+--compfile       Option specifying the the list of compounds present
+                 in WordNet in the file COMPOUNDS. This list is used
+                 for compound detection.
+--stopfile       Option specifying a list of stopwords to not be
+                 considered while counting.
+--wnpath         WNPATH specifies the path of the WordNet data files.
+                 Ordinarily, this path is determined from the $WNHOME
+                 environment variable. But this option overides this
+                 behavior.
+--noexamples     Removes examples from the glosses before processing.
+--cutoff         Option used to restrict the dimensions of the word
+                 vectors with a tf/idf cutoff. VALUE is the cutoff.
+                 Only a tf/idf score above VALUE is acceptable.
+--help           Displays this help screen.
+--version        Displays version information.
 
 
 
@@ -750,50 +882,55 @@ towards the development of this package. We thank Jason Rennie for his
 QueryData package, the WordNet guys at Princeton for WordNet, Resnik,
 Hirst, St. Onge, Jiang, Conrath, Lin, Leacock and Chodorow for their
 algorithms and work on the relatedness measures. We also thank Bano
-(Satanjeev Banerjee) for his work on the adapted lesk module.
+(Satanjeev Banerjee) for his work on the adapted gloss overlap module.
 
 
 
 REFERENCES
 ==========
 
-(1) Leacock C. and Chodorow M. 1998. Combining local context and WordNet
-    similarity for word sense identification. In Fellbaum 1998,
-    pp. 265-283.
+(1)  Leacock C. and Chodorow M. 1998. Combining local context and WordNet
+     similarity for word sense identification. In Fellbaum 1998,
+     pp. 265-283.
 
-(2) Jiang J. and Conrath D. 1997. Semantic similarity based on corpus
-    statistics and lexical taxonomy. In Proceedings of International
-    Conference on Research in Computational Linguistics, Taiwan.
+(2)  Jiang J. and Conrath D. 1997. Semantic similarity based on corpus
+     statistics and lexical taxonomy. In Proceedings of International
+     Conference on Research in Computational Linguistics, Taiwan.
 
-(3) Resnik P. 1995. Using information content to evaluate semantic
-    similarity. In Proceedings of the 14th International Joint Conference
-    on Artificial Intelligence, pages 448-453, Montreal.
+(3)  Resnik P. 1995. Using information content to evaluate semantic
+     similarity. In Proceedings of the 14th International Joint Conference
+     on Artificial Intelligence, pages 448-453, Montreal.
 
-(4) Lin D. 1998. An information-theoretic definition of similarity. In
-    Proceedings of the 15th International Conference on Machine Learning,
-    Madison, WI.
+(4)  Lin D. 1998. An information-theoretic definition of similarity. In
+     Proceedings of the 15th International Conference on Machine Learning,
+     Madison, WI.
 
-(5) Hirst G. and St-Onge D. 1998. Lexical Chains as representations of
-    context for the detection and correction of malapropisms. In Fellbaum
-    1998, pp. 305-332.
+(5)  Hirst G. and St-Onge D. 1998. Lexical Chains as representations of
+     context for the detection and correction of malapropisms. In Fellbaum
+     1998, pp. 305-332.
 
-(6) Budanitsky A. and Hirst G. 2001. Semantic distance in WordNet: An
-    experimental, application-oriented evaluation of five measures. In
-    Workshop on WordNet and Other Lexical Resources, Second meeting of the
-    North American Chapter of the Association for Computational
-    Linguistics. Pittsburgh, PA.
+(6)  Budanitsky A. and Hirst G. 2001. Semantic distance in WordNet: An
+     experimental, application-oriented evaluation of five measures. In
+     Workshop on WordNet and Other Lexical Resources, Second meeting of the
+     North American Chapter of the Association for Computational
+     Linguistics. Pittsburgh, PA.
 
-(7) Banerjee S. and Pedersen T. 2002. An Adapted Lesk Algorithm for Word
-    Sense Disambiguation Using WordNet. In Proceeding of the Fourth
-    International Conference on Computational Linguistics and Intelligent
-    Text Processing (CICLING-02). Mexico City.
+(7)  Banerjee S. and Pedersen T. 2002. An Adapted Lesk Algorithm for Word
+     Sense Disambiguation Using WordNet. In Proceeding of the Fourth
+     International Conference on Computational Linguistics and Intelligent
+     Text Processing (CICLING-02). Mexico City.
 
-(8) Fellbaum C., editor. WordNet: An electronic lexical database. MIT Press, 
-    1998.
+(8)  Fellbaum C., editor. WordNet: An electronic lexical database. MIT Press, 
+     1998.
 
-(9) Patwardhan S., Banerjee S. and Pedersen T. Using Semantic Relatedness
-    for Word Sense Disambiguation.
+(9)  Patwardhan S., Banerjee S. and Pedersen T. 2002. Using Semantic
+     Relatedness for Word Sense Disambiguation. In Proceedings of the
+     Fourth International Conference on Intelligent Text Processing and
+     Computational Linguistics, Mexico City.
+
+(10) Schütze H. 1998. Automatic Word Sense Discrimination. Computational
+     Linguistics, 24(1):97-123.
 
 
 
-(README: Last Updated 05/02/2003 -- Sid.)
+(README: Last Updated 06/09/2003 -- Sid.)

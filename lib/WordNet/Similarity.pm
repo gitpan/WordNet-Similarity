@@ -1,5 +1,5 @@
-# WordNet::Similarity.pm version 0.04
-# (Updated 04/10/2003 -- Sid)
+# WordNet::Similarity.pm version 0.05
+# (Updated 06/03/2003 -- Sid)
 #
 # Module containing the version information and pod 
 # for the WordNet::Similarity package.
@@ -44,7 +44,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 1;
 
@@ -59,43 +59,43 @@ of word senses defined in WordNet.
 
 =head2 # Basic Usage Example
 
-use WordNet::QueryData;
+  use WordNet::QueryData;
 
-use WordNet::Similarity::jcn;
+  use WordNet::Similarity::jcn;
 
-my $wn = WordNet::QueryData->new();
+  my $wn = WordNet::QueryData->new();
 
-my $measure = WordNet::Similarity::jcn->new($wn);
+  my $measure = WordNet::Similarity::jcn->new($wn);
 
-my $value = $measure->getRelatedness("car#n#1", "bus#n#2");
+  my $value = $measure->getRelatedness("car#n#1", "bus#n#2");
 
-($error, $errorString) = $measure->getError();
+  ($error, $errorString) = $measure->getError();
 
-die "$errorString\n" if($error);
+  die "$errorString\n" if($error);
 
-print "car (sense 1) <-> bus (sense 2) = $value\n";
+  print "car (sense 1) <-> bus (sense 2) = $value\n";
 
 =head2 # Using a configuration file to initialize the measure
 
-use WordNet::Similarity::edge;
+  use WordNet::Similarity::edge;
 
-my $sim = WordNet::Similarity::edge->new($wn, "/home/sid/edge.conf");
+  my $sim = WordNet::Similarity::edge->new($wn, "/home/sid/edge.conf");
 
-my $value = $sim->getRelatedness("dog#n#1", "cat#n#1");
+  my $value = $sim->getRelatedness("dog#n#1", "cat#n#1");
 
-($error, $errorString) = $sim->getError();
+  ($error, $errorString) = $sim->getError();
 
-die "$errorString\n" if($error);
+  die "$errorString\n" if($error);
 
-print "dog (sense 1) <-> cat (sense 1) = $value\n";
+  print "dog (sense 1) <-> cat (sense 1) = $value\n";
 
 =head2 Printing traces
 
-print "Trace String -> ".($sim->getTraceString())."\n";
+  print "Trace String -> ".($sim->getTraceString())."\n";
 
 =head1 ABSTRACT
 
-  We observe that humans find it extremely easy to say if two words are
+We observe that humans find it extremely easy to say if two words are
 related and if one word is more related to a given word than another. For
 example, if we come across two words -- 'car' and 'bicycle', we know they
 are related as both are means of transport. Also, we easily observe that
@@ -104,7 +104,7 @@ assign a quantitative value to this relatedness? Some ideas have been put
 forth by researchers to quantify the concept of relatedness of words, with
 encouraging results.
 
-  Six of these different measures of relatedness have been implemented in
+Sevenof these different measures of relatedness have been implemented in
 this software package. A simple edge counting measure and a random measure 
 have also been provided. These measures rely heavily on the vast store of
 knowledge available in the online electronic dictionary -- WordNet. So, we
@@ -115,7 +115,7 @@ modules are installed.
 
 =head1 DESCRIPTION
 
-  This package consists of Perl modules along with supporting Perl programs
+This package consists of Perl modules along with supporting Perl programs
 that implement the semantic distance measures described by Leacock Chodorow
 (1998), Jiang Conrath (1997), Resnik (1995), Lin (1998), Hirst St Onge
 (1998) and the adapted Lesk measure by Banerjee and Pedersen (2002). The 
@@ -130,7 +130,7 @@ its context word senses is most likely to be the sense being used. Similarly,
 in information retrieval, retrieving documents containing highly related
 concepts are more likely to have higher precision and recall values.
 
-  A command line interface to these modules is also present in the
+A command line interface to these modules is also present in the
 package. The simple, user-friendly interface simply returns the relatedness
 measure of two given words. Number of switches and options have been
 provided to modify the output and enhance it with trace information and
@@ -141,7 +141,7 @@ computing the relatedness of two concepts.
 
 =head1 USAGE
 
-  The semantic relatedness modules in this distribution are built as classes
+The semantic relatedness modules in this distribution are built as classes
 that expose the following methods:
   new()
   getRelatedness()
@@ -150,14 +150,14 @@ that expose the following methods:
 
 =head2 new()
 
-  The first thing that is done in order to use one of the semantic
+The first thing that is done in order to use one of the semantic
 relatedness measures is to create an object of the measure. This is done by
 calling the 'new' method of that measure or module. For all the semantic
 relatedness measures provided in this package, the 'new' method takes two
 parameters -- 
     (a) a WordNet::QueryData object (REQUIRED)
     (b) the name of a configuration file for that module (Optional)
-  This method initializes an object of the requested measure, using the
+This method initializes an object of the requested measure, using the
 configuration file data, or with default values if a configuration file is
 not provided. A reference to this object is returned by the 'new' method
 and must be saved by the calling program, if any of the other methods of
@@ -166,7 +166,7 @@ the same module (possibly initialized differently by specifying different
 configuration files for each). The format of the configuration files is
 discussed later in this section.
 
-  An 'undef' value returned by the 'new' method, indicates that it was unable
+An 'undef' value returned by the 'new' method, indicates that it was unable
 to create an object. It is also possible that non-fatal errors occur during
 the creation of the object. In this case an object is created by the 'new'
 method using default conditions. However, a non-fatal error condition flag
@@ -176,7 +176,7 @@ creation of every such object.
 
 =head2 getRelatedness()
 
-  The 'getRelatedness' method is called on the created object to determine
+The 'getRelatedness' method is called on the created object to determine
 the semantic relatedness of two concepts (synsets in WordNet) as computed
 by that measure. The input parameters are two WordNet synsets, represented
 in the word#pos#sense format returned/used by WordNet::QueryData. In this
@@ -190,7 +190,7 @@ computed by the measure).
 
 =head2 getError()
 
-  During a call to either the 'new' method or the 'getRelatedness' method
+During a call to either the 'new' method or the 'getRelatedness' method
 of a measure, if a fatal or non-fatal error occurs, the module sets an
 error flag within the created object and sets an error string within (the
 exception to this is when the module is unable to create an object upon a
@@ -211,7 +211,7 @@ less regular intervals also.
 
 =head2 getTraceString()
 
-  If traces are enabled, a trace string generated during the last call to the
+If traces are enabled, a trace string generated during the last call to the
 'getRelatedness' method is stored within the object. This trace string can
 be retrieved using the 'getTraceString' method. This method is called with
 no parameters and returns a scalar containing the most recently generated
@@ -222,7 +222,7 @@ follow in later sections.
 
 =head1 TYPICAL USAGE EXAMPLES
 
-  To create an object of the Resnik measure, we would have the following
+To create an object of the Resnik measure, we would have the following
 lines of code in the Perl program. 
 
    use WordNet::Similarity::res;
@@ -260,13 +260,13 @@ traces are turned off.
 
 =head1 CONFIGURATION FILES
 
-  The behaviour of the measures of semantic relatedness can be controlled by
+The behaviour of the measures of semantic relatedness can be controlled by
 using configuration files. These configuration files specify how certain
 parameters are initialized within the object. A configuration file may be
 specififed as a parameter during the creation of an object using the new
 method. The configuration files must follow a fixed format.
 
-  Every configuration file starts the name of the module ON THE FIRST LINE of
+Every configuration file starts the name of the module ON THE FIRST LINE of
 the file. For example, a configuration file for the Resnik module will have
 on the first line 'WordNet::Similarity::res'. This is followed by the various
 parameters, each on a new line and having the form 'name::value'. The
@@ -275,7 +275,7 @@ parameters, each on a new line and having the form 'name::value'. The
 supported in the configuration file. Anything following a '#' is ignored in
 the configuration file.
 
-  Sample configuration files are present in the '/samples' subdirectory of
+Sample configuration files are present in the '/samples' subdirectory of
 the package. Each of the modules has specific parameters that can be
 set/reset using the configuration files. Please read the manpages or the
 perldocs of the respective modules for details on the parameters specific
@@ -285,7 +285,7 @@ Resnik module.
 
 =head1 INFORMATION CONTENT
 
-  Three of the measures provided within the package require information
+Three of the measures provided within the package require information
 content values of concepts (WordNet synsets) for computing the semantic
 relatedness of concepts. Resnik (1995) describes a method for computing the
 information content of concepts from large corpora of text. In order to
@@ -304,30 +304,30 @@ of the format of these files follows. The FIRST LINE of this file must contain
 the version of WordNet the the file was created with. This should be present 
 as a string of the form 
 
-wnver::<version>
+  wnver::<version>
 
 For example, if WordNet version 1.7.1 was used for creation of the
 information content file, the following line would be present at the start
 of the information content file.
 
-wnver::1.7.1
+  wnver::1.7.1
 
 The rest of the file contains on each line a WordNet synset offset, 
 part-of-speech and a frequency count, in the form
 
-<offset><part-of-speech> <frequency> [ROOT]
+  <offset><part-of-speech> <frequency> [ROOT]
 
 without any leading or trailing spaces. For example, one of the lines of an
 information content file may be as follows.
 
-63723n 667
+  63723n 667
 
 where '63723' is a noun synset offset and 667 is its frequency
 count. Suppose the noun synset with offset 1740 is the root node of one of 
 the noun taxonomies and has a frequency count of 17625. Then this synset would 
 appear in an information content file as follows:
 
-1740n 17625 ROOT
+  1740n 17625 ROOT
 
 The ROOT tags are extremely significant in determining the top of the 
 hierarchies and must not be omitted. Typically, frequency counts for the noun
@@ -344,9 +344,11 @@ WordNet::Similarity::edge(3), WordNet::Similarity::random(3), WordNet::QueryData
 
 http://www.d.umn.edu/~patw0006
 
-http://www.cogsci.princeton.edu/~wn/
+http://www.cogsci.princeton.edu/~wn
 
-http://www.ai.mit.edu/people/jrennie/WordNet/
+http://www.ai.mit.edu/people/jrennie/WordNet
+
+http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
