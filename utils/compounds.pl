@@ -1,18 +1,21 @@
 #!/usr/local/bin/perl -w
 #
-# compounds.pl ver 0.3
-# (Updated 04/26/2003 -- Sid)
+# compounds.pl ver 0.6
+# (Updated 08/29/2003 -- Sid)
 #
 # Program to generate a list of all compound words 
 # present in WordNet.
 #
 # Copyright (c) 2002-2003
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse@d.umn.edu
+#
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
 # banerjee+@cs.cmu.edu
-# Siddharth Patwardhan, University of Minnesota, Duluth
-# patw0006@d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd@cs.utah.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -79,8 +82,8 @@ foreach(1 .. 29)
 while($line = <NIDX>)
 {
     $line =~ s/[\r\f\n]//g;
-    $line =~ s/^\s*//;
-    $line =~ s/\s*$//;
+    $line =~ s/^\s+//;
+    $line =~ s/\s+$//;
     ($word) = split(/\s+/, $line, 2);
     print "$word\n" if($word =~ /_/);
 }
@@ -92,8 +95,8 @@ foreach(1 .. 29)
 while($line = <VIDX>)
 {
     $line =~ s/[\r\f\n]//g;
-    $line =~ s/^\s*//;
-    $line =~ s/\s*$//;
+    $line =~ s/^\s+//;
+    $line =~ s/\s+$//;
     ($word) = split(/\s+/, $line, 2);
     print "$word\n" if($word =~ /_/);
 }
@@ -105,8 +108,8 @@ foreach(1 .. 29)
 while($line = <AIDX>)
 {
     $line =~ s/[\r\f\n]//g;
-    $line =~ s/^\s*//;
-    $line =~ s/\s*$//;
+    $line =~ s/^\s+//;
+    $line =~ s/\s+$//;
     ($word) = split(/\s+/, $line, 2);
     print "$word\n" if($word =~ /_/);
 }
@@ -118,8 +121,8 @@ foreach(1 .. 29)
 while($line = <RIDX>)
 {
     $line =~ s/[\r\f\n]//g;
-    $line =~ s/^\s*//;
-    $line =~ s/\s*$//;
+    $line =~ s/^\s+//;
+    $line =~ s/\s+$//;
     ($word) = split(/\s+/, $line, 2);
     print "$word\n" if($word =~ /_/);
 }
@@ -160,6 +163,6 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "compounds.pl version 0.3\n";
+    print "compounds.pl version 0.6\n";
     print "Copyright (c) 2002-2003 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }

@@ -1,16 +1,18 @@
 #!/usr/local/bin/perl -w
 #
-# wordVectors.pl version 0.01
-# (Last updated 06/09/2003 -- Sid)
+# wordVectors.pl version 0.06
+# (Last updated 10/13/2003 -- Sid)
 #
 # Program to create word vectors (co-occurrence vectors) for all
 # words in WordNet glosses.
 #
 # Copyright (c) 2002-2003
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse@d.umn.edu
-# Siddharth Patwardhan, University of Minnesota, Duluth
-# patw0006@d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd@cs.utah.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -34,7 +36,6 @@
 use Getopt::Long;
 use WordNet::QueryData;
 use dbInterface;
-use PDL;
 
 # Declarations!
 my $wn;              # WordNet::QueryData object.
@@ -43,15 +44,17 @@ my $wnPCPath;        # Path to WordNet data files (on Windows).
 my $wnUnixPath;      # Path to WordNet data files (on Unix).
 my $documentCount;   # Document Count (Gloss Count).
 my $db;              # BerkeleyDB access object.
+my %rows;            # Hash holding the rows of the matrix.
 my %compounds;       # List of compounds in WordNet.
 my %stopWords;       # List of stop words.
 my %wordMatrix;      # Matrix of co-occurrences.
 my %wordIndex;       # List of words word -> index mapping.
 my %wordTF;          # Term Frequency (for each word).
 my %wordDF;          # Document Frequency (for each word).
+my %wFreq;           # Word Frequency.
 
 # Get the options!
-&GetOptions("version", "help", "wnpath=s", "noexamples", "compfile=s", "stopfile=s", "cutoff=f");
+&GetOptions("version", "help", "wnpath=s", "noexamples", "compfile=s", "stopfile=s", "cutoff=f", "rhigh=i",  "rlow=i", "chigh=i", "clow=i");
 
 # If the version information has been requested...
 if(defined $opt_version)
@@ -160,6 +163,7 @@ if(!$wn)
     print STDERR "Unable to create WordNet::QueryData object.\n";
     exit;
 }
+$wnPCPath = $wnUnixPath = $wn->dataPath() if($wn->can('dataPath'));
 print STDERR "done.\n";
 
 print STDERR "Creating word vectors...                                       ";
@@ -232,12 +236,34 @@ print STDERR "\n";
 
 print STDERR "Inconsistent TERMFREQ and DOCFREQ hashes.\n" if(scalar(keys(%wordTF)) != scalar(keys(%wordDF)));
 
+# Pruning columns...
+%rows = %wordTF;
+if(defined $opt_chigh || defined $opt_clow)
+{
+    print STDERR "Pruning columns... ";
+    my $word;
+    my %tmpTF = %wordTF;
+    my %tmpDF = %wordDF;
+    %wordTF = ();
+    %wordDF = ();
+    my $c = 0;
+    foreach $word (sort {$tmpTF{$b} <=> $tmpTF{$a}} keys %tmpTF)
+    {
+      next if(defined $opt_chigh && $tmpTF{$word} > $opt_chigh);
+      last if(defined $opt_clow && $tmpTF{$word} < $opt_clow);
+      $wordTF{$word} = $tmpTF{$word};
+      $wordDF{$word} = $tmpDF{$word};
+      $c++;
+    }
+    print STDERR "done.\n";
+}
+
 # Assigning indices to words... pruning cut-off words...
 print STDERR "Writing dimensions...                       ";
 my $word;
-my $c = 0;
 my @words = keys %wordTF;
 my $final = scalar(@words);
+my $c = 0;
 unlink $ARGV[0];
 $db = dbInterface->new($ARGV[0], "Dimensions", 1);
 if(!$db)
@@ -286,27 +312,26 @@ if(!$db)
     print STDERR "Unable to create dbInterface object.\n";
     exit;
 }
-foreach $word (keys %wordMatrix)
+foreach $word (sort {$rows{$b} <=> $rows{$a}} keys %wordMatrix)
 {
     my $key;
     my $value;
-
-    if(defined $wordIndex{$word})
+    
+    next if(defined $opt_rhigh && $opt_rhigh < $rows{$word});
+    last if(defined $opt_rlow && $opt_rlow > $rows{$word});
+    $value = "";
+    foreach $key (keys %{$wordMatrix{$word}})
     {
-	$value = "";
-	foreach $key (keys %{$wordMatrix{$word}})
-	{
-	    if(defined $wordIndex{$key})
-	    {
-		$value .= "$wordIndex{$key} ".($wordMatrix{$word}{$key})." ";
-	    }
+        if(defined $wordIndex{$key})
+        {
+	    $value .= "$wordIndex{$key} ".($wordMatrix{$word}{$key})." ";
 	}
-	$value =~ s/\s+$//;
-	print STDERR "Unable to setValue for $word\n" if(!$db->setValue($word, $value));
-	print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
-	printf STDERR "%6d of %6d done.", $c, $final;
-	$c++;
     }
+    $value =~ s/\s+$//;
+    print STDERR "Unable to setValue for $word\n" if(!$db->setValue($word, $value));
+    print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
+    printf STDERR "%6d of %6d done.", $c, $final;
+    $c++;
 }
 print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
 printf STDERR "%6d of %6d done.", $c, $final;
@@ -442,8 +467,8 @@ sub _tfidf
 sub printHelp
 {
     &printUsage();
-    print "\nThis program writes out word vectors computed from WordNet in a\n";
-    print "BerkeleyDB database (Hash) specified by filename DBFILE.\n";
+    print "\nThis program writes out word vectors computed from WordNet glosses in\n";
+    print "a BerkeleyDB database (Hash) specified by filename DBFILE.\n";
     print "Options: \n";
     print "--compfile       Option specifying the the list of compounds present\n";
     print "                 in WordNet in the file COMPOUNDS. This list is used\n";
@@ -458,6 +483,14 @@ sub printHelp
     print "--cutoff         Option used to restrict the dimensions of the word\n";
     print "                 vectors with an tf/idf cutoff. VALUE is the cutoff\n";
     print "                 above which is an acceptable tf/idf value of a word.\n";
+    print "--rhigh          RHIGH is the upper frequency cutoff of the words\n";
+    print "                 selected to have a word-vector entry in the database.\n";
+    print "--rlow           RLOW is the lower frequency cutoff of the words\n";
+    print "                 selected to have a word-vector entry in the database.\n";
+    print "--chigh          CHIGH is the upper frequency cutoff of words that form\n";
+    print "                 the dimensions of the word-vectors.\n";
+    print "--clow           CLOW is the lower frequency cutoff of words that form\n";
+    print "                 the dimensions of the word-vectors.\n";
     print "--help           Displays this help screen.\n";
     print "--version        Displays version information.\n\n";
 }
@@ -473,12 +506,14 @@ sub minimalUsageNotes
 sub printUsage
 {
     print "Usage: wordVectors.pl [{ [--compfile COMPOUNDS] [--stopfile STOPLIST] [--wnpath WNPATH]";
-    print " [--noexamples] [--cutoff VALUE] DBFILE | --help | --version }]\n"
+    print " [--noexamples] [--cutoff VALUE] [--rhigh RHIGH] [--rlow RLOW] [--chigh CHIGH] [--clow CLOW] DBFILE\n";
+    print "                      | --help \n";
+    print "                      | --version }]\n";
 }
 
 # Subroutine to print the version information
 sub printVersion
 {
-    print "wordVectors.pl version 0.01\n";
-    print "Copyright (c) 2002-2003 Siddharth Patwardhan & Ted Pedersen.\n";
+    print "wordVectors.pl version 0.06\n";
+    print "Copyright (c) 2003 Siddharth Patwardhan & Ted Pedersen.\n";
 }

@@ -1,5 +1,5 @@
-# get_wn_info.pm version 0.05
-# (Updated 05/23/2003 -- Sid)
+# get_wn_info.pm version 0.06
+# (Updated 10/11/2003 -- Jason)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
@@ -43,7 +43,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 # function to set up the wordnet object and the various boundary indices
 sub new
@@ -61,17 +61,20 @@ sub new
     $wn = shift;
     $self->{'wn'} = $wn;
 
+    # check WordNet::QueryData version
+    $wn->VERSION(1.30);
+
     # check if stemming called for 
     $stemmingReqd = shift;
     $self->{'stem'} = $stemmingReqd;
-    
-    
+
+
     if($stemmingReqd)
     {
 	$stemmer = stem->new($wn);
 	$self->{'stemmer'} = $stemmer;
     }
-    
+
     # set up various boundaries.
     $self->{'glosBoundaryIndex'} = 0;
     $self->{'exampleBoundaryIndex'} = 0;
@@ -91,7 +94,7 @@ sub hype
     my $wn = $self->{'wn'};
     my @synsets = @_;
     my %hypernymHash = ();
-    
+
     # check if this is a request for the input-output types of this
     # function
     if ($#synsets == 0 && $synsets[0] eq '0')
@@ -331,7 +334,7 @@ sub also
 	}
 	
 	# get the also see synsets 
-	my @alsoSees = $wn->query($synsets[$i], "also");
+	my @alsoSees = $wn->queryWord($synsets[$i], "also");
 	
 	# put the synsets in a hash. this way we will avoid multiple
 	# copies of the same synset
@@ -344,6 +347,92 @@ sub also
     
     # return the synsets in an array 
     return(sort keys %alsoSeeHash);
+}
+
+# function to take a set of words and to return their derived forms. 
+# both input and output will be arrays of fully qualified
+# WordNet senses (in WORD#POS#SENSE format).
+sub deri
+{
+    my $self = shift;
+    my $wn = $self->{wn};
+    my @words = @_;
+    my %deriHash = ();
+
+    if ($#words == 0 and $words[0] eq '0') {
+	return (1, 1);
+    }
+
+    for my $i (0..$#words) {
+	unless ($words[$i] =~ m/\#\w+\#\d+/) {
+	    print STDERR "$words[$i] is not in WORD#POS#SENSE format!\n";
+	    exit 1;
+	}
+	my @deris = $wn->queryWord ($words[$i], "deri");
+
+	foreach my $temp (@words) {
+	    $deriHash{$temp} = 1;
+	}
+    }
+    return sort (keys %deriHash);
+}
+
+# function to take a set of synsets and to return their domain
+# synsets. both input and output will be arrays of fully qualified
+# WordNet senses (in WORD#POS#SENSE format).
+sub domn
+{
+    my $self = shift;
+    my $wn = $self->{wn};
+    my @words = @_;
+    my %domnHash = ();
+
+    if ($#words == 0 and $words[0] eq '0') {
+	return (1, 1);
+    }
+
+    for my $i (0..$#words) {
+	unless ($words[$i] =~ m/\#\w+\#\d+/) {
+	    print STDERR "$words[$i] is not in WORD#POS#SENSE format!\n";
+	    exit 1;
+	}
+	my @domns = $wn->queryWord ($words[$i], "deri");
+
+	foreach my $temp (@words) {
+	    $domnHash{$temp} = 1;
+	}
+    }
+    return sort (keys %domnHash);
+
+}
+
+# function to take a set of synsets and to return their domain term
+# synsets. both input and output will be arrays of fully qualified
+# WordNet senses (in WORD#POS#SENSE format).
+sub domt
+{
+    my $self = shift;
+    my $wn = $self->{wn};
+    my @words = @_;
+    my %domtHash = ();
+
+    if ($#words == 0 and $words[0] eq '0') {
+	return (1, 1);
+    }
+
+    for my $i (0..$#words) {
+	unless ($words[$i] =~ m/\#\w+\#\d+/) {
+	    print STDERR "$words[$i] is not in WORD#POS#SENSE format!\n";
+	    exit 1;
+	}
+	my @domts = $wn->queryWord ($words[$i], "deri");
+
+	foreach my $temp (@words) {
+	    $domtHash{$temp} = 1;
+	}
+    }
+    return sort (keys %domtHash);
+
 }
 
 # function to take a set of synsets and to return their similar-to
@@ -507,7 +596,7 @@ sub part
 	}
 	
 	# get the part synsets
-	my @part = $wn->query($synsets[$i], "part");
+	my @part = $wn->queryWord($synsets[$i], "part");
 	
 	# put the part synsets in a hash. this way we will avoid
 	# multiple copies of the same part synset
@@ -551,7 +640,7 @@ sub pert
 	}
 	
 	# get the pert synsets
-	my @pert = $wn->query($synsets[$i], "pert");
+	my @pert = $wn->queryWord($synsets[$i], "pert");
 	
 	# put the pert synsets in a hash. this way we will avoid
 	# multiple copies of the same pert synset

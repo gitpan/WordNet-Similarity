@@ -1,12 +1,17 @@
-# WordNet::Similarity.pm version 0.05
-# (Updated 06/03/2003 -- Sid)
+# WordNet::Similarity.pm version 0.06
+# (Updated 08/29/2003 -- Sid)
 #
 # Module containing the version information and pod 
 # for the WordNet::Similarity package.
 #
 # Copyright (c) 2003,
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd@cs.utah.edu
+#
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
 # banerjee+@cs.cmu.edu
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse@d.umn.edu
 #
@@ -29,7 +34,6 @@
 
 package WordNet::Similarity;
 
-use 5.005;
 use strict;
 
 require Exporter;
@@ -44,7 +48,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 1;
 
@@ -104,7 +108,7 @@ assign a quantitative value to this relatedness? Some ideas have been put
 forth by researchers to quantify the concept of relatedness of words, with
 encouraging results.
 
-Sevenof these different measures of relatedness have been implemented in
+Seven of these different measures of relatedness have been implemented in
 this software package. A simple edge counting measure and a random measure 
 have also been provided. These measures rely heavily on the vast store of
 knowledge available in the online electronic dictionary -- WordNet. So, we
@@ -116,10 +120,11 @@ modules are installed.
 =head1 DESCRIPTION
 
 This package consists of Perl modules along with supporting Perl programs
-that implement the semantic distance measures described by Leacock Chodorow
-(1998), Jiang Conrath (1997), Resnik (1995), Lin (1998), Hirst St Onge
-(1998) and the adapted Lesk measure by Banerjee and Pedersen (2002). The 
-package contains Perl modules designed as object classes with methods that 
+that implement the semantic relatedness measures described by Leacock Chodorow
+(1998), Jiang Conrath (1997), Resnik (1995), Lin (1998), Wu Palmer (1993),
+Hirst St Onge (1998) the adapted Lesk measure by Banerjee and Pedersen (2002)
+and a Context Vector measure recently introduced by Patwardhan and Pedersen.
+The package contains Perl modules designed as object classes with methods that 
 take as input two word senses. The semantic distance between these word 
 senses is returned by these methods. A quantitative measure of the degree 
 to which two word senses are related has wide ranging applications in 
@@ -137,7 +142,7 @@ provided to modify the output and enhance it with trace information and
 other useful output. Support programs for generating information
 content files from various corpora are also available in the package. The
 information content files are required by three of the measures for
-computing the relatedness of two concepts.
+computing the relatedness of concepts.
 
 =head1 USAGE
 
@@ -164,7 +169,7 @@ and must be saved by the calling program, if any of the other methods of
 this module are to be called. It is possible to create multiple objects of
 the same module (possibly initialized differently by specifying different
 configuration files for each). The format of the configuration files is
-discussed later in this section.
+discussed later in this documentation.
 
 An 'undef' value returned by the 'new' method, indicates that it was unable
 to create an object. It is also possible that non-fatal errors occur during
@@ -204,7 +209,7 @@ warning since the last call to 'getError'. 1 indicates that there was/were
 non-fatal error(s) (warnings) since the last call to 'getError'. A value of
 2 usually indicates that the errors were serious enough to warrant the
 termination of the program. However, how these errors are handled is
-completely upto the writing the Perl program. It is advisable that the
+completely upto the programmer writing the Perl program. It is advisable that the
 error flag be checked after every call to either 'new' or 'getRelatedness',
 but this is not a necessary step and the error condition may be tested at
 less regular intervals also.
@@ -218,7 +223,7 @@ no parameters and returns a scalar containing the most recently generated
 trace string. By default traces are not enabled. Traces can be enabled by
 specifying this as an option in the configuration file for the
 measure. Instructions for writing configuration files for the measures
-follow in later sections.
+follow later in the documentation.
 
 =head1 TYPICAL USAGE EXAMPLES
 
@@ -245,7 +250,7 @@ configuration file, we would have the following:
    use WordNet::Similarity::lch;
    $measure = WordNet::Similarity::lch->new($wn);
 
-To find the sematic relatedness of the first sense of the noun 'car' and
+To find the semantic relatedness of the first sense of the noun 'car' and
 the second sense of the noun 'bus' using the resnik measure, we would write
 the following piece of code:
 
@@ -260,13 +265,13 @@ traces are turned off.
 
 =head1 CONFIGURATION FILES
 
-The behaviour of the measures of semantic relatedness can be controlled by
+The behavior of the measures of semantic relatedness can be controlled by
 using configuration files. These configuration files specify how certain
 parameters are initialized within the object. A configuration file may be
-specififed as a parameter during the creation of an object using the new
+specified as a parameter during the creation of an object using the new
 method. The configuration files must follow a fixed format.
 
-Every configuration file starts the name of the module ON THE FIRST LINE of
+Every configuration file starts with the name of the module ON THE FIRST LINE of
 the file. For example, a configuration file for the Resnik module will have
 on the first line 'WordNet::Similarity::res'. This is followed by the various
 parameters, each on a new line and having the form 'name::value'. The
@@ -312,8 +317,8 @@ of the information content file.
 
   wnver::1.7.1
 
-The rest of the file contains on each line a WordNet synset offset, 
-part-of-speech and a frequency count, in the form
+The rest of the file contains on each line, a WordNet synset offset, 
+part-of-speech and a frequency count, of the form
 
   <offset><part-of-speech> <frequency> [ROOT]
 
@@ -340,24 +345,26 @@ content file has been provided in the '/samples' directory of the package.
 
 perl(1), WordNet::Similarity::jcn(3), WordNet::Similarity::res(3), WordNet::Similarity::lin(3), 
 WordNet::Similarity::lch(3), WordNet::Similarity::hso(3), WordNet::Similarity::lesk(3),
-WordNet::Similarity::edge(3), WordNet::Similarity::random(3), WordNet::QueryData(3)
+WordNet::Similarity::wup(3), WordNet::Similarity::edge(3), WordNet::Similarity::random(3),
+WordNet::QueryData(3)
 
-http://www.d.umn.edu/~patw0006
+http://www.cs.utah.edu/~sidd
 
 http://www.cogsci.princeton.edu/~wn
 
-http://www.ai.mit.edu/people/jrennie/WordNet
+http://www.ai.mit.edu/~jrennie/WordNet
 
 http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Siddharth Patwardhan, <patw0006@d.umn.edu>
+  Siddharth Patwardhan, <sidd@cs.utah.edu>
+  Satanjeev Banerjee, <banerjee+@cs.cmu.edu>
   Ted Pedersen, <tpederse@d.umn.edu>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by Siddharth Patwardhan and Ted Pedersen
+Copyright 2003 by Siddharth Patwardhan, Satanjeev Banerjee and Ted Pedersen
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

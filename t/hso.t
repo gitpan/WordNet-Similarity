@@ -21,7 +21,7 @@ print "ok 1\n";
 
 ############ Load QueryData
 
-$wn = WordNet::QueryData->new();
+$wn = WordNet::QueryData->new;
 if($wn)
 {
     print "ok 2\n";
@@ -174,10 +174,10 @@ else
 
 ############ A path search...
 
-$value = $hso->getRelatedness("truck#n#1", "vehicle#n#1");
+$value = $hso->getRelatedness("bumper_car#n#1", "vehicle#n#1");
 if(defined $value && $value =~ /[0-9]+/)
 {
-    if($value == 5)
+    if($value == 4)
     {
 	print "ok 10\n";
     }

@@ -7,8 +7,10 @@
 # interface into the word vectors database (BerkeleyDB).
 #
 # Copyright (c) 2003,
-# Siddharth Patwardhan, University of Minnesota, Duluth
-# patw0006@d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd@cs.utah.edu
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse@d.umn.edu
 #

@@ -3,7 +3,11 @@
 # Sample Perl program, showing how to use the 
 # WordNet::Similarity measures.
 
+# WordNet::QueryData is required by all the
+# relatedness modules.
 use WordNet::QueryData;
+
+# 'use' each module that you wish to use.
 use WordNet::Similarity::jcn;
 use WordNet::Similarity::res;
 use WordNet::Similarity::lin;

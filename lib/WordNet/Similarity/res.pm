@@ -1,12 +1,14 @@
-# WordNet::Similarity::res.pm version 0.05
-# (Updated 06/03/2003 -- Sid)
+# WordNet::Similarity::res.pm version 0.06
+# (Updated 10/10/2003 -- Sid)
 #
-# Semantic Similarity Measure package implementing the semantic 
-# distance measure described by Resnik (1995).
+# Semantic Similarity Measure package implementing the measure 
+# described by Resnik (1995).
 #
 # Copyright (c) 2003,
-# Siddharth Patwardhan, University of Minnesota, Duluth
-# patw0006@d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd@cs.utah.edu
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse@d.umn.edu
 #
@@ -44,7 +46,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 
 # 'new' method for the res class... creates and returns a WordNet::Similarity::res object.
@@ -153,6 +155,14 @@ sub _initialize
 			$self->{'doCache'} = 1;
 			$self->{'doCache'} = $tmp if($tmp =~ /^[01]$/);
 		    }
+		    elsif(m/^(?:max)?CacheSize::(.*)/i) 
+		    {
+			my $mcs = $1;
+			$self->{'maxCacheSize'} = 1000;
+			$self->{'maxCacheSize'} = $mcs
+			    if(defined ($mcs) && $mcs =~ m/^\d+$/);
+			$self->{'maxCacheSize'} = 0 if($self->{'maxCacheSize'} < 0);
+		    }
 		    elsif($_ ne "")
 		    {
 			s/::.*//;
@@ -248,8 +258,8 @@ sub _initialize
 		    while(<INFOCONTENT>)
 		    {
 			s/[\r\f\n]//g;
-			s/^\s*//;
-			s/\s*$//;
+			s/^\s+//;
+			s/\s+$//;
 			($offsetPOS, $frequency, $topmost) = split /\s+/, $_, 3;
 			if($offsetPOS =~ /([0-9]+)([nvar])/)
 			{
@@ -312,6 +322,7 @@ sub _initialize
     $self->{'traceString'} .= "trace :: ".($self->{'trace'})."\n" if(defined $self->{'trace'});
     $self->{'traceString'} .= "cache :: ".($self->{'doCache'})."\n" if(defined $self->{'doCache'});
     $self->{'traceString'} .= "information content file :: $infoContentFile\n"if(defined $infoContentFile);
+    $self->{'traceString'} .= "Cache Size :: ".($self->{'maxCacheSize'})."\n" if(defined $self->{'maxCacheSize'});
     # [/trace]
 
     # Check for a strange Root_Node_Frequency=0 condition. Normally, not possible.
@@ -817,7 +828,7 @@ See the WordNet::Similarity(3) documentation for details of these methods.
 =head1 TYPICAL USAGE EXAMPLES
 
 To create an object of the res measure, we would have the following
-lines of code in the perl program. 
+lines of code in the Perl program. 
 
    use WordNet::Similarity::res;
    $measure = WordNet::Similarity::res->new($wn, '/home/sid/res.conf');
@@ -833,7 +844,7 @@ as well as any other error/warning may be tested.
    ($err, $errString) = $measure->getError();
    die $errString."\n" if($err);
 
-To find the sematic relatedness of the first sense of the noun 'car' and
+To find the semantic relatedness of the first sense of the noun 'car' and
 the second sense of the noun 'bus' using the measure, we would write
 the following piece of code:
 
@@ -848,13 +859,13 @@ traces are turned off.
 
 =head1 CONFIGURATION FILE
 
-The behaviour of the measures of semantic relatedness can be controlled by
+The behavior of the measures of semantic relatedness can be controlled by
 using configuration files. These configuration files specify how certain
 parameters are initialized within the object. A configuration file may be
-specififed as a parameter during the creation of an object using the new
+specified as a parameter during the creation of an object using the new
 method. The configuration files must follow a fixed format.
 
-Every configuration file starts the name of the module ON THE FIRST LINE of
+Every configuration file starts with the name of the module ON THE FIRST LINE of
 the file. For example, a configuration file for the res module will have
 on the first line 'WordNet::Similarity::res'. This is followed by the various
 parameters, each on a new line and having the form 'name::value'. The
@@ -882,6 +893,9 @@ which case it takes the value 1, i.e. switches 'on' caching. A value of
 specifies the path of an information content file containing the 
 frequency of occurrence of every WordNet concept in a large corpus. The
 format of this file is specified in a later section.
+
+(d) 'maxCacheSize::' -- takes a non-negative integer value. The value indicates
+the size of the cache, used for storing the computed relatedness value.
 
 =head1 INFORMATION CONTENT
 
@@ -912,8 +926,8 @@ of the information content file.
 
   wnver::1.7.1
 
-The rest of the file contains on each line a WordNet synset offset, 
-part-of-speech and a frequency count, in the form
+The rest of the file contains on each line, a WordNet synset offset, 
+part-of-speech and a frequency count, of the form
 
   <offset><part-of-speech> <frequency> [ROOT]
 
@@ -937,17 +951,17 @@ and verb hierarchies are present in each information content file.
 
 perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
-http://www.d.umn.edu/~patw0006
+http://www.cs.utah.edu/~sidd
 
 http://www.cogsci.princeton.edu/~wn
 
-http://www.ai.mit.edu/people/jrennie/WordNet
+http://www.ai.mit.edu/~jrennie/WordNet
 
 http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Siddharth Patwardhan, <patw0006@d.umn.edu>
+  Siddharth Patwardhan, <sidd@cs.utah.edu>
   Ted Pedersen, <tpederse@d.umn.edu>
 
 =head1 COPYRIGHT AND LICENSE

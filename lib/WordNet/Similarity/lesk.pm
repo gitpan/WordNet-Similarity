@@ -1,5 +1,5 @@
-# WordNet::Similarity::lesk.pm version 0.05
-# (Updated 06/03/2003 -- Sid)
+# WordNet::Similarity::lesk.pm version 0.06
+# (Updated 10/10/2003 -- Sid)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using an
@@ -7,12 +7,15 @@
 # Satanjeev Banerjee, Ted Pedersen>
 #
 # Copyright (c) 2003,
+#
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
 # banerjee+@cs.cmu.edu
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse@d.umn.edu
-# Siddharth Patwardhan, University of Minnesota, Duluth
-# patw0006@d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd@cs.utah.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -54,7 +57,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 
 # 'new' method for the lesk class... creates and returns a WordNet::Similarity::lesk object.
@@ -78,11 +81,15 @@ sub new
     # The WordNet::QueryData object.
     $wn = shift;
     $self->{'wn'} = $wn;
+
     if(!$wn)
     {
 	$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->new()) - ";
 	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
 	$self->{'error'} = 2;
+    }
+    else { 
+        $wn->VERSION(1.30);  # check WordNet::QueryData version
     }
 
     # Bless object, initialize it and return it.
@@ -187,6 +194,14 @@ sub _initialize
 			my $tmp = $1;
 			$self->{'doCache'} = 1;
 			$self->{'doCache'} = $tmp if($tmp =~ /^[01]$/);
+		    }
+		    elsif(m/^(?:max)?CacheSize::(.*)/i) 
+		    {
+			my $mcs = $1;
+			$self->{'maxCacheSize'} = 1000;
+			$self->{'maxCacheSize'} = $mcs
+			    if(defined ($mcs) && $mcs =~ m/^\d+$/);
+			$self->{'maxCacheSize'} = 0 if($self->{'maxCacheSize'} < 0);
 		    }
 		    elsif($_ ne "")
 		    {
@@ -449,6 +464,7 @@ sub _initialize
     $self->{'traceString'} .= "WordNet::Similarity::lesk object created:\n";
     $self->{'traceString'} .= "trace          :: ".($self->{'trace'})."\n" if(defined $self->{'trace'});
     $self->{'traceString'} .= "cache          :: ".($self->{'doCache'})."\n" if(defined $self->{'doCache'});
+    $self->{'traceString'} .= "maxCacheSize   :: ".($self->{'maxCacheSize'})."\n" if(defined $self->{'maxCacheSize'});
     $self->{'traceString'} .= "stem           :: ".($self->{'doStem'})."\n" if(defined $self->{'doStem'});
     $self->{'traceString'} .= "normalize      :: ".($self->{'doNormalize'})."\n" if(defined $self->{'doNormalize'});
     $self->{'traceString'} .= "relation File  :: $relationFile\n" if($relationFile);
@@ -615,9 +631,9 @@ sub getRelatedness
 	{
 	    $numWords1 = 0;
 	    my $tempString = $firstString;
-	    $tempString =~ s/^\s*//;
-	    $tempString =~ s/\s*$//;
-	    $tempString =~ s/\s+/ /;
+	    $tempString =~ s/^\s+//;
+	    $tempString =~ s/\s+$//;
+	    $tempString =~ s/\s+/ /g;
 	    
 	    foreach (split /\s+/, $tempString)
 	    {
@@ -629,9 +645,9 @@ sub getRelatedness
 	    
 	    $numWords2 = 0;
 	    $tempString = $secondString;
-	    $tempString =~ s/^\s*//;
-	    $tempString =~ s/\s*$//;
-	    $tempString =~ s/\s+/ /;
+	    $tempString =~ s/^\s+//;
+	    $tempString =~ s/\s+$//;
+	    $tempString =~ s/\s+/ /g;
 	    
 	    foreach (split /\s+/, $tempString)
 	    {
@@ -752,7 +768,7 @@ __END__
 =head1 NAME
 
 WordNet::Similarity::lesk - Perl module for computing semantic relatedness
-of word senses using gloss overlaps as decribed by Banerjee and Pedersen 
+of word senses using gloss overlaps as described by Banerjee and Pedersen 
 (2002) -- a method that adapts the Lesk approach to WordNet.
 
 =head1 SYNOPSIS
@@ -796,7 +812,7 @@ See the WordNet::Similarity(3) documentation for details of these methods.
 =head1 TYPICAL USAGE EXAMPLES
 
 To create an object of the lesk measure, we would have the following
-lines of code in the perl program. 
+lines of code in the Perl program. 
 
    use WordNet::Similarity::lesk;
    $measure = WordNet::Similarity::lesk->new($wn, '/home/sid/lesk.conf');
@@ -812,7 +828,7 @@ as well as any other error/warning may be tested.
    ($err, $errString) = $measure->getError();
    die $errString."\n" if($err);
 
-To find the sematic relatedness of the first sense of the noun 'car' and
+To find the semantic relatedness of the first sense of the noun 'car' and
 the second sense of the noun 'bus' using the measure, we would write
 the following piece of code:
 
@@ -827,13 +843,13 @@ traces are turned off.
 
 =head1 CONFIGURATION FILE
 
-The behaviour of the measures of semantic relatedness can be controlled by
+The behavior of the measures of semantic relatedness can be controlled by
 using configuration files. These configuration files specify how certain
 parameters are initialized within the object. A configuration file may be
-specififed as a parameter during the creation of an object using the new
+specified as a parameter during the creation of an object using the new
 method. The configuration files must follow a fixed format.
 
-Every configuration file starts the name of the module ON THE FIRST LINE of
+Every configuration file starts with the name of the module ON THE FIRST LINE of
 the file. For example, a configuration file for the lesk module will have
 on the first line 'WordNet::Similarity::lesk'. This is followed by the various
 parameters, each on a new line and having the form 'name::value'. The
@@ -855,41 +871,101 @@ as traces, all the text being compared.
 which case it takes the value 1, i.e. switches 'on' caching. A value of 
 0 switches caching 'off'. By default caching is enabled.
   
-(c) 'stop::' -- The value is a string that specifies the path of a file 
+(c) 'relation::' -- The value is a filename (with complete path) of a file
+that contains a list of WordNet-relations. The vector module combines the
+glosses of synsets related to the target synsets by these relations, and 
+forms the gloss-vector from this combined gloss. The format of the relation
+file is specified later in the documentation.
+
+(d) 'stop::' -- The value is a string that specifies the path of a file 
 containing a list of stop words that should be ignored for the gloss
 overlaps.
   
-(d) 'stem::' -- can take values 0 or 1 or the value can be omitted, in 
+(e) 'stem::' -- can take values 0 or 1 or the value can be omitted, in 
 which case it takes the value 1, i.e. switches 'on' stemming. A value of 
 0 switches stemming 'off'. When stemming is enabled, all the words of the
 glosses are stemmed before their overlaps are determined.
   
-(e) 'normalize::' -- can take values 0 or 1 or the value can be omitted, in 
+(f) 'normalize::' -- can take values 0 or 1 or the value can be omitted, in 
 which case it takes the value 1, i.e. switches 'on' normalizing of the score. 
 A value of 0 switches normalizing 'off'. When normalizing is enabled, the 
 score obtained by counting the gloss overlaps is normalized by the size
 of the glosses. The details are described in Banerjee Pedersen (2002).
 
+(g) 'maxCacheSize::' -- takes a non-negative integer value. The value indicates
+the size of the cache, used for storing the computed relatedness value.
+
+=head1 RELATION FILE FORMAT
+
+The relation file starts with the string "LeskRelationFile" on the first line
+of the file. Following this, on each consecutive line, a relation is specified
+in the form -- 
+
+func(func(func... (func)...))-func(func(func... (func)...)) [weight]
+
+Where "func" can be any one of the following functions:
+
+hype() = Hypernym of
+hypo() = Hyponym of
+holo() = Holonym of
+mero() = Meronym of
+attr() = Attribute of
+also() = Also see
+sim() = Similar
+enta() = Entails
+caus() = Causes
+part() = Particle
+pert() = Pertainym of
+glos = gloss (without example)
+example = example (from the gloss)
+glosexample = gloss + example
+syns = synset of the concept
+
+Each of these specifies a WordNet relation. And the outermost function in the
+nesting can only be one of glos, example, glosexample or syns. The set of functions 
+to the left of the "-" are applied to the first word sense. The functions to the 
+right of the "-" are applied to the second word sense. An optional weight can be 
+specified to weigh the contribution of that relation in the overall score.
+
+For example,
+
+glos(hype(hypo))-example(hype) 0.5
+
+means that the gloss of the hypernym of the hyponym of the first synset is overlapped
+with the example of the hypernym of the second synset to get the lesk score. This 
+score is weighted 0.5. If "glos", "example", "glosexample" or "syns" is not provided 
+as the outermost function of the nesting, the measure assumes "glos" as the default.
+So,
+
+glos(hypo(also))-glos(holo(attr))
+
+and
+
+hypo(also)-holo(attr)
+
+are treated the same by the measure.
+
 =head1 SEE ALSO
 
 perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
-http://www.d.umn.edu/~patw0006
+http://www.cs.utah.edu/~sidd
 
 http://www.cogsci.princeton.edu/~wn
 
-http://www.ai.mit.edu/people/jrennie/WordNet
+http://www.ai.mit.edu/~jrennie/WordNet
 
 http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Siddharth Patwardhan, <patw0006@d.umn.edu>
+  Satanjeev Banerjee,  <banerjee+@cs.cmu.edu>
   Ted Pedersen, <tpederse@d.umn.edu>
+  Siddharth Patwardhan, <sidd@cs.utah.edu>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by Siddharth Patwardhan and Ted Pedersen
+Copyright 2003 by Satanjeev Banerjee, Ted Pedersen and Siddharth Patwardhan 
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

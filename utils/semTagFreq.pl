@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# semTagFreq.pl version 0.04
-# (Updated 05/01/2003 -- Sid)
+# semTagFreq.pl version 0.06
+# (Updated 10/13/2003 -- Sid)
 #
 # A helper tool perl program for the distance.pl program. 
 # This program is used to generate the frequency count data 
@@ -13,8 +13,10 @@
 #
 #
 # Copyright (c) 2003,
-# Siddharth Patwardhan, University of Minnesota, Duluth
-# patw0006@d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd@cs.utah.edu
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse@d.umn.edu
 #
@@ -92,6 +94,7 @@ else
     $wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";    
 }
 
+
 if(defined $opt_outfile)
 {
     $fname = $opt_outfile;
@@ -106,6 +109,18 @@ else
 # Initialize POS Map.
 $posMap{"1"} = "n";
 $posMap{"2"} = "v";
+
+
+# Get a WordNet::QueryData object...
+print STDERR "Loading WordNet ... ";
+$wn = ((defined $opt_wnpath) ? (WordNet::QueryData->new($opt_wnpath)) : (WordNet::QueryData->new()));
+if(!$wn)
+{
+    print STDERR "\nUnable to create WordNet object.\n";
+    exit;
+}
+$wnPCPath = $wnUnixPath = $wn->dataPath() if($wn->can('dataPath'));
+print STDERR "done.\n";
 
 
 # Loading the Sense Indices.
@@ -219,17 +234,6 @@ print "Unknown smoothing scheme '$opt_smooth'.\nContinuing without smoothing.\n"
 print STDERR "Cleaning junk from memory ... ";
 undef %offsetMnem;
 undef %mnemFreq;
-print STDERR "done.\n";
-
-
-# Get a WordNet::QueryData object...
-print STDERR "Loading WordNet ... ";
-$wn = ((defined $opt_wnpath) ? (WordNet::QueryData->new($opt_wnpath)) : (WordNet::QueryData->new()));
-if(!$wn)
-{
-    print STDERR "\nUnable to create WordNet object.\n";
-    exit;
-}
 print STDERR "done.\n";
 
 
@@ -430,6 +434,6 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "semTagFreq.pl  -  version 0.04\n";
+    print "semTagFreq.pl  -  version 0.06\n";
     print "Copyright (c) 2003, Siddharth Patwardhan & Ted Pedersen\n";
 }

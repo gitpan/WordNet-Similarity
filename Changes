@@ -1,5 +1,108 @@
 Revision history for WordNet::Similarity.
-(Last modified -- 06/03/2003 -- Sid.)
+(Last modified -- 10/18/2003 -- Sid)
+
+10/18/2003 WordNet::Similarity ver 0.06
+
+(1)  Removed dependence of the vector measure on PDL. Implemented
+     "in-house" sparse vector manipulation functions.
+
+(2)  Modified the README with updated documentation of similarity.pl
+     (--interact option) and wordVectors.pl.
+
+10/15/2003 WordNet::Similarity ver 0.06
+
+(1)  Changed Makefile.PL so that it checks for version 1.30 of QueryData
+
+10/13/2003 WordNet::Similarity ver 0.06
+
+(1)  Added "maxCacheSize" option to all measures.
+
+(2)  Added "maxCacheSize" option info to the man/pod
+     documentation.
+
+(3)  Used the new dataPath() method of QueryData 1.31 in all the 
+     utilities to obtain the path of the WordNet data files.
+
+(4)  Modified Makefile.PL to check for PDL and BerkeleyDB dependency 
+     during installation. vector.pm is not installed on failed 
+     dependencies.
+
+10/11/2003 WordNet::Similarity ver 0.06
+
+(1)  Replaced instances of deprecated WordNet::QueryData::query with
+     WordNet::QueryData::queryWord in hso.pm
+
+(2)  made hso.pm check QueryData version.  queryWord was broken in
+     QueryData 1.29 and earlier 
+
+(3)  added support for new relations in WordNet 2.0 to get_wn_info.pm
+
+(4)  updated test scripts to work with WN 2.0 (and WN 1.7.1)
+
+10/06/2003 WordNet::Similarity ver 0.06
+
+(1)  Added rootNode option to wup.pm
+
+09/27/2003 WordNet::Similarity ver 0.06
+
+(1)  Fixed syntax error in wordVectors.pl.
+
+(2)  Added readDB.pl to utils.
+
+(3)  Changed contact information in docs.
+
+(4)  Re-organized the samples subdirectory.
+
+(5)  Fixed typo in random.pm.
+
+(6)  Updated the MANIFEST.
+
+09/21/2003 WordNet::Similarity ver 0.06
+
+(1)  Updated POD for WordNet::Similarity::wup
+
+(2)  Added option to wup to specify a cache size in a configuration file.
+
+(3)  similarity.pl now 'use's QueryData 1.30 or later.
+     Previous versions of QueryData will not work.  t/access.t also 'use's
+     QueryData 1.30.  get_wn_info.pm and lesk.pm both check for 
+     QueryData 1.30 and will die if it not found.
+
+(4)  Reorganized the bibliography in README and slightly re-worded part
+     of the introduction
+
+09/18/2003 WordNet::Similarity ver 0.06
+
+(1)  Added new Wu Palmer measure of similarity
+     (lib/WordNet/Similarity/wup.pm)
+
+(2)  Updated README to mention wup
+
+(3)  Added t/wup.t
+
+(4)  Updated POD for WordNet::Similarity to mention wup
+
+(5)  Updated the help message of similarity.pl to mention wup
+
+(6)  Added t/wup.t and lib/WordNet/Similarity/wup.pm to MANIFEST
+
+
+
+09/05/2003 WordNet::Similarity ver 0.06
+
+(1)  Added '--interact' option to similarity.pl.
+
+(2)  Changed the structure of the Vector Relation File.
+
+(3)  Fixed a minor bug in similarity.pl. (s///g)
+
+(4)  Updated the perldocs for the measures.
+
+(5)  Incorporated some new features into the 'wordVectors.pl' utility.
+     These features were used for thesis experiments.
+
+(6)  Added documentation about the Lesk and Vector relation files (they
+     have different formats now).
 
 
 

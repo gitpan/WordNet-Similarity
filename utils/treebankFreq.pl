@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# treebankFreq.pl version 0.04
-# (Updated 05/01/2003 -- Sid)
+# treebankFreq.pl version 0.06
+# (Updated 10/13/2003 -- Sid)
 #
 # This program reads the Treebank Corpus and computes the frequency counts
 # for each synset in WordNet. These frequency counts are used by 
@@ -11,12 +11,15 @@
 # relatedness.
 #
 # Copyright (c) 2002-2003
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse@d.umn.edu
+#
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
 # banerjee+@cs.cmu.edu
-# Siddharth Patwardhan, University of Minnesota, Duluth
-# patw0006@d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd@cs.utah.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -156,6 +159,7 @@ if(defined $opt_stopfile)
 print STDERR "Loading WordNet... ";
 $wn=(defined $opt_wnpath)? (WordNet::QueryData->new($opt_wnpath)):(WordNet::QueryData->new());
 die "Unable to create WordNet object.\n" if(!$wn);
+$wnPCPath = $wnUnixPath = $wn->dataPath() if($wn->can('dataPath'));
 print STDERR "done.\n";
 
 # Load the topmost nodes of the hierarchies
@@ -206,10 +210,13 @@ if(defined $opt_smooth)
 		}
 	    }
 	    $localpos =~ s/(^[nv]).*/$1/;
-	    foreach (1 .. 29)
+	    while(<IDX>)
 	    {
-		<IDX>;
+		last if(/^\S/);
 	    }
+	    ($offset) = split(/\s+/, $_, 2);
+	    $offset =~ s/^0*//;
+	    $offsetFreq{$localpos}{$offset}++;
 	    while(<IDX>)
 	    {
 		($offset) = split(/\s+/, $_, 2);
@@ -303,8 +310,8 @@ sub process
     $block =~ s/\'//g;
     $block =~ s/[^a-z0-9]+/ /g;
     while($block =~ s/([0-9]+)\s+([0-9]+)/$1$2/g){}
-    $block =~ s/^\s*//;
-    $block =~ s/\s*$//;
+    $block =~ s/^\s+//;
+    $block =~ s/\s+$//;
     $block = &compoundify($block);
     while($block =~ /([\w_]+)/g)
     {
@@ -558,6 +565,6 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "treebankFreq.pl version 0.04\n";
+    print "treebankFreq.pl version 0.06\n";
     print "Copyright (c) 2002-2003 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# similarity.pl Version 0.05
-# (Updated 06/09/2003 -- Sid)
+# similarity.pl Version 0.06
+# (Updated 10/18/2003 -- Sid)
 #
 # Implementation of semantic relatedness measures between words as 
 # described in Budanitsky and Hirst (1995) "Semantic distance in 
@@ -13,14 +13,15 @@
 # (3) Resnik (1995)
 # (4) Lin (1998)
 # (5) Hirst St. Onge (1998)
-#
+# 
 # This program uses the Wordnet::Similarity perl modules for computing
 # semantic relatedness.
 #
-#
 # Copyright (c) 2003,
-# Siddharth Patwardhan, University of Minnesota, Duluth
-# patw0006@d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd@cs.utah.edu
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse@d.umn.edu
 #
@@ -46,7 +47,7 @@
 BEGIN
 {
     # Include the QueryData package.
-    use WordNet::QueryData;
+    use WordNet::QueryData 1.30;
     
     # Include library to get Command-Line options.
     use Getopt::Long;
@@ -55,7 +56,7 @@ BEGIN
     if($#ARGV < 0)
     {
 	print "Usage: similarity.pl [{--type TYPE [--config CONFIGFILE] [--allsenses] [--offsets]";
-	print " [--trace] [--wnpath PATH] [--simpath SIMPATH] {--file FILENAME | WORD1 WORD2}\n";
+	print " [--trace] [--wnpath PATH] [--simpath SIMPATH] {--interact | --file FILENAME | WORD1 WORD2}\n";
 	print "                     |--help \n";
 	print "                     |--version }]\n";
 	print "Type similarity.pl --help for detailed help.\n";
@@ -63,7 +64,8 @@ BEGIN
     }
     
     # Get Command-Line options.
-    &GetOptions("help", "version", "wnpath=s", "simpath=s", "type=s", "config=s", "file=s", "trace", "allsenses", "offsets");
+    &GetOptions("help", "version", "wnpath=s", "simpath=s", "type=s", 
+		"config=s", "file=s", "trace", "allsenses", "offsets",  "interact");
     
     # To be able to use a local install of similarity modules.
     if(defined $opt_simpath)
@@ -106,7 +108,7 @@ if(!defined $opt_type)
 # If the file option has not been provided, then 
 # the two words must be on the command line.
 # Get the two words if they have been provided.
-if(!(defined $opt_file) && $#ARGV < 1)
+if(!(defined $opt_file) && !(defined $opt_interact) && $#ARGV < 1)
 {
     print STDERR "Required parameter(s) missing.\n";
     &showUsage;
@@ -177,14 +179,39 @@ if(defined $opt_trace)
 print STDERR $errorString."\n" if($error == 1);
 
 # Process the input data...
-if(defined $opt_file)
+if(defined $opt_interact)
+{
+    my ($con1, $con2);
+
+    print "Starting interactive mode (Enter blank fields to end session)...\n";
+    $con1 = $con2 = "x";               # Hack to start the interactive while loop.
+    while($con1 ne "" && $con2 ne "")
+    {
+	print "Concept \#1: ";
+	$con1 = <STDIN>;
+	$con1 =~ s/[\r\f\n]//g;
+	$con1 =~ s/^\s+//;
+	$con1 =~ s/\s+$//;
+	last if($con1 eq "");
+	print "Concept \#2: ";
+	$con2 = <STDIN>;
+	$con2 =~ s/[\r\f\n]//g;
+	$con2 =~ s/^\s+//;
+	$con2 =~ s/\s+$//;
+	last if($con2 eq "");
+	print "$con1  $con2\n" if(defined $opt_trace);
+	&process($con1, $con2);
+	print "\n" if(defined $opt_trace);
+    }
+}
+elsif(defined $opt_file)
 {
     open(DATA, $opt_file) || die "Unable to open file: $opt_file\n";
     while(<DATA>)
     {
 	s/[\r\f\n]//g;
-	s/^\s*//;
-	s/\s*$//;
+	s/^\s+//;
+	s/\s+$//;
 	@words = split /\s+/;
 	if(scalar(@words) && defined $words[0] && defined $words[1])
 	{
@@ -223,13 +250,13 @@ sub process
 	return;
     }
     $word1 =~ s/[\r\f\n]//g;
-    $word1 =~ s/^\s*//;
-    $word1 =~ s/\s*$//;
-    $word1 =~ s/\s+/_/;
+    $word1 =~ s/^\s+//;
+    $word1 =~ s/\s+$//;
+    $word1 =~ s/\s+/_/g;
     $word2 =~ s/[\r\f\n]//g;
-    $word2 =~ s/^\s*//;
-    $word2 =~ s/\s*$//;
-    $word2 =~ s/\s+/_/;
+    $word2 =~ s/^\s+//;
+    $word2 =~ s/\s+$//;
+    $word2 =~ s/\s+/_/g;
     @w1options = &getWNSynsets($word1);
     @w2options = &getWNSynsets($word2);
     if(!(scalar(@w1options) && scalar(@w2options)))
@@ -415,14 +442,14 @@ sub printSet
 	{
 	    $offset = $wn->offset($synset);
 	    $printString = sprintf("$1\#$2\#%08d", $offset);
-	    $printString =~ s/\s*$//;
-	    $printString =~ s/^\s*//;
+	    $printString =~ s/\s+$//;
+	    $printString =~ s/^\s+//;
 	}
 	else
 	{
 	    $printString = "$synset";
-	    $printString =~ s/\s*$//;
-	    $printString =~ s/^\s*//;
+	    $printString =~ s/\s+$//;
+	    $printString =~ s/^\s+//;
 	}
     }
     print "$printString";
@@ -432,7 +459,7 @@ sub printSet
 sub showUsage
 {
     print "Usage: similarity.pl [{--type TYPE [--config CONFIGFILE] [--allsenses] [--offsets]";
-    print " [--trace] [--wnpath PATH] [--simpath SIMPATH] {--file FILENAME | WORD1 WORD2}\n";
+    print " [--trace] [--wnpath PATH] [--simpath SIMPATH] {--interact | --file FILENAME | WORD1 WORD2}\n";
     print "                     |--help \n";
     print "                     |--version }]\n";
 }
@@ -462,6 +489,7 @@ sub showHelp
     print "               'WordNet::Similarity::lesk'   Adapted Lesk measure.\n";
     print "               'WordNet::Similarity::vector' Gloss Vector overlap measure.\n";
     print "               'WordNet::Similarity::edge'   Simple edge-counts (inverted).\n";
+    print "               'WordNet::Similarity::wup'    Wu Palmer measure.\n";
     print "               'WordNet::Similarity::random' A random measure.\n";
     print "--config      Module-specific configuration file CONFIGFILE. This file\n";
     print "              contains the configuration that is used by the\n";
@@ -480,6 +508,8 @@ sub showHelp
     print "              the various stages of the processing. This option overrides\n";
     print "              the trace option in the module configuration file (if\n";
     print "              specified).\n";
+    print "--interact    Starts the interactive mode. Useful for demoes, for debugging\n";
+    print "              and to play around with the measures.\n";
     print "--file        Allows the user to specify an input file FILENAME\n";
     print "              containing pairs of word whose semantic similarity needs\n";
     print "              to be measured. The file is assumed to be a plain text\n";
@@ -492,16 +522,24 @@ sub showHelp
     print "              then SIMPATH can be used to indicate the location of the local\n";
     print "              install of the measure.\n";
     print "--help        Displays this help screen.\n";
-    print "--version     Displays version information.\n";
+    print "--version     Displays version information.\n\n";
     print "\nNOTE: The environment variables WNHOME and WNSEARCHDIR, if present,\n";
     print "are used to determine the location of the WordNet data files.\n";
-    print "Use '--wnpath' to override this.\n";
+    print "Use '--wnpath' to override this.\n\n";
+    print "ANOTHER NOTE: During any given session, only one of three modes of input\n";
+    print "can be specified to the program -- command-line input (WORD1 WORD2), file\n";
+    print "input (--file option) or the interactive input (--interact option). If more\n";
+    print "than one mode of input is invoked at a given time, only one of those modes\n";
+    print "will work, according to the following levels of priority:\n";
+    print "  interactive mode (--interact option) has highest priority.\n";
+    print "  file input (--file option) has medium priority.\n";
+    print "  command-line input (WORD1 WORD2) has lowest priority.\n";
 }
 
 # Subroutine to display version information.
 sub showVersion
 {
-    print "similarity.pl  version 0.05\n";
+    print "similarity.pl  version 0.06\n";
     print "Copyright (c) 2003, Siddharth Patwardhan & Ted Pedersen\n";
 }
 

@@ -1,5 +1,5 @@
-# WordNet::Similarity::vector.pm version 0.05
-# (Updated 06/09/2003 -- Sid)
+# WordNet::Similarity::vector.pm version 0.06
+# (Updated 10/10/2003 -- Sid)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using a
@@ -7,10 +7,13 @@
 # Schütze (1998).
 #
 # Copyright (c) 2003,
-# Siddharth Patwardhan, University of Minnesota, Duluth
-# patw0006@d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd@cs.utah.edu
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse@d.umn.edu
+#
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
 # banerjee+@cs.cmu.edu
 #
@@ -35,7 +38,7 @@
 package WordNet::Similarity::vector;
 
 use strict;
-use PDL;
+# use PDL;
 use Exporter;
 use get_wn_info;
 use stem;
@@ -50,7 +53,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 
 # 'new' method for the vector class... creates and returns a WordNet::Similarity::vector object.
@@ -207,6 +210,14 @@ sub _initialize
 		$self->{'doCache'} = 1;
 		$self->{'doCache'} = $tmp if($tmp =~ /^[01]$/);
 	    }
+	    elsif(m/^(?:max)?CacheSize::(.*)/i) 
+	    {
+		my $mcs = $1;
+		$self->{'maxCacheSize'} = 1000;
+		$self->{'maxCacheSize'} = $mcs
+		    if(defined ($mcs) && $mcs =~ m/^\d+$/);
+		$self->{'maxCacheSize'} = 0 if($self->{'maxCacheSize'} < 0);
+	    }
 #	    elsif(/^cutoff::(.*)/)
 #	    {
 #		my $tmp = $1;
@@ -355,8 +366,7 @@ sub _initialize
     if(!(defined $relationFile))
     {
 	$self->{'weights'}->[0] = 1;
-	$self->{'functions'}->[0]->[0]->[0] = "glosexample";
-	$self->{'functions'}->[0]->[1]->[0] = "glosexample";
+	$self->{'functions'}->[0]->[0] = "glosexample";
     }
     else
     {
@@ -384,8 +394,8 @@ sub _initialize
 		    # them into the @functions triple dimensioned array!
 		    
 		    # remove leading/trailing spaces from the relation
-		    $relation =~ s/^\s*//;
-		    $relation =~ s/\s*$//;
+		    $relation =~ s/^\s+//;
+		    $relation =~ s/\s+$//;
 		    
 		    # now extract the weight if any. if no weight, assume 1
 		    if($relation =~ /(\S+)\s+(\S+)/)
@@ -398,30 +408,30 @@ sub _initialize
 			$self->{'weights'}->[$index] = 1; 
 		    }
 		    
-		    # check if we have a "proper" relation, that is a relation in
-		    # there are two blocks of functions!
-		    if($relation !~ /(.*)-(.*)/)
-		    {
-			$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-			$self->{'errorString'} .= "Bad file format ($relationFile).";
-			$self->{'error'} = 2;
-			close(RELATIONS);
-			return;		
-		    }
+# 		    # check if we have a "proper" relation, that is a relation in
+# 		    # there are two blocks of functions!
+# # 		    if($relation !~ /(.*)-(.*)/)
+# # 		    {
+# # 			$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
+# # 			$self->{'errorString'} .= "Bad file format ($relationFile).";
+# # 			$self->{'error'} = 2;
+# # 			close(RELATIONS);
+# # 			return;		
+# # 		    }
 		    
-		    # get the two parts of the relation pair
-		    my @twoParts;
-		    my $l;
-		    $twoParts[0] = $1;
-		    $twoParts[1] = $2;
+# 		    # get the two parts of the relation pair
+# 		    my @twoParts;
+# 		    my $l;
+# 		    $twoParts[0] = $1;
+# 		    $twoParts[1] = $2;
 		    
-		    # process the two parts and put into functions array
-		    for($l = 0; $l < 2; $l++)
+		    # process the relation and put into functions array
+#		    for($l = 0; $l < 2; $l++)
 		    {
 			no strict;
 
-			$twoParts[$l] =~ s/[\s\)]//g;
-			my @functionArray = split(/\(/, $twoParts[$l]);
+			$relation =~ s/[\s\)]//g;
+			my @functionArray = split(/\(/, $relation);
 			
 			my $j = 0;
 			my $fn = $functionArray[$#functionArray];
@@ -434,7 +444,7 @@ sub _initialize
 			    return;
 			}
 			
-			$self->{'functions'}->[$index]->[$l]->[$j++] = $functionArray[$#functionArray];
+			$self->{'functions'}->[$index]->[$j++] = $functionArray[$#functionArray];
 			my $input; 
 			my $output; 
 			my $dummy;
@@ -465,7 +475,7 @@ sub _initialize
 				return;
 			    }
 			    
-			    $self->{'functions'}->[$index]->[$l]->[$j++] = $functionArray[$k];
+			    $self->{'functions'}->[$index]->[$j++] = $functionArray[$k];
 			}
 			
 			# if the output of the outermost function is synset array (1)
@@ -474,7 +484,7 @@ sub _initialize
 			($dummy, $output) = $gwi->$xfn(0);
 			if($output == 1) 
 			{ 
-			    $self->{'functions'}->[$index]->[$l]->[$j++] = "glos"; 
+			    $self->{'functions'}->[$index]->[$j++] = "glos"; 
 			}
 		    }
 		    
@@ -585,8 +595,8 @@ sub getRelatedness
 	}	
 	my $a = $self->{'vCache'}->{$wps1};
 	my $b = $self->{'vCache'}->{$wps2};
-	my $cos = inner($a, $b);
-	my $score = $cos->sclr();
+	my $score = &_inner($a, $b);
+#	my $score = $cos->sclr();
 
 	# that does all the scoring. Put in cache if doing cacheing. Then
 	# return the score.    
@@ -637,22 +647,14 @@ sub getRelatedness
 	
 	# see if any traces reqd. if so, create the functions string
 	# however don't send it to the trace string immediately - will
-	# print it only if there are any overlaps for this rel pair
+	# print it only if there are any overlaps for this rel
 	if($self->{'trace'})
 	{
 	    $functionsString = "Functions: ";
 	    my $j = 0;
-	    while(defined $self->{'functions'}->[$i]->[0]->[$j])
+	    while(defined $self->{'functions'}->[$i]->[$j])
 	    {
-		$functionsString .= ($self->{'functions'}->[$i]->[0]->[$j])." ";
-		$j++;
-	    }
-	    
-	    $functionsString .= "- ";
-	    $j = 0;
-	    while(defined $self->{'functions'}->[$i]->[1]->[$j])
-	    {
-		$functionsString .= ($self->{'functions'}->[$i]->[1]->[$j])." ";
+		$functionsString .= ($self->{'functions'}->[$i]->[$j])." ";
 		$j++;
 	    }
 	}
@@ -665,9 +667,9 @@ sub getRelatedness
 	my $j = 0;
 	no strict;
 
-	while(defined $self->{'functions'}->[$i]->[0]->[$j])
+	while(defined $self->{'functions'}->[$i]->[$j])
 	{
-	    my $fn = $self->{'functions'}->[$i]->[0]->[$j];
+	    my $fn = $self->{'functions'}->[$i]->[$j];
 	    @arguments = $gwi->$fn(@arguments);
 	    $j++;
 	}
@@ -679,9 +681,9 @@ sub getRelatedness
 	@arguments = @secondSet;
 	
 	$j = 0;
-	while(defined $self->{'functions'}->[$i]->[1]->[$j])
+	while(defined $self->{'functions'}->[$i]->[$j])
 	{
-	    my $fn = $self->{'functions'}->[$i]->[1]->[$j];
+	    my $fn = $self->{'functions'}->[$i]->[$j];
 	    @arguments = $gwi->$fn(@arguments);
 	    $j++;
 	}
@@ -715,7 +717,11 @@ sub getRelatedness
     
     # Get vectors... score...
     my $a;
+    my $maga;
+    my $sizea;
     my $b;
+    my $magb;
+    my $sizeb;
     my $trr;
 
     # see if any traces reqd. if so, put in the synset arrays. 
@@ -731,9 +737,9 @@ sub getRelatedness
     }
     else
     {
-	($a, $trr) = $self->_getVector($firstString);
+	($a, $trr, $maga) = $self->_getVector($firstString);
 	$self->{'traceString'} .= "\nString: \"$firstString\"\n$trr\n" if($self->{'trace'});
-	$a = norm($a);
+	&_norm($a, $maga);
 	$self->{'vCache'}->{$wps1} = $a;
 	push(@{$self->{'vCacheQ'}}, $wps1);
 	while(scalar(@{$self->{'vCacheQ'}}) > $self->{'vCacheSize'})
@@ -755,9 +761,9 @@ sub getRelatedness
     }
     else
     {
-	($b, $trr) = $self->_getVector($secondString);
+	($b, $trr, $magb) = $self->_getVector($secondString);
 	$self->{'traceString'} .= "\nString: \"$secondString\"\n$trr\n" if($self->{'trace'});
-	$b = norm($b);
+	&_norm($b, $magb);
 	$self->{'vCache'}->{$wps2} = $b;
 	push(@{$self->{'vCacheQ'}}, $wps2);
 	while(scalar(@{$self->{'vCacheQ'}}) > $self->{'vCacheSize'})
@@ -767,9 +773,9 @@ sub getRelatedness
 	}
     }
 
-    my $cos = inner($a, $b);
-    $score = $cos->sclr();
-    
+    $score = &_inner($a, $b);
+#    $score = $cos->sclr();
+   
     # that does all the scoring. Put in cache if doing cacheing. Then
     # return the score.    
     if($self->{'doCache'})
@@ -819,13 +825,16 @@ sub _getVector
 {
     my $self = shift;
     my $text = shift;
-    my $ret = zeroes($self->{'numberOfDimensions'});
+#    my $ret = zeroes($self->{'numberOfDimensions'});
+    my $ret = {};
     return $ret if(!defined $text);
     my @words = split(/\s+/, $text);
     my $word;
     my %types;
     my $fstFlag = 1;
     my $localTraces = "";
+    my $kk;
+    my $mag;
 
     # [trace]
     if($self->{'trace'})
@@ -843,7 +852,6 @@ sub _getVector
 	if(defined $self->{'table'}->{$word} && !defined $self->{'stopHash'}->{$word})
 	{
 	    my %pieces = split(/\s+/, $self->{'table'}->{$word});
-	    my $kk;
 
 	    # [trace]
 	    if($self->{'trace'})
@@ -856,12 +864,68 @@ sub _getVector
 
 	    foreach $kk (keys %pieces)
 	    {
-		$ret->index($kk) += $pieces{$kk};
+#		$ret->index($kk) += $pieces{$kk};
+		$ret->{$kk} = ((defined $ret->{$kk})?($ret->{$kk}):0) + $pieces{$kk};
 	    }
 	}
     }
+
+    $mag = 0;
+    foreach $kk (keys %{$ret})
+    {
+	$mag += ($ret->{$kk} * $ret->{$kk});
+    }
     
-    return ($ret, $localTraces);
+    return ($ret, $localTraces, sqrt($mag));
+}
+
+# Normalizes the sparse vector.
+sub _norm
+{
+    my $vec = shift;
+    my $mag = shift;
+
+    if(defined $vec && defined $mag && $mag != 0)
+    {
+	my $key;
+	foreach $key (keys %{$vec})
+	{
+	    $vec->{$key} /= $mag;
+	}
+    }
+}
+
+# Inner product of two sparse vectors.
+sub _inner
+{
+    my $vec1 = shift;
+    my $vec2 = shift;
+    my ($size1, $size2);
+    my $prod = 0;
+
+    return 0 if(!defined $vec1 || !defined $vec2);
+
+    $size1 = scalar(keys(%{$vec1}));
+    $size2 = scalar(keys(%{$vec2}));
+
+    if(defined $size1 && defined $size2 && $size1 < $size2)
+    {
+	my $key;
+	foreach $key (keys %{$vec1})
+	{
+	    $prod += ($vec1->{$key} * $vec2->{$key}) if(defined $vec2->{$key});
+	}
+    }
+    else
+    {
+	my $key;
+	foreach $key (keys %{$vec2})
+	{
+	    $prod += ($vec1->{$key} * $vec2->{$key}) if(defined $vec1->{$key});
+	}
+    }
+
+    return $prod;
 }
 
 # Method that determines all possible compounds in a line of text.
@@ -968,7 +1032,7 @@ See the WordNet::Similarity(3) documentation for details of these methods.
 =head1 TYPICAL USAGE EXAMPLES
 
 To create an object of the vector measure, we would have the following
-lines of code in the perl program. 
+lines of code in the Perl program. 
 
   use WordNet::Similarity::vector;
   $measure = WordNet::Similarity::vector->new($wn, '/home/sid/vector.conf');
@@ -984,7 +1048,7 @@ as well as any other error/warning may be tested.
   ($err, $errString) = $measure->getError();
   die $errString."\n" if($err);
 
-To find the sematic relatedness of the first sense of the noun 'car' and
+To find the semantic relatedness of the first sense of the noun 'car' and
 the second sense of the noun 'bus' using the measure, we would write
 the following piece of code:
 
@@ -999,13 +1063,13 @@ traces are turned off.
 
 =head1 CONFIGURATION FILE
 
-The behaviour of the measures of semantic relatedness can be controlled by
+The behavior of the measures of semantic relatedness can be controlled by
 using configuration files. These configuration files specify how certain
 parameters are initialized within the object. A configuration file may be
-specififed as a parameter during the creation of an object using the new
+specified as a parameter during the creation of an object using the new
 method. The configuration files must follow a fixed format.
 
-Every configuration file starts the name of the module ON THE FIRST LINE of
+Every configuration file starts with the name of the module ON THE FIRST LINE of
 the file. For example, a configuration file for the vector module will have
 on the first line 'WordNet::Similarity::vector'. This is followed by the various
 parameters, each on a new line and having the form 'name::value'. The
@@ -1023,46 +1087,104 @@ is an integer 0, 1 or 2. A value of 0 switches tracing off. A value of
 1 displays as traces only the gloss overlaps found. A value of 2 displays
 as traces, all the text being compared.
 
-(b) 'vectordb::' -- Value is a Berkeley DB database file containing word 
+(b) 'relation::' -- The value is a filename (with complete path) of a file
+that contains a list of WordNet-relations. The vector module combines the
+glosses of synsets related to the target synsets by these relations, and 
+forms the gloss-vector from this combined gloss. The format of the relation
+file is specified later in the documentation.
+
+(c) 'vectordb::' -- Value is a Berkeley DB database file containing word 
 vectors, i.e. co-occurrence vectors for all the words in the WordNet 
 glosses.
 
-(c) 'stop::' -- The value is a string that specifies the path of a file 
+(d) 'stop::' -- The value is a string that specifies the path of a file 
 containing a list of stop words that should be ignored in the gloss 
 vectors.
 
-(d) 'compounds::' -- The value is a string that specifies the path of a file 
+(e) 'compounds::' -- The value is a string that specifies the path of a file 
 containing a list of compound words in WordNet.
 
-(e) 'stem::' -- can take values 0 or 1 or the value can be omitted, in 
+(f) 'stem::' -- can take values 0 or 1 or the value can be omitted, in 
 which case it takes the value 1, i.e. switches 'on' stemming. A value of 
 0 switches stemming 'off'. When stemming is enabled, all the words of the
 glosses are stemmed before their vectors are created.
 
-(f) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
+(g) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
 which case it takes the value 1, i.e. switches 'on' caching. A value of 
 0 switches caching 'off'. By default caching is enabled.
+
+(h) 'maxCacheSize::' -- takes a non-negative integer value. The value indicates
+the size of the cache, used for storing the computed relatedness value.
+
+=head1 RELATION FILE FORMAT
+
+The relation file starts with the string "VectorRelationFile" on the first line
+of the file. Following this, on each consecutive line, a relation is specified
+in the form -- 
+
+func(func(func... (func)...)) [weight]
+
+Where "func" can be any one of the following functions:
+
+hype() = Hypernym of
+hypo() = Hyponym of
+holo() = Holonym of
+mero() = Meronym of
+attr() = Attribute of
+also() = Also see
+sim() = Similar
+enta() = Entails
+caus() = Causes
+part() = Particle
+pert() = Pertainym of
+glos = gloss (without example)
+example = example (from the gloss)
+glosexample = gloss + example
+syns = the synset of the concept
+
+Each of these specifies a WordNet relation. And the outermost function in the
+nesting can only be one of glos, example, glosexample or syns. The functions specify which 
+glosses to use for forming the gloss vector of the synset. An optional weight can be 
+specified to weigh the contribution of that relation in the overall score.
+
+For example,
+
+glos(hype(hypo)) 0.5
+
+means that the gloss of the hypernym of the hyponym of the synset is used to form the 
+gloss vector of the synset, and the values in this vector are weighted by 0.5. If one of "glos", 
+"example", "glosexample" or "syns" is not specified as the outermost function in the nesting, 
+then "glosexample" is assumed by default. This implies that
+
+glosexample(hypo(also))
+
+and
+
+hypo(also)
+
+are equivalent as far as the measure is concerned.
 
 =head1 SEE ALSO
 
 perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
-http://www.d.umn.edu/~patw0006
+http://www.cs.utah.edu/~sidd
 
 http://www.cogsci.princeton.edu/~wn
 
-http://www.ai.mit.edu/people/jrennie/WordNet
+http://www.ai.mit.edu/~jrennie/WordNet
 
 http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Siddharth Patwardhan, <patw0006@d.umn.edu>
+  Siddharth Patwardhan, <sidd@cs.utah.edu>
   Ted Pedersen, <tpederse@d.umn.edu>
+  Satanjeev Banerjee, <banerjee+@cs.cmu.edu>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by Siddharth Patwardhan and Ted Pedersen
+Copyright 2003 by Siddharth Patwardhan, Ted Pedersen and Satanjeev Banerjee
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

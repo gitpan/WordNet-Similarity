@@ -1,0 +1,13 @@
+LeskRelationFile
+also
+example
+glos
+glosexample
+syns
+holo(hype)
+holo
+holo(pert)
+hypo(mero)
+example(hype(hype))
+glosexample(hypo)
+syns(hypo)

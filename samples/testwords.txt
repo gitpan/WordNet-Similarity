@@ -1,17 +1,17 @@
 car automobile
-gem jewel
-journey voyage
+gem#n#1 jewel
+journey#v voyage
 boy lad
 coast shore
 asylum madhouse
 magician wizard
 midday noon
 furnace stove
-food fruit
+food fruit#v#1
 bird cock
 bird crane
 tool implement
-brother monk
+brother#n#1 monk
 crane implement
 lad brother
 journey car
@@ -27,5 +27,5 @@ lad wizard
 
 chord smile
 glass magician
-noon string
-rooster voyage
+noon#n#1 string
+rooster#n voyage#n
