@@ -1,12 +1,12 @@
 #!/usr/local/bin/perl -w
 #
-# compounds.pl ver 0.10
-# (Updated 09/01/2004 -- Jason)
+# compounds.pl version 0.12
+# (Last updated $Id: compounds.pl,v 1.7 2004/10/29 19:25:42 sidz1979 Exp $)
 #
 # Program to generate a list of all compound words
 # present in WordNet.
 #
-# Copyright (C) 2002-2004
+# Copyright (c) 2004
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
@@ -173,8 +173,8 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "compounds.pl version 0.09\n";
-    print "Copyright (c) 2002-2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
+    print "compounds.pl version 0.12\n";
+    print "Copyright (c) 2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
 
 __END__
@@ -216,11 +216,10 @@ None
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2004, Satanjeev Banerjee, Siddharth Patwardhan, and Ted
-Pedersen.
+Copyright (c) 2004, Satanjeev Banerjee, Siddharth Patwardhan, and Ted Pedersen.
 
 This program is free software; you may redistribute and/or modify it
 under the terms of the GNU General Public License; either version 2 of
 the License, or (at your option) any later version.
 
-
+=cut

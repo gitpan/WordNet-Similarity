@@ -1,12 +1,12 @@
 #!/usr/local/bin/perl -w
 #
-# wordVectors.pl version 0.07
-# (Last updated 07/09/2004 -- Sid)
+# wordVectors.pl version 0.12
+# (Last updated $Id: wordVectors.pl,v 1.9 2004/10/29 19:25:42 sidz1979 Exp $)
 #
 # Program to create word vectors (co-occurrence vectors) for all
 # words in WordNet glosses.
 #
-# Copyright (c) 2002-2003
+# Copyright (c) 2004
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
@@ -35,7 +35,7 @@
 
 use Getopt::Long;
 use WordNet::QueryData;
-use dbInterface;
+use vectorFile;
 
 # Declarations!
 my $wn;              # WordNet::QueryData object.
@@ -43,7 +43,9 @@ my $fh;              # Filehandle, to hold data file handles.
 my $wnPCPath;        # Path to WordNet data files (on Windows).
 my $wnUnixPath;      # Path to WordNet data files (on Unix).
 my $documentCount;   # Document Count (Gloss Count).
-my $db;              # BerkeleyDB access object.
+my $saveDocCount;    # The value to be written to output file.
+my $saveDims = {};   # The dimesion hash to be written to file.
+my $saveMatrix = {}; # The vector matrtix to be written to file.
 my %rows;            # Hash holding the rows of the matrix.
 my %compounds;       # List of compounds in WordNet.
 my %stopWords;       # List of stop words.
@@ -54,7 +56,8 @@ my %wordDF;          # Document Frequency (for each word).
 my %wFreq;           # Word Frequency.
 
 # Get the options!
-&GetOptions("version", "help", "wnpath=s", "noexamples", "compfile=s", "stopfile=s", "cutoff=f", "rhigh=i",  "rlow=i", "chigh=i", "clow=i");
+&GetOptions("version", "help", "wnpath=s", "noexamples", "compfile=s", "stopfile=s",
+            "cutoff=f", "rhigh=i",  "rlow=i", "chigh=i", "clow=i");
 
 # If the version information has been requested...
 if(defined $opt_version)
@@ -267,13 +270,6 @@ my $word;
 my @words = keys %wordTF;
 my $final = scalar(@words);
 my $c = 0;
-unlink $ARGV[0];
-$db = dbInterface->new($ARGV[0], "Dimensions", 1);
-if(!$db)
-{
-    print STDERR "Unable to create dbInterface object.\n";
-    exit;
-}
 foreach $word (@words)
 {
     if(defined $opt_cutoff && &_tfidf($word) > $opt_cutoff)
@@ -283,38 +279,24 @@ foreach $word (@words)
 	next;
     }
     $wordIndex{$word} = $c;
-    print STDERR "Unable to setValue for $word\n" if(!$db->setValue($word, "$c $wordTF{$word} $wordDF{$word}"));
+    $saveDims->{$word} = "$c $wordTF{$word} $wordDF{$word}";
     print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
     printf STDERR "%6d of %6d done.", $c, $final;
     $c++;
 }
 print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
 printf STDERR "%6d of %6d done.", $c, $final;
-$db->finalize();
 print STDERR "\n";
 
 # Write out the document count...
 print STDERR "Writing the document count... ";
-$db = dbInterface->new($ARGV[0], "DocumentCount", 1);
-if(!$db)
-{
-    print STDERR "Unable to create dbInterface object.\n";
-    exit;
-}
-print STDERR "Unable to setValue for $documentCount\n" if(!$db->setValue($documentCount, $documentCount));
-$db->finalize();
+$saveDocCount = $documentCount;
 print STDERR "done.\n";
 
 # Writing out the Word Vectors to the database...
 print STDERR "Writing word vectors...                       ";
 $final = scalar(keys(%wordMatrix));
 $c = 0;
-$db = dbInterface->new($ARGV[0], "Vectors", 1);
-if(!$db)
-{
-    print STDERR "Unable to create dbInterface object.\n";
-    exit;
-}
 foreach $word (sort {$rows{$b} <=> $rows{$a}} keys %wordMatrix)
 {
     my $key;
@@ -331,15 +313,24 @@ foreach $word (sort {$rows{$b} <=> $rows{$a}} keys %wordMatrix)
 	}
     }
     $value =~ s/\s+$//;
-    print STDERR "Unable to setValue for $word\n" if(!$db->setValue($word, $value));
+    $saveMatrix->{$word} = $value;
     print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
     printf STDERR "%6d of %6d done.", $c, $final;
     $c++;
 }
 print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
 printf STDERR "%6d of %6d done.", $c, $final;
-$db->finalize();
 print STDERR "\n";
+
+# Now that everything has been computed, write to file...
+print STDERR "Writing data to file... ";
+my $errCode = vectorFile->writeVectors($ARGV[0], $saveDocCount, $saveDims, $saveMatrix);
+if(!defined $errCode || $errCode == 0)
+{
+    print STDERR "Error writing data to file.\n";
+    exit;
+}
+print STDERR "done.\n";
 
 # ----------------- Subroutines Start Here ----------------------
 
@@ -471,7 +462,7 @@ sub printHelp
 {
     &printUsage();
     print "\nThis program writes out word vectors computed from WordNet glosses in\n";
-    print "a BerkeleyDB database (Hash) specified by filename DBFILE.\n";
+    print "a database file specified by filename DBFILE.\n";
     print "Options: \n";
     print "--compfile       Option specifying the the list of compounds present\n";
     print "                 in WordNet in the file COMPOUNDS. This list is used\n";
@@ -517,24 +508,27 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "wordVectors.pl version 0.07\n";
-    print "Copyright (c) 2003 Siddharth Patwardhan & Ted Pedersen.\n";
+    print "wordVectors.pl version 0.12\n";
+    print "Copyright (c) 2004 Siddharth Patwardhan & Ted Pedersen.\n";
 }
 
 __END__
 
 =head1 NAME
 
-wordVectors.pl - write word vectors from WordNet glosses to a BerkeleyDB file
+wordVectors.pl - write word vectors from WordNet glosses to a file.
 
 =head1 SYNOPSIS
 
-wordVectors.pl [[--compfile COMPOUNDS] [--stopfile STOPLIST] [--wnpath WNPATH] [--noexamples] [--cutoff VALUE] [--rhigh RHIGH] [--rlow RLOW] [--chigh CHIGH] [--clow CLOW] DBFILE | --help | --version]
+wordVectors.pl [[--compfile COMPOUNDS] [--stopfile STOPLIST]
+  [--wnpath WNPATH] [--noexamples] [--cutoff VALUE] [--rhigh RHIGH] 
+  [--rlow RLOW] [--chigh CHIGH] [--clow CLOW] DBFILE 
+ | --help | --version]
 
 =head1 DESCRIPTION
 
 This program writes out word vectors computed from WordNet glosses in a
-BerkeleyDB database (Hash) specified by filename DBFILE.  The database
+database file specified by filename DBFILE.  The database
 file is intended for use by the WordNet::Similarity::vector Perl module,
 but if you can think of something else to do with it, then go ahead.
 
@@ -595,7 +589,5 @@ B<--help>
 B<--version>
 
     Displays version information.
-
-
 
 =cut

@@ -1,5 +1,5 @@
 # WordNet::Similarity::LCSFinder.pm version 0.10
-# (Updated 9/01/2004 -- Jason)
+# (Last updated $Id: LCSFinder.pm,v 1.19 2004/10/23 07:23:04 sidz1979 Exp $)
 #
 # Module that finds the LCS of two synsets.
 

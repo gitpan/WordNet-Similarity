@@ -1,5 +1,5 @@
 # WordNet::Similarity::path.pm version 0.10
-# (Updated 9/01/2004 -- Jason)
+# (Last updated $Id: path.pm,v 1.16 2004/10/23 07:23:05 sidz1979 Exp $)
 #
 # N.B., this module was formerly named edge.pm
 #

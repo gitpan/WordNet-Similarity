@@ -1,5 +1,5 @@
 # WordNet::Similarity::lch.pm version 0.07
-# (Updated 3/07/2004 -- Jason)
+# (Last update $Id: lch.pm,v 1.18 2004/10/23 07:23:04 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Leacock and Chodorow (1998).

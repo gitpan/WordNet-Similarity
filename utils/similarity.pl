@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# similarity.pl Version 0.07
-# (Updated 12/8/2003 -- JM)
+# similarity.pl version 0.12
+# (Last updated $Id: similarity.pl,v 1.13 2004/10/29 19:25:42 sidz1979 Exp $)
 #
 # This program is a command line interface to WordNet::Similarity
 #
@@ -563,7 +563,7 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "similarity.pl  version 0.07\n";
+    print "similarity.pl  version 0.12\n";
 
     # 12/8/2003 JM (#3)
     # Print version of module if the --type option was given.
@@ -575,7 +575,7 @@ sub showVersion
       print "$opt_type  version ".$opt_type->VERSION()."\n";
     }
 
-    print "Copyright (c) 2003, Siddharth Patwardhan & Ted Pedersen\n";
+    print "Copyright (c) 2004, Siddharth Patwardhan & Ted Pedersen.\n";
 }
 
 __END__
@@ -586,7 +586,8 @@ similarity.pl - command line interface to WordNet::Similarity
 
 =head1 SYNOPSIS
 
-similarity.pl [--type=TYPE [--config=CONFIGFILE] [--allsense] [--offsets] [--trace] [--wnpath=PATH] [--simpath=SIMPATH] {--interact | --file=FILENAME | WORD1 WORD2}
+similarity.pl [--type=TYPE [--config=CONFIGFILE] [--allsense] [--offsets] [--trace] 
+              [--wnpath=PATH] [--simpath=SIMPATH] {--interact | --file=FILENAME | WORD1 WORD2}
                | --help
                | --version]
 
@@ -685,7 +686,7 @@ http://groups.yahoo.com/group/wn-similarity/
 
 =head1 COPYRIGHT
 
-Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, Satanjeev
+Copyright (c) 2004 Siddharth Patwardhan, Ted Pedersen, Satanjeev
 Banerjee, and Jason Michelizzi
 
 This program is free software; you can redistribute it and/or modify it
@@ -703,4 +704,3 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 =cut
-

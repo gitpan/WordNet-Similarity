@@ -543,7 +543,7 @@ frequency values.
 
 =head2 wordVectors.pl
 
-The WordNet::Similarity::vector module requires a BerkeleyDB file
+The WordNet::Similarity::vector module requires a file
 containing co-occurrence vectors for all the words in the WordNet
 glosses. The utility wordVectors.pl has been provided to generate such a
 database file. This utility generates co-occurrence vectors from the
@@ -558,7 +558,7 @@ will be provided in future releases of this software.
                       | --version }]
 
 This program writes out word vectors computed from WordNet glosses in
-a BerkeleyDB database (Hash) specified by filename DBFILE.
+a database file specified by filename DBFILE.
 
 Options:
 
@@ -623,8 +623,7 @@ Displays version information.
 =back
 
 A useful utility called 'readDB.pl' has been included in the package, so
-as to be able to view the word vectors formed and stored in the BerkeleyDB
-database.
+as to be able to view the word vectors formed and stored in the database.
 
 =head2 wnDepths.pl
 

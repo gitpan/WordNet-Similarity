@@ -1,5 +1,5 @@
 # WordNet::Similarity::vector.pm version 0.10
-# (Updated 07/09/2004 -- Sid)
+# (Last updated $Id: vector.pm,v 1.10 2004/10/23 07:23:05 sidz1979 Exp $)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using a
@@ -48,7 +48,7 @@ the cosine of their representative gloss vectors.
 use strict;
 use get_wn_info;
 use stem;
-use dbInterface;
+use vectorFile;
 use WordNet::Similarity;
 use vars qw($VERSION @ISA);
 
@@ -83,7 +83,8 @@ sub initialize
     my $documentCount;
     my $wn = $self->{wn};
     my $gwi;
-    my $db;
+    my $readDims;
+    my $readVectors;
     my %stopHash = ();
 
     # Stemming? Compounds? StopWords?
@@ -176,58 +177,36 @@ sub initialize
     }
     $vectorDB = $self->{vectordb};
 
-    # Get the documentCount...
-    $db = dbInterface->new($vectorDB, "DocumentCount");
-    if(!$db)
+    # Get the documentCount, dimensions and vectors...
+    ($documentCount, $readDims, $readVectors) = vectorFile->readVectors($vectorDB);
+    if(!defined $documentCount || !defined $readDims || !defined $readVectors)
     {
 	$self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
-	$self->{errorString} .= "Unable to open word vector database.";
+	$self->{errorString} .= "Error reading the vector database file.";
 	$self->{error} = 2;
 	return;
     }
-    ($documentCount) = $db->getKeys();
-    $db->finalize();
     
     # Load the word vector dimensions...
-    $db = dbInterface->new($vectorDB, "Dimensions");
-    if(!$db)
-    {
-        $self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
-        $self->{errorString} .= "Unable to open word vector database.";
-        $self->{error} = 2;
-        return;
-    }
-    my @keys = $db->getKeys();
     my $key;
-    $self->{numberOfDimensions} = scalar(@keys);
-    foreach $key (@keys)
+    $self->{numberOfDimensions} = scalar(keys(%{$readDims}));
+    foreach $key (keys %{$readDims})
     {
-	my $ans = $db->getValue($key);
+	my $ans = $readDims->{$key};
 	my @prts = split(/\s+/, $ans);
 	$self->{wordIndex}->{$key} = $prts[0];
 	$self->{indexWord}->[$prts[0]] = $key;
     }
-    $db->finalize();
 
     # Set up the interface to the word vectors...
-    $db = dbInterface->new($vectorDB, "Vectors");
-    if(!$db)
+    foreach $key (keys %{$readVectors})
     {
-	$self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
-	$self->{errorString} .= "Unable to open word vector database.";
-	$self->{error} = 2;
-	return;
-    }
-    @keys = $db->getKeys();
-    foreach $key (@keys)
-    {
-	my $vec = $db->getValue($key);
+	my $vec = $readVectors->{$key};
 	if(defined $vec)
 	{
 	    $self->{table}->{$key} = $vec;
 	}
     }
-    $db->finalize();
 
     # If relation file not specified... manually add the relations to
     # be used...
@@ -393,7 +372,6 @@ sub getRelatedness
     my $wps2 = shift;
     my $wn = $self->{wn};
     my $gwi = $self->{gwi};
-    my $db = $self->{db};
 
     # Check the existence of the WordNet::QueryData object.
     if(!$wn)
@@ -919,10 +897,10 @@ behavior (no compound recognition) is used.
 
 =item vectordb
 
-The value of this parameter is the path to a Berkeley DB file
+The value of this parameter is the path to a file
 containing word vectors, i.e. co-occurrence vectors for all the words
 in the WordNet glosses.  The value of this parameter may not be omitted,
-and the vector measure will not run without a DB file being specified
+and the vector measure will not run without a vectors file being specified
 in a configuration file.
 
 =back

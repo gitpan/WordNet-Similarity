@@ -1,9 +1,7 @@
 NAME
-
-    INSTALL - how to install WordNet::Similarity
+    install.pod - how to install WordNet::Similarity
 
 SYNOPSIS
-
      perl Makefile.PL
 
      make
@@ -13,22 +11,22 @@ SYNOPSIS
      make install
 
 DESCRIPTION
-
   Prerequisites
-
-    You need to have WordNet (version 1.7.1 or later, 2.0 preferred) and
-    WordNet::QueryData (version 1.30 or later) installed.
+    You need to have WordNet (version 1.7.1 or later, 2.0 preferred),
+    WordNet::QueryData (version 1.30 or later), and Text::OverlapFinder
+    installed.
 
     WordNet is available at http://www.cogsci.princeton.edu/~wn/ and
     WordNet::QueryData is available from
-    http://search.cpan.org/dist/WordNet-QueryData/.
+    http://search.cpan.org/dist/WordNet-QueryData/. Text::OverlapFinder is
+    distributed with the Text-Similarity package and is available from
+    http://search.cpan.org/dist/Text-Similarity/.
 
     You should set the WNHOME environment variable to the location where you
     have WordNet installed; see the WordNet::QueryData documentation for
     more information.
 
   Installing
-
     The usual way to install the package is to run the following commands:
 
      perl Makefile.PL
@@ -40,14 +38,14 @@ DESCRIPTION
      make install
 
     If you can't set the WNHOME environment variable, you can use the WNHOME
-    option when running perl Makefile.PL.  For example,
+    option when running perl Makefile.PL. For example,
 
      perl Makefile.PL --WNHOME=/usr/local/WordNet-2.0
 
     You will often need root access/superuser priviledges to run
-    make install.  The module can also be installed locally.  To do a local
+    make install. The module can also be installed locally. To do a local
     install, you need to specify a PREFIX option when you run 'perl
-    Makefile.PL'.  For example,
+    Makefile.PL'. For example,
 
      perl Makefile.PL PREFIX=/home/sid
 
@@ -55,11 +53,11 @@ DESCRIPTION
 
      perl Makefile.PL LIB=/home/sid/lib PREFIX=/home/sid
 
-    will install Similarity into /home/sid.  The first method above will
+    will install Similarity into /home/sid. The first method above will
     install the modules in /home/sid/lib/perl5/site_perl/5.8.3 (assuming you
     are using version 5.8.3 of Perl; otherwise, the directory will be
-    slightly different).  The second method will install the modules in
-    /home/sid/lib.  In either case the executable scripts will be installed
+    slightly different). The second method will install the modules in
+    /home/sid/lib. In either case the executable scripts will be installed
     in /home/sid/bin and the man pages will be installed in home/sid/share.
 
     Warning: do not put a dash or hyphen in front of PREFIX or LIB.
@@ -73,8 +71,8 @@ DESCRIPTION
 
      use lib '/home/sid/lib';
 
-    if you used the second method.  By doing this, the installed modules are
-    found by your program.  To run the similarity.pl program, you would need
+    if you used the second method. By doing this, the installed modules are
+    found by your program. To run the similarity.pl program, you would need
     to do
 
      perl -I/home/sid/lib/perl5/site_perl/5.8.3 similarity.pl
@@ -84,24 +82,11 @@ DESCRIPTION
      perl -I/home/sid/lib
 
     Of course, you could also add the 'use lib' line to the top of the
-    program yourself, but you might not want to do that.  You will need to
-    replace 5.8.3 with whatever version of Perl you are using.  
-
-    As an alternative to using the -I option from the command line, you 
-    can also set the value of the PERL5LIB environement variable to
-    include that directory. For example, in a .cshrc file you could set
-    this as follows:
-
-    setenv PERL5LIB /home/sid/lib/perl5/site_perl/5.8.3
-
-    The effect of using -I or PERL5LIB is to add the specified directory 
-    to the @INC array, which stores the list of directories that perl 
-    searches for when looking for modules. You can check the value of @INC 
-    by running the command "perl -V". 
-
-    The preceeding instructions should be sufficient for standard and  
-    slightly non-standard installations. However, if you need to modify  
-    other makefile options you should look at the ExtUtils::MakeMaker
+    program yourself, but you might not want to do that. You will need to
+    replace 5.8.3 with whatever version of Perl you are using. The
+    preceeding instructions should be sufficient for standard and slightly
+    non-standard installations. However, if you need to modify other
+    makefile options you should look at the ExtUtils::MakeMaker
     documentation. Modifying other makefile options is not recommended
     unless you really, absolutely, and completely know what you're doing!
 
@@ -117,19 +102,18 @@ DESCRIPTION
 
     NOTE: If one (or more) of the tests run by 'make test' fails, you will
     see a summary of the tests that failed, followed by a message of the
-    form "make: *** [test_dynamic] Error Y"  where Y is a number between 1
-    and 255 (inclusive).  If the number is less than 255, then it indicates
+    form "make: *** [test_dynamic] Error Y" where Y is a number between 1
+    and 255 (inclusive). If the number is less than 255, then it indicates
     how many test failed (if more than 254 tests failed, then 254 will still
-    be shown).  If one or more tests died, then 255 will be shown.  For more
+    be shown). If one or more tests died, then 255 will be shown. For more
     details, see:
 
     http://search.cpan.org/dist/Test-Simple/lib/Test/Builder.pm#EXIT_CODES
 
   System Requirements
-
-    1.  Perl version 5.6 or later.  This package has been written in Perl,
+    1.  Perl version 5.6 or later. This package has been written in Perl,
         which is freely available from www.perl.org. This package assumes
-        that perl is installed in the directory /usr/local/bin.  If this is
+        that perl is installed in the directory /usr/local/bin. If this is
         where perl is on your computer, then the support programs can be run
         directly at the command line as 'similarity.pl ...' or
         'semCorFreq.pl...', etc. However, if Perl is not installed at this
@@ -149,48 +133,40 @@ DESCRIPTION
     3.  WordNet::QueryData: This is the Perl interface to WordNet written by
         Jason Rennie. QueryData should be accessible on the @INC path of
         Perl. (Can be freely downloaded from
-        http://search.cpan.org/dist/WordNet-QueryData/).  QueryData 1.31 was
+        http://search.cpan.org/dist/WordNet-QueryData/). QueryData 1.31 was
         used during the development. Also we observed that that due to some
         major changes in QueryData from its previous versions, this software
         does not work with the earlier versions of QueryData. If you have an
         earlier version of QueryData (1.29 or earlier) you may need to
         upgrade QueryData.
 
-    4.  Berkeley DB: To use the WordNet::Similarity::vector measure, you
-        need to have Berkeley DB installed on your system. This can be
-        freely downloaded from http://www.sleepycat.com.  The vector measure
-        is still experimental.  If you don't want to use the vector measure,
-        you needed not worry about installing Berkeley DB or the
-        BerkeleyDB.pm module (see below).
-
-    5.  BerkeleyDB.pm: You also need the Perl interface (BerkeleyDB.pm) be
-        installed on the system. This package was tested with version 0.20
-        of the BerkeleyDB Perl module and version 4.1 of the Berkeley DB
-        database. The Perl module for BerkeleyDB can be obtained at CPAN:
-        http://search.cpan.org/dist/BerkeleyDB.
+    4.  Text::OverlapFinder: This module is used by the
+        WordNet::Similarity::lesk measure for finding runs of word overlaps
+        in glosses. The Text::OverlapFinder module can be downloaded from
+        http://search.cpan.org/dist/Text-Similarity/.
 
   Optional Tests
-
-    Running 'make install' after make will run a short series of tests. 
-    These tests should not take more than a few minutes to run.  There is
+    Running 'make install' after make will run a short series of tests.
+    These tests should not take more than a few minutes to run. There is
     another series of more rigorous tests that may also be run; however,
     these tests can take quite some time to run (over an hour on some
-    machines).  To run these tests, run 'make test_all'.
+    machines). To run these tests, run 'make test_all'.
 
   Example
-
     The following procedure will work on most Linux systems.
 
      cd /tmp
      wget http://www.cogsci.princeton.edu/2.0/WordNet-2.0.tar.gz
-     wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.31.tar.gz
-     wget http://search.cpan.org/CPAN/authors/id/S/SI/SID/WordNet-Similarity-0.07.tar.gz
+     wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.35.tar.gz
+     wget http://search.cpan.org/CPAN/authors/id/J/JA/JASONM/Text-Similarity-0.02.tar.gz
+     wget http://search.cpan.org/CPAN/authors/id/T/TP/TPEDERSE/WordNet-Similarity-0.12.tar.gz
 
     Then unpack each one:
 
      tar -zxvf WordNet-2.0.tar.gz
-     tar -zxvf WordNet-QueryData-1.31.tar.gz
-     tar -zxvf WordNet-Similarity-0.07.tar.gz
+     tar -zxvf WordNet-QueryData-1.35.tar.gz
+     tar -zxvf Text-Similarity-0.02.tar.gz
+     tar -zxvf WordNet-Similarity-0.12.tar.gz
 
     Install WordNet:
 
@@ -208,8 +184,8 @@ DESCRIPTION
      #PLATFORM = irix
      #PLATFORM = linux
 
-    Comment out the first line and uncomment the last line so that it looks
-    like this:
+    If you are using Linux, comment out the first line and uncomment the
+    last line so that it looks like this:
 
      #PLATFORM = solaris
      #PLATFORM = irix
@@ -229,7 +205,7 @@ DESCRIPTION
 
     Installing QueryData and Similarity is much easier:
 
-     cd /tmp/WordNet-QueryData-1.31
+     cd /tmp/WordNet-QueryData-1.35
      perl Makefile.PL
      make
      make test
@@ -237,7 +213,15 @@ DESCRIPTION
      make install
      exit
 
-     cd /tmp/WordNet-Similarity-0.07
+     cd /tmp/Text-Similarity-0.02
+     perl Makefile.PL
+     make
+     make test
+     su
+     make install
+     exit
+
+     cd /tmp/WordNet-Similarity-0.11
      perl Makefile.PL
      make
      make test
@@ -246,7 +230,6 @@ DESCRIPTION
      exit
 
 AUTHORS
-
      Siddharth Patwardhan, University of Utah, Salt Lake City
      sidd at cs.utah.edu
 
@@ -257,11 +240,9 @@ AUTHORS
      tpederse at d.umn.edu
 
 SEE ALSO
-
     intro.pod modules.pod
 
 COPYRIGHT AND LICENSE
-
     Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, and Jason
     Michelizzi
 

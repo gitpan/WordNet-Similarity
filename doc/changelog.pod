@@ -10,6 +10,84 @@ is released.
 
 =head1 DESCRIPTION
 
+=head2 Version 0.12 (Released 10/29/04)
+
+=over
+
+=item *
+
+10/29/04
+
+=over
+
+=item (1)
+
+Added vector to the CGI interface. (JM)
+
+=item (2)
+
+Incorporated a configuration file into similarity_server.pl. (JM)
+
+=back
+
+=item *
+
+10/28/04
+
+=over
+
+=item (1)
+
+Removed readDB.pl. (JM)
+
+=back
+
+=item *
+
+10/27/04
+
+=over
+
+=item (1)
+
+Modified string overlap finding in lesk to use the Text::OverlapFinder module.
+Removed string_compare.pm. This fixed an old bug where the relatedness
+of word1 and word2 wasn't always equal to the relatedness of word2 and word1.
+(JM)
+
+=item (2)
+
+Updated Makefile.PL, INSTALL, and doc/install.pod to reflect new dependency on
+Text::OverlapFinder. (JM)
+
+=item (3)
+
+Removed lib/dbInterface.pm and lib/string_compare.pm from MANIFEST. (JM)
+
+=back
+
+=item *
+
+10/19/04
+
+=over
+
+=item (1)
+
+Word vectors no longer stored in a BerkeleyDB database, a plain text file is
+now used. Modified wordVectors.pl, WordNet::Similarity::vector to use the plain
+text word vectors file. New module vectorFile.pm now used to access this plain text 
+database. Module dbInterace.pm is obsolete. (Sid)
+
+=item (2)
+
+Modified Makefile.PL to no longer check for BerkeleyDB dependency. All modules are
+installed. (Sid)
+
+=back
+
+=back
+
 =head2 Version 0.11 (Released 09/23/04)
 
 =over

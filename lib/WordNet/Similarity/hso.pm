@@ -1,5 +1,5 @@
 # WordNet::Similarity::hso.pm version 0.07
-# (Updated 2/19/2004 -- Jason)
+# (Last updated $Id: hso.pm,v 1.11 2004/10/23 07:23:04 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Hirst and St-Onge (1998).

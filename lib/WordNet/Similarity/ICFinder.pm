@@ -1,5 +1,5 @@
 # WordNet::Similarity::ICFinder.pm version 0.10
-# (Updated 9/01/2004 -- Jason)
+# (Last updated $Id: ICFinder.pm,v 1.10 2004/10/23 07:23:04 sidz1979 Exp $)
 #
 # A generic (and abstract) information content measure--this is not a
 # real measure.  The res, lin, and jcn measures inherit from this class.

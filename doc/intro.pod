@@ -1,4 +1,4 @@
-# run perldoc on this file to get nicely formatted documenation
+# run perldoc on this file to get nicely formatted documentation
 
 =head1 NAME
 

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 
 # wnDepths.pl version 0.07
-# (Updated 4/1/2004 -- Jason)
+# (Last updated $Id: wnDepths.pl,v 1.21 2004/10/29 19:25:42 sidz1979 Exp $)
 
 # A program to generate a list of the depths of the top-level nodes
 # in the WordNet IS-A taxonomies.  The program can also produce a
@@ -531,4 +531,3 @@ at L<http://www.gnu.org/licenses/gpl.txt> and is included in this
 distribution as GPL.txt.
 
 =cut
-

@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for WordNet::Similarity
-# (Last Updated 08/22/2004 -- Sid)
+# (Last updated $Id: Makefile.PL,v 1.23 2004/10/28 14:10:48 jmichelizzi Exp $)
 #
 # Generates the Makefile for the WordNet::Similarity CPAN modules. Requires
 # WordNet::QueryData (1.30 or above) be installed and be accessible via the
@@ -75,14 +75,15 @@ my $short_tests = 't/access.t t/res.t t/lin.t t/jcn.t t/path.t t/lch.t';
 $short_tests .= ' t/wup.t t/lesk.t t/hso.t t/random.t t/config/rootnode.t';
 my $long_tests = 't/*.t t/config/*.t t/utils/*.t';
 
-@programs_to_install = qw(readDB.pl BNCFreq.pl brownFreq.pl compounds.pl
+@programs_to_install = qw(BNCFreq.pl brownFreq.pl compounds.pl
 			  rawtextFreq.pl semCorRawFreq.pl semCorFreq.pl
 			  similarity.pl  treebankFreq.pl wordVectors.pl
 			  wnDepths.pl);
 
 WriteMakefile(
     'NAME'		  => 'WordNet::Similarity',
-    'PREREQ_PM'		=> {'WordNet::QueryData' => '1.30'},
+    'PREREQ_PM'		=> {'WordNet::QueryData' => '1.30',
+			    'Text::OverlapFinder' => '0.02'},
     'CONFIGURE'         => \&configSub,
     'VERSION_FROM'	  => 'lib/WordNet/Similarity.pm', # finds $VERSION
     'EXE_FILES'         => [ map "utils/$_", @programs_to_install ],
@@ -340,79 +341,6 @@ sub configSub
     print STDERR "done.\n";
     print STDERR "Wrote file $fname (WordNet ver ".$wn->version().").\n";
 
-    # Check if the BerkeleyDB Perl module is installed.
-    print STDERR "Dependency check for BerkeleyDB (Perl module) ... ";
-    eval
-    {
-	require BerkeleyDB;
-    };
-
-    if($@)
-    {
-	print STDERR "failed.\n";
-	$missing_modules++;
-    }
-    else
-    {
-	print STDERR "ok.\n";
-    }
-
-
-    # If failed dedpendencies, install only selected modules.
-    if($missing_modules)
-    {
-	my $rHash = {};
-	my $pmHash = {};
-	print STDERR <<'EOFD';
-*** Failed dependencies for module Wordnet::Similarity::vector.pm
-    Not installing WordNet::Similarity::vector.pm
-
-    Module vector.pm requires that BerkeleyDB and the Perl
-    interface to BerkeleyDB be installed on your system.
-    BerkeleyDB can be obtained from http://www.sleepycat.com
-    and the Perl interface to BerkeleyDB can be obtained from
-    http://search.cpan.org/dist/BerkeleyDB
-
-    For now this installation will continue without installing
-    the WordNet::Similarity::vector module.  The installation
-    can be re-run once BerkeleyDB and BerkeleyDB.pm are installed.
-
-EOFD
-
-	$pmHash->{'lib/string_compare.pm'} = "\$(INST_LIB)/string_compare.pm";
-	$pmHash->{'lib/stem.pm'}           = "\$(INST_LIB)/stem.pm";
-	$pmHash->{'lib/get_wn_info.pm'}    = "\$(INST_LIB)/get_wn_info.pm";
-	$pmHash->{'lib/WordNet/Similarity.pm'}   = "\$(INST_LIB)/WordNet/Similarity.pm";
-	$pmHash->{"lib/WordNet/treedepths-$wnversion.dat"} = "\$(INST_LIB)/WordNet/treedepths-$wnversion.dat";
-	$pmHash->{"lib/WordNet/synsetdepths-$wnversion.dat"} = "\$(INST_LIB)/WordNet/synsetdepths-$wnversion.dat";
-# mich0212 12/1/03
-# relation.dat renamed lesk-relation.dat
-	$pmHash->{'lib/WordNet/lesk-relation.dat'}    = "\$(INST_LIB)/WordNet/lesk-relation.dat";
-# mich0212 12/1/03
-# infocontent.dat renamed ic-semcor.dat
-# tdp 12/16/03
-# infocontent.dat renamed ic-semcor.dat again, was ic-semtag.dat
-	$pmHash->{'lib/WordNet/ic-semcor.dat'} = "\$(INST_LIB)/WordNet/ic-semcor.dat";
-	$pmHash->{'lib/WordNet/Similarity/random.pm'} = "\$(INST_LIB)/WordNet/Similarity/random.pm";
-	$pmHash->{'lib/WordNet/Similarity/path.pm'}   = "\$(INST_LIB)/WordNet/Similarity/path.pm";
-	$pmHash->{'lib/WordNet/Similarity/hso.pm'}    = "\$(INST_LIB)/WordNet/Similarity/hso.pm";
-	$pmHash->{'lib/WordNet/Similarity/jcn.pm'}    = "\$(INST_LIB)/WordNet/Similarity/jcn.pm";
-	$pmHash->{'lib/WordNet/Similarity/lch.pm'}    = "\$(INST_LIB)/WordNet/Similarity/lch.pm";
-	$pmHash->{'lib/WordNet/Similarity/lesk.pm'}   = "\$(INST_LIB)/WordNet/Similarity/lesk.pm";
-	$pmHash->{'lib/WordNet/Similarity/lin.pm'}    = "\$(INST_LIB)/WordNet/Similarity/lin.pm";
-	$pmHash->{'lib/WordNet/Similarity/res.pm'}    = "\$(INST_LIB)/WordNet/Similarity/res.pm";
-# Vector must not be installed...
-#	$pmHash->{'lib/WordNet/Similarity/vector.pm'} = "\$(INST_LIB)/WordNet/Similarity/vector.pm";
-	$pmHash->{'lib/WordNet/Similarity/wup.pm'}    = "\$(INST_LIB)/WordNet/Similarity/wup.pm";
-	$pmHash->{'lib/WordNet/Similarity/DepthFinder.pm'} = "\$(INST_LIB)/WordNet/Similarity/DepthFinder.pm";
-	$pmHash->{'lib/WordNet/Similarity/ICFinder.pm'} = "\$(INST_LIB)/WordNet/Similarity/ICFinder.pm";
-	$pmHash->{'lib/WordNet/Similarity/LCSFinder.pm'} = "\$(INST_LIB)/WordNet/Similarity/LCSFinder.pm";
-	$pmHash->{'lib/WordNet/Similarity/PathFinder.pm'} = "\$(INST_LIB)/WordNet/Similarity/PathFinder.pm";
-
-	$rHash->{"PM"} = $pmHash;
-
-	return $rHash;
-    }
 
     return {};
 }
@@ -551,7 +479,7 @@ sub getHyponymOffsets
 
 package MY;
 
-# overrride test() method to add a new target, test_all
+# override test() method to add a new target, test_all
 sub test
 {
     my $self = shift;

@@ -12,20 +12,65 @@ my $localport = 31134;
 my $wnlocation = '/usr/local/WordNet-2.0/dict';
 
 
-
 my $lock_file = "$BASEDIR/similarity_server.lock";
+my $error_log = "$BASEDIR/error.log";
+my $conf_file = "similarity_server.conf";
+
+my $wordvectors = "wordvectors.dat";
+my $compfile = "compfile.txt";
+my $stoplist = "stoplist.txt";
+if (-e $conf_file) {
+    open CFH, '<', $conf_file or die "Cannot open config file $conf_file: $!";
+
+    while (my $line = <CFH>) {
+        $line =~ s/\#.*$//;
+        $line =~ s/\n|\r//g;
+        unless ($line =~ /(\w+)\:\:(\S+)/) {
+            next unless defined $1;
+        }
+
+        if ($1 eq 'lock_file') {
+            print "lock_file=$2\n";
+            $lock_file = $2;
+        }
+        elsif ($1 eq 'error_log') {
+            print "error_log=$2\n";
+            $error_log = $2;
+        }
+	elsif ($1 eq 'vectordb') {
+	    $wordvectors = $2;
+	    print "vectordb=$2\n";
+	}
+	elsif ($1 eq 'compounds') {
+	    $compfile = $2;
+	    print "compounds=$2\n";
+	}
+	elsif ($1 eq 'stop') {
+	    $stoplist = $2;
+	    print "stoplist=$2\n";
+	}
+        else {
+            warn "Unknown config option in $conf_file at $.\n";
+        }
+    }
+
+    close CFH;
+}
+else {
+    print "No config file used\n";
+}
 
 my $lockfh;
-{
-    if (-e $lock_file) {
-	die "Lock file `$lock_file' already exists.  Make sure that another\n",
-	    "instance of $0 isn't running, then delete the lock file.\n";
-    }
-    open ($lockfh, '>', $lock_file)
-      or die "Cannot open lock file `$lock_file' for writing: $!";
-    print $lockfh $$;
-    close $lockfh or die "Cannot close lock file `lock_file': $!";
+
+if (-e $lock_file) {
+    die "Lock file `$lock_file' already exists.  Make sure that another\n",
+    "instance of $0 isn't running, then delete the lock file.\n";
 }
+open ($lockfh, '>', $lock_file)
+    or die "Cannot open lock file `$lock_file' for writing: $!";
+print $lockfh $$;
+close $lockfh or die "Cannot close lock file `lock_file': $!";
+
 END {
     if (open FH, '<', $lock_file) {
 	my $pid = <FH>;
@@ -51,6 +96,7 @@ use WordNet::Similarity::lin;
 use WordNet::Similarity::path;
 use WordNet::Similarity::random;
 use WordNet::Similarity::res;
+use WordNet::Similarity::vector;
 use WordNet::Similarity::wup;
 
 my $wn = WordNet::QueryData->new ($wnlocation);
@@ -69,8 +115,20 @@ print FH "stop::stoplist.txt\n" if -e 'stoplist.txt';
 close FH;
 
 our $lesk = WordNet::Similarity::lesk->new ($wn, $leskcfg);
-
 unlink $leskcfg;
+
+my $vectorcfg = "vector$$.cfg";
+open VFH, '>', $vectorcfg or die "Cannot open $vectorcfg for writing: $!";
+print VFH "WordNet::Similarity::vector\n";
+print VFH "stop::$stoplist\n" if -e 'stoplist.txt';
+print VFH "stem::1\n";
+print VFH "compounds::$compfile\n";
+print VFH "vectordb::$wordvectors\n";
+close VFH;
+
+our $vector = WordNet::Similarity::vector->new ($wn, $vectorcfg);
+unlink $vectorcfg;
+
 
 our $lin = WordNet::Similarity::lin->new ($wn);
 our $path = WordNet::Similarity::path->new ($wn);
@@ -78,7 +136,7 @@ our $random = WordNet::Similarity::random->new ($wn);
 our $res = WordNet::Similarity::res->new ($wn);
 our $wup = WordNet::Similarity::wup->new ($wn);
 
-my @measures = ($hso, $jcn, $lch, $lesk, $lin, $path, $random, $res, $wup);
+my @measures = ($hso, $jcn, $lch, $lesk, $lin, $path, $random, $res, $wup, $vector);
 foreach (@measures) {
     my ($err, $errstr) = $_->getError ();
     die "$errstr died" if $err;
@@ -92,7 +150,6 @@ $ENV{PATH} = '/bin:/usr/bin:/usr/local/bin';
 $SIG{CHLD} = 'IGNORE';
 
 # re-direct STDERR from wherever it is now to a log file
-my $error_log = "$BASEDIR/error.log";
 close STDERR;
 open (STDERR, '>', $error_log) or die "Could not re-open STDERR";
 chmod 0664, $error_log;
@@ -132,7 +189,7 @@ while (my $client = $socket->accept) {
 	    # get version information
 	    my $qdver = $wn->VERSION ();
 	    my $wnver = $wn->version ();
-	    my $simver = $path->VERSION ();
+	    my $simver = $WordNet::Similarity::VERSION;
 	    print $client "v WordNet $wnver\015\012";
 	    print $client "v WordNet::QueryData $qdver\015\012";
 	    print $client "v WordNet::Similarity $simver\015\012";
@@ -180,7 +237,7 @@ while (my $client = $socket->accept) {
 	    }
 
 	    my $module;
-	    if ($measure =~ /^(?:hso|jcn|lch|lesk|lin|path|random|res|wup)$/) {
+	    if ($measure =~ /^(?:hso|jcn|lch|lesk|lin|path|random|res|wup|vector)$/) {
 		no strict 'refs';
 		$module = $$measure;
 		unless (defined $module) {

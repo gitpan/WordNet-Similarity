@@ -1,16 +1,15 @@
 #!/usr/local/bin/perl -w
 #
-# treebankFreq.pl version 0.09
-# (Updated 05/19/2004 -- Jason)
+# treebankFreq.pl version 0.12
+# (Last updated $Id: treebankFreq.pl,v 1.8 2004/10/29 19:25:42 sidz1979 Exp $)
 #
 # This program reads the Treebank Corpus and computes the frequency counts
 # for each synset in WordNet. These frequency counts are used by
 # various measures of semantic relatedness to calculate the information
 # content of concepts. The output is generated in a format as required
-# by the WordNet::Similarity modules (ver 0.01) for computing semantic
-# relatedness.
+# by the WordNet::Similarity modules for computing semantic relatedness.
 #
-# Copyright (c) 2002-2003
+# Copyright (c) 2004
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
@@ -573,8 +572,8 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "treebankFreq.pl version 0.09\n";
-    print "Copyright (c) 2002-2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
+    print "treebankFreq.pl version 0.12\n";
+    print "Copyright (c) 2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
 
 __END__
@@ -586,7 +585,8 @@ Treebank corpus
 
 =head1 SYNOPSIS
 
-treebankFreq.pl [--compfile=COMPFILE --outfile=OUTFILE [--stopfile=STOPFILE] [--wnpath=WNPATH] [--resnik] [--smooth=SCHEME] PATH | --help -- version]
+treebankFreq.pl [--compfile=COMPFILE --outfile=OUTFILE [--stopfile=STOPFILE] 
+ [--wnpath=WNPATH] [--resnik] [--smooth=SCHEME] PATH | --help -- version]
 
 =head1 OPTIONS
 
@@ -636,3 +636,4 @@ B<PATH>
 
         treebankFreq.pl [OPTIONS] /home/sid/treebank/raw/wsj
 
+=cut

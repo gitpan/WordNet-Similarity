@@ -1,5 +1,5 @@
 # WordNet::Similarity::wup.pm version 0.11
-# (updated 9/23/2004 -- Jason)
+# (Last updated $Id: wup.pm,v 1.22 2004/10/23 07:23:05 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the semantic
 # relatedness measure described by Wu & Palmer (1994) as revised

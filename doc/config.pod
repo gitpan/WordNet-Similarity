@@ -167,7 +167,7 @@ behavior (no compound recognition) is used.
 
 This option is supported only by the vector measure.
 
-The value of this parameter is the path to a Berkeley DB file 
+The value of this parameter is the path to a Vectors file 
 containing word vectors, i.e. co-occurrence vectors for all the words
 in the WordNet glosses.  The value of this parameter may not be omitted,
 and the vector measure will not run without a DB file being specified

@@ -1,8 +1,13 @@
 #!/usr/local/bin/perl -w
 #
-# semCorFreq.pl version 0.09
+# semCorFreq.pl version 0.12
+# (Last updated $Id: semCorFreq.pl,v 1.5 2004/10/29 19:25:42 sidz1979 Exp $)
 #
-# A helper tool perl program for WordNet::Similarity.
+# A helper tool perl program for WordNet::Similarity. This 
+# program is used to generate the frequency count data
+# files (information content files) which are used by the 
+# Jiang Conrath, Resnik and Lin measures to calculate the
+# information content of synsets in WordNet.
 #
 # This program is used to generate the frequency count data 
 # files which are used by the Jiang Conrath, Resnik and Lin 
@@ -11,7 +16,7 @@
 # the WordNet::Similarity modules (ver 0.01) for computing
 # semantic relatedness.
 #
-# Copyright (c) 2003-2004,
+# Copyright (c) 2004,
 #
 # Siddharth Patwardhan, University of Utah, Salt Lake City
 # sidd at cs.utah.edu
@@ -439,6 +444,42 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "semCorFreq.pl  -  version 0.09\n";
-    print "Copyright (c) 2004, Siddharth Patwardhan & Ted Pedersen\n";
+    print "semCorFreq.pl version 0.12\n";
+    print "Copyright (c) 2004, Siddharth Patwardhan & Ted Pedersen.\n";
 }
+
+__END__
+
+=head1 NAME
+
+semCorFreq.pl
+
+=head1 SYNOPSIS
+
+semCorFreq.pl [{ --outfile FILE [--wnpath PATH] [--smooth SCHEME] | --help | --version }]
+
+=head1 OPTIONS
+
+B<--outfile>=I<filename>
+
+    The name of a file to which output should be written
+
+B<--wnpath>=I<path>
+
+    Location of the WordNet data files (e.g.,
+    /usr/local/WordNet-2.0/dict)
+
+B<--smooth>=I<SCHEME>
+
+    Smoothing should used on the probabilities computed.  SCHEME can
+    only be ADD1 at this time
+
+B<--help>
+
+    Show a help message
+
+B<--version>
+
+    Display version information
+
+=cut

@@ -1,5 +1,5 @@
 # stem.pm version 0.03
-# (Updated 03/10/2003 -- Sid)
+# (Last updated $Id: stem.pm,v 1.4 2004/10/27 14:58:12 jmichelizzi Exp $)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
@@ -53,9 +53,9 @@ sub new
     my $wn = shift;
     my $self = {};
 
-    $self->{'wn'} = $wn;
-    $self->{'wordStemHash'} = ();
-    $self->{'stringStemHash'} = ();
+    $self->{wn} = $wn;
+    $self->{wordStemHash} = ();
+    $self->{stringStemHash} = ();
     bless($self, $className);
 
     return $self;
@@ -108,11 +108,11 @@ sub stemWord
 {
     my $self = shift;
     my $word = shift;
-    my $wn = $self->{'wn'};
+    my $wn = $self->{wn};
     my @stems = ();
     
     # if not in the cache, create and put in cache
-    if (!defined $self->{'wordStemHash'}->{$word})
+    if (!defined $self->{wordStemHash}->{$word})
     {
 	# So not in the hash. gotta check for all possible parts of speech.
 	my %stems = ();
@@ -136,11 +136,11 @@ sub stemWord
 	}
 	
 	# put in the cache
-	$self->{'wordStemHash'}->{$word} = join(" ", (keys %stems));
+	$self->{wordStemHash}->{$word} = join(" ", (keys %stems));
     }
     
     # return the stems
-    return (split / /, $self->{'wordStemHash'}->{$word});
+    return (split / /, $self->{wordStemHash}->{$word});
 }
 
 1;

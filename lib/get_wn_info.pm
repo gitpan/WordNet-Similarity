@@ -1,5 +1,5 @@
-# get_wn_info.pm version 0.07
-# (Updated 10/11/2003 -- Jason)
+# get_wn_info.pm version 0.12
+# (Last updated $Id: get_wn_info.pm,v 1.6 2004/10/27 15:24:56 jmichelizzi Exp $)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
@@ -43,7 +43,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.07';
+$VERSION = '0.12';
 
 # function to set up the wordnet object and the various boundary indices
 sub new
@@ -689,12 +689,23 @@ sub glos
 	
 	# regularize the glos
 	$glosString =~ s/\".*//;
-	$glosString =~ s/[^\w]/ /g;
+
+	# get rid of most punctuation
+	$glosString =~ tr/.;:,?!(){}\x22\x60\x24\x25\x40<>/ /;
+	# get rid of apostrophes not surrounded by word chars
+	$glosString =~ s/(?<!\w)\x27/ /g;
+	$glosString =~ s/\x27(?!\w)/ /g;
+	# remove dashes, but not hyphens
+	$glosString =~ s/--/ /g;
+
+	# this causes "plane's" to become "plane s"
+	# $glosString =~ s/[^\w]/ /g;
+
 	$glosString =~ s/\s+/ /g;
-	$glosString = lc($glosString);
+	$glosString = lc $glosString;
 
 	# stem the glos if asked for 
-	$glosString = $stemmer->stemString($glosString, 1) if ($self->{'stem'});
+	$glosString = $stemmer->stemString($glosString, 1) if ($self->{stem});
 	
 	$glosString =~ s/^\s*/ /;
 	$glosString =~ s/\s*$/ /;
@@ -764,7 +775,17 @@ sub example
     foreach ($i = 0; $i <= $#exampleStrings; $i++)
     {
 	# preprocess
-	$exampleStrings[$i] =~ s/[^\w]/ /g;
+
+	###
+	# get rid of most punctuation
+	$exampleStrings[$i] =~ tr/.;:,?!(){}\x22\x60\x24\x25\x40<>/ /;
+	# get rid of apostrophes not surrounded by word chars
+	$exampleStrings[$i] =~ s/(?<!\w)\x27/ /g;
+	$exampleStrings[$i] =~ s/\x27(?!\w)/ /g;
+	# remove dashes, but not hyphens
+	$exampleStrings[$i] =~ s/--/ /g;
+	###$exampleStrings[$i] =~ s/[^\w]/ /g;
+
 	$exampleStrings[$i] =~ s/\s+/ /g;
 	$exampleStrings[$i] =~ s/^\s*/ /;
 	$exampleStrings[$i] =~ s/\s*$/ /;
@@ -849,9 +870,9 @@ sub syns
 	# put in boundary if more examples coming!
 	if ($i < $#synonymArray) 
 	{ 
-	    my $boundary = sprintf("SSS%05dSSS", $self->{'synonymBoundaryIndex'});
+	    my $boundary = sprintf("SSS%05dSSS", $self->{synonymBoundaryIndex});
 	    $returnString .= $boundary;
-	    ($self->{'synonymBoundaryIndex'})++;
+	    ($self->{synonymBoundaryIndex})++;
 	}
     }	
     
@@ -864,8 +885,8 @@ sub syns
 sub glosexample
 {
     my $self = shift;
-    my $wn = $self->{'wn'};
-    my $stemmer = $self->{'stemmer'};
+    my $wn = $self->{wn};
+    my $stemmer = $self->{stemmer};
     my @synsets = @_;
     my $returnString = "";
     
@@ -877,8 +898,7 @@ sub glosexample
 	return(1, 2);
     }
     
-    my $i = 0;
-    for (; $i <= $#synsets; $i++)
+    for (my $i = 0; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
 	if ($synsets[$i] !~ /\#\w\#\d+/)
@@ -892,13 +912,23 @@ sub glosexample
 	($glosString) = $wn->querySense($synsets[$i], "glos");
 	
 	# regularize the glos
-	$glosString =~ s/\'//g;
-	$glosString =~ s/[^\w]/ /g;
+	###$glosString =~ s/\'//g;
+	###$glosString =~ s/[^\w]/ /g;
+
+	# get rid of most punctuation
+	$glosString =~ tr/.;:,?!(){}\x22\x60\x24\x25\x40<>/ /;
+	# get rid of apostrophes not surrounded by word chars
+	$glosString =~ s/(?<!\w)\x27/ /g;
+	$glosString =~ s/\x27(?!\w)/ /g;
+	# remove dashes, but not hyphens
+	$glosString =~ s/--/ /g;
+	###
+
 	$glosString =~ s/\s+/ /g;
-	$glosString = lc($glosString);
+	$glosString = lc $glosString;
 
 	# stem the glos if asked for 
-	$glosString = $stemmer->stemString($glosString, 1) if ($self->{'stem'});
+	$glosString = $stemmer->stemString($glosString, 1) if ($self->{stem});
 	
 	$glosString =~ s/^\s*/ /;
 	$glosString =~ s/\s*$/ /;
@@ -909,9 +939,9 @@ sub glosexample
 	# put in boundary if more glosses coming!
 	if ($i < $#synsets) 
 	{ 
-	    my $boundary = sprintf("XXX%05dXXX", $self->{'glosBoundaryIndex'});
+	    my $boundary = sprintf("XXX%05dXXX", $self->{glosBoundaryIndex});
 	    $returnString .= $boundary;
-	    ($self->{'glosBoundaryIndex'})++;
+	    ($self->{glosBoundaryIndex})++;
 	}
     }
     

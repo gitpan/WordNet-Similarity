@@ -1,5 +1,5 @@
 # WordNet::Similarity::lin.pm version 0.07
-# (Updated 1/6/2004 -- Jason)
+# (Last updated $Id: lin.pm,v 1.17 2004/10/23 07:23:05 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Lin (1998).

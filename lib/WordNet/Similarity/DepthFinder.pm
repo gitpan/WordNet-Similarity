@@ -1,5 +1,5 @@
 # WordNet::Similarity::DepthFinder version 0.10
-# (Updated 9/01/2004 -- Jason)
+# (Last updated $Id: DepthFinder.pm,v 1.11 2004/10/23 07:23:04 sidz1979 Exp $)
 #
 # Module containing code to find the depths of (noun and verb) synsets in
 # the WordNet 'is-a' taxonomies

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# rawtextFreq.pl version 0.09
-# (Updated 05/17/2004 -- Jason)
+# rawtextFreq.pl version 0.12
+# (Last updated $Id: rawtextFreq.pl,v 1.13 2004/10/29 19:25:42 sidz1979 Exp $)
 #
 # This program reads raw text and computes the frequency counts
 # for each synset in WordNet. These frequency counts are used by
@@ -9,6 +9,35 @@
 # content values of concepts. The output is generated in a format as
 # required by the WordNet::Similarity modules for computing
 # semantic relatedness.
+#
+# Copyright (c) 2004
+#
+# Ted Pedersen, University of Minnesota, Duluth
+# tpederse at d.umn.edu
+#
+# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+# banerjee+ at cs.cmu.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
+#
+# Jason Michelizzi, University of Minnesota, Duluth
+# mich0212 at d.umn.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+#-----------------------------------------------------------------------------
 use strict;
 
 use File::Find;
@@ -608,8 +637,8 @@ EOT
 # Subroutine to print the version information
 sub printVersion
 {
-    print "rawtextFreq.pl version 0.09\n";
-    print "Copyright (C) 2002-2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
+    print "rawtextFreq.pl version 0.12\n";
+    print "Copyright (c) 2004 Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan & Jason Michelizzi.\n";
 }
 
 __END__
@@ -622,8 +651,8 @@ files
 =head1 SYNOPSIS
 
 rawtextFreq.pl --compfile COMPFILE --outfile OUTFILE [--stopfile=STOPFILE]
-{--stdin | --infile FILE [--infile FILE ...]} [--wnpath WNPATH]
-[--resnik] [--smooth=SCHEME] | --help | --version
+               {--stdin | --infile FILE [--infile FILE ...]} [--wnpath WNPATH]
+               [--resnik] [--smooth=SCHEME] | --help | --version
 
 =head1 OPTIONS
 
@@ -704,7 +733,7 @@ None.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2002-2004, Siddharth Patwardhan, Ted Pedersen, Satanjeev
+Copyright (c) 2004, Siddharth Patwardhan, Ted Pedersen, Satanjeev
 Banerjee, and Jason Michelizzi
 
 This program is free software; you can redistribute it and/or

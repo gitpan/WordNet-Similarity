@@ -1,5 +1,5 @@
-# WordNet::Similarity::lesk.pm version 0.07
-# (Updated 3/15/2004 -- Jason)
+# WordNet::Similarity::lesk.pm version 0.12
+# (Last updated $Id: lesk.pm,v 1.17 2004/10/27 15:24:56 jmichelizzi Exp $)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using an
@@ -48,10 +48,11 @@ lesk measure has been implemented in this module.
 =cut
 
 use strict;
+use warnings;
 
 use get_wn_info;
 
-use string_compare;
+use Text::OverlapFinder;
 
 use stem;
 
@@ -61,13 +62,12 @@ use File::Spec;
 
 our @ISA = qw(WordNet::Similarity);
 
-our $VERSION = '0.07';
+our $VERSION = '0.12';
 
 WordNet::Similarity::addConfigOption ("relation", 0, "p", undef);
 WordNet::Similarity::addConfigOption ("stop", 0, "p", undef);
 WordNet::Similarity::addConfigOption ("stem", 0, "i", 0);
 WordNet::Similarity::addConfigOption ("normalize", 0, "i", 0);
-
 
 sub setPosList
 {
@@ -157,150 +157,19 @@ sub initialize
     my $gwi = $self->{gwi} = get_wn_info->new ($wn, $dostem, %stopHash);
 
     # Load the relations data.
-    if($self->{relation}){
-      my $header;
-      my $relation;
-
-      if(open (RELATIONS, $self->{relation})) {
-	$header = <RELATIONS>;
-	$header =~ s/[\r\f\n]//g;
-	$header =~ s/\s+//g;
-	if($header =~ /LeskRelationFile/) {
-	  my $index = 0;
-	  $self->{'functions'} = ();
-	  $self->{'weights'} = ();
-	  while($relation = <RELATIONS>) {
-	    $relation =~ s/[\r\f\n]//g;
-
-	    # now for each line in the <REL> file, extract the
-	    # nested functions if any, check if they are defined,
-	    # if it makes sense to nest them, and then finally put
-	    # them into the @functions triple dimensioned array!
-
-	    # remove leading/trailing spaces from the relation
-	    $relation =~ s/^\s*(\S*?)\s*$/$1/;
-
-	    # now extract the weight if any. if no weight, assume 1
-	    if($relation =~ /(\S+)\s+(\S+)/)
-	      {
-		$relation = $1;
-		$self->{'weights'}->[$index] = $2;
-	      }
-	    else
-	      {
-		$self->{'weights'}->[$index] = 1;
-	      }
-
-	    # check if we have a "proper" relation, that is a relation in
-	    # there are two blocks of functions!
-	    if($relation !~ /(.*)-(.*)/) {
-	      $self->{'errorString'} .= "\nError (${class}::initialize()) - ";
-	      $self->{'errorString'} .= "Bad file format ($self->{relation}).";
-	      $self->{'error'} = 2;
-	      close(RELATIONS);
-	      return;		
-	      }
-
-	    # get the two parts of the relation pair
-	    my @twoParts;
-	    my $l;
-	    $twoParts[0] = $1;
-	    $twoParts[1] = $2;
-
-	    # process the two parts and put into functions array
-	    for($l = 0; $l < 2; $l++)
-	      {
-		#no strict 'subs';
-		
-		$twoParts[$l] =~ s/[\s\)]//g;
-		my @functionArray = split(/\(/, $twoParts[$l]);
-		
-		my $j = 0;
-		my $fn = $functionArray[$#functionArray];
-		unless ($gwi->can($fn)) {
-		  $self->{'errorString'} .= "\nError (${class}::initialize()) - ";
-		  $self->{'errorString'} .= "Undefined function ($functionArray[$#functionArray]) in relations file.";
-		  $self->{'error'} = 2;
-		  close (RELATIONS);
-		  return;
-		}
-		
-		$self->{'functions'}->[$index]->[$l]->[$j++] = $functionArray[$#functionArray];
-		my $input;
-		my $output;
-		my $dummy;
-		my $k;
-		
-		for ($k = $#functionArray-1; $k >= 0; $k--)
-		  {
-		    my $fn2 = $functionArray[$k];
-		    my $fn3 = $functionArray[$k+1];
-		    if(!($gwi->can($fn2)))
-		      {
-			$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->initialize()) - ";
-			$self->{'errorString'} .= "Undefined function ($functionArray[$k]) in relations file.";
-			$self->{'error'} = 2;
-			close(RELATIONS);
-			return;
-		      }
-		
-		    ($input, $dummy) = $gwi->$fn2(0);
-		    ($dummy, $output) = $gwi->$fn3(0);
-	
-		    if($input != $output)
-		      {
-			$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->initialize()) - ";
-			$self->{'errorString'} .= "Invalid function combination - $functionArray[$k]($functionArray[$k+1]).";
-			$self->{'error'} = 2;
-			close(RELATIONS);
-			return;
-		      }
-
-		    $self->{'functions'}->[$index]->[$l]->[$j++] = $functionArray[$k];
-		  }
-		
-		# if the output of the outermost function is synset array (1)
-		# wrap a glos around it
-		my $xfn = $functionArray[0];
-		($dummy, $output) = $gwi->$xfn(0);
-		if($output == 1)
-		  {
-		    $self->{'functions'}->[$index]->[$l]->[$j++] = "glos";
-		  }
-	      }
-
-	    $index++;
-	  }
-	}
-	else
-	  {
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->initialize()) - ";
-	    $self->{'errorString'} .= "Bad file format ($self->{relation}).";
-	    $self->{'error'} = 2;
-	    close(RELATIONS);
-	    return;		
-	  }
-	close(RELATIONS);
-      }
-      else
-	{
-	  $self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->initialize()) - ";
-	  $self->{'errorString'} .= "Unable to open $self->{relation}.";
-	  $self->{'error'} = 2;
-	  return;
-	}
-    }
-    else
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->initialize()) - ";
-	$self->{'errorString'} .= "No default relations file found.";
-	$self->{'error'} = 2;
-	return;
-    }
+    $self->_loadRelationFile ($gwi);
 
     # initialize string compare module. No stemming in string
     # comparison, so put 0.
-    &string_compare_initialize(0, %stopHash);
+    #&string_compare_initialize(0, %stopHash);
+    my @finder_args = ();
+
+    if (defined $self->{stop}) {
+	push @finder_args, stoplist => $self->{stop};
+    }
+    # lesk doesn't use a comp file, so we can ignore that
+   
+    $self->{finder} = Text::OverlapFinder->new (@finder_args);
 
 # JM 12/5/03 (#1)
 # moved this behavior to traceOptions()
@@ -312,6 +181,155 @@ sub initialize
 #    }
 #    # [/trace]
 }
+
+sub _loadRelationFile
+{
+    my $self = shift;
+    my $gwi = shift;
+    my $class = ref $self || $self;
+
+    if ($self->{relation}){
+	my $header;
+	my $relation;
+
+	if(open (RELATIONS, $self->{relation})) {
+	    $header = <RELATIONS>;
+	    $header =~ s/[\r\f\n]//g;
+	    $header =~ s/\s+//g;
+	    if($header =~ /LeskRelationFile/) {
+		my $index = 0;
+		$self->{functions} = ();
+		$self->{weights} = ();
+		while($relation = <RELATIONS>) {
+		    $relation =~ s/[\r\f\n]//g;
+		    
+		    # now for each line in the file, extract the
+		    # nested functions if any, check if they are defined,
+		    # if it makes sense to nest them, and then finally put
+		    # them into the @functions triple dimensioned array!
+		    
+		    # remove leading/trailing spaces from the relation
+		    $relation =~ s/^\s*(\S*?)\s*$/$1/;
+		    
+		    # now extract the weight if any. if no weight, assume 1
+		    if($relation =~ /(\S+)\s+(\S+)/)
+		    {
+			$relation = $1;
+			$self->{weights}->[$index] = $2;
+		    }
+		    else
+		    {
+			$self->{weights}->[$index] = 1;
+		    }
+
+		    # check if we have a "proper" relation, that is a relation in
+		    # there are two blocks of functions!
+		    if($relation !~ /(.*)-(.*)/) {
+			$self->{errorString} .= "\nError (${class}::_loadRelationFile()) - ";
+			$self->{errorString} .= "Bad file format ($self->{relation}).";
+			$self->{error} = 2;
+			close RELATIONS;
+			return;		
+		    }
+		    
+		    # get the two parts of the relation pair
+		    my @twoParts;
+		    my $l;
+		    $twoParts[0] = $1;
+		    $twoParts[1] = $2;
+		    
+		    # process the two parts and put into functions array
+		    for($l = 0; $l < 2; $l++)
+		    {
+			#no strict 'subs';
+			
+			$twoParts[$l] =~ s/[\s\)]//g;
+			my @functionArray = split(/\(/, $twoParts[$l]);
+			
+			my $j = 0;
+			my $fn = $functionArray[$#functionArray];
+			unless ($gwi->can($fn)) {
+			    $self->{errorString} .= "\nError (${class}::_loadRelationFile()) - ";
+			    $self->{errorString} .= "Undefined function ($functionArray[$#functionArray]) in relations file.";
+			    $self->{error} = 2;
+			    close RELATIONS;
+			    return;
+			}
+			
+			$self->{functions}->[$index]->[$l]->[$j++] = $functionArray[$#functionArray];
+			my $input;
+			my $output;
+			my $dummy;
+			my $k;
+			
+			for ($k = $#functionArray-1; $k >= 0; $k--)
+			{
+			    my $fn2 = $functionArray[$k];
+			    my $fn3 = $functionArray[$k+1];
+			    if(!($gwi->can($fn2)))
+			    {
+				$self->{errorString} .= "\nError (${class}::_loadRelationFile()) - ";
+				$self->{errorString} .= "Undefined function ($functionArray[$k]) in relations file.";
+				$self->{error} = 2;
+				close(RELATIONS);
+				return;
+			    }
+			    
+			    ($input, $dummy) = $gwi->$fn2(0);
+			    ($dummy, $output) = $gwi->$fn3(0);
+			    
+		    if($input != $output)
+		    {
+			$self->{errorString} .= "\nError (${class}::_loadRelationFile()) - ";
+			$self->{errorString} .= "Invalid function combination - $functionArray[$k]($functionArray[$k+1]).";
+			$self->{error} = 2;
+			close(RELATIONS);
+			return;
+		      }
+			    
+			    $self->{functions}->[$index]->[$l]->[$j++] = $functionArray[$k];
+			}
+			
+			# if the output of the outermost function is synset array (1)
+			# wrap a glos around it
+			my $xfn = $functionArray[0];
+			($dummy, $output) = $gwi->$xfn(0);
+			if($output == 1)
+			{
+			    $self->{functions}->[$index]->[$l]->[$j++] = "glos";
+			}
+		    }
+		    
+		    $index++;
+		}
+	    }
+	    else
+	    {
+		$self->{errorString} .= "\nError (${class}::_loadRelationFile()) - ";
+		$self->{errorString} .= "Bad file format ($self->{relation}).";
+		$self->{error} = 2;
+		close(RELATIONS);
+		return;		
+	    }
+	    close(RELATIONS);
+	}
+	else
+	{
+	    $self->{errorString} .= "\nError (${class}::_loadRelationFile()) - ";
+	    $self->{errorString} .= "Unable to open $self->{relation}.";
+	    $self->{error} = 2;
+	    return;
+	}
+    }
+    else
+    {
+	$self->{errorString} .= "\nError (${class}::_loadRelationFile()) - ";
+	$self->{errorString} .= "No default relations file found.";
+	$self->{error} = 2;
+	return;
+    }
+}
+
 
 # 12/5/03 JM (#1)
 # show all config options specific to this module
@@ -343,42 +361,33 @@ sub getRelatedness
     my $self = shift;
     my $wps1 = shift;
     my $wps2 = shift;
-    my $wn = $self->{wn};
+    my $class = ref $self || $self;
     my $gwi = $self->{gwi};
 
-    # Check the existence of the WordNet::QueryData object.
-    if(!$wn)
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->getRelatedness()) - ";
-	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
-	$self->{'error'} = 2;
-	return undef;
-    }
-
     # Initialize traces.
-    $self->{'traceString'} = "" if($self->{'trace'});
+    $self->{traceString} = "" if $self->{trace};
 
     # Undefined input cannot go unpunished.
     if(!$wps1 || !$wps2)
     {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lesk->getRelatedness()) - Undefined input values.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+	$self->{errorString} .= "\nWarning (${class}::getRelatedness()) - Undefined input values.";
+	$self->{error} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
 	return undef;
     }
 
     # Security check -- are the input strings in the correct format (word#pos#sense).
     if($wps1 !~ /^\S+\#([nvar])\#\d+$/)
     {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lesk->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+	$self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
+	$self->{errorString} .= "Input not in word\#pos\#sense format.";
+	$self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
 	return undef;
     }
     if($wps2 !~ /^\S+\#([nvar])\#\d+$/)
     {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lesk->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+	$self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
+	$self->{errorString} .= "Input not in word#pos#sense format.";
+	$self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
 	return undef;
     }
 
@@ -389,11 +398,11 @@ sub getRelatedness
     defined $relatedness and return $relatedness;
 
     # see if any traces reqd. if so, put in the synset arrays.
-    if($self->{'trace'})
+    if($self->{trace})
     {
 	# ah so we do need SOME traces! put in the synset names.
-	$self->{'traceString'}  = "Synset 1: $wps1\n";
-	$self->{'traceString'} .= "Synset 2: $wps2\n";
+	$self->{traceString}  = "Synset 1: $wps1\n";
+	$self->{traceString} .= "Synset 2: $wps2\n";
     }
 
     # we shall put the first synset in a "set" of itself, and the
@@ -415,7 +424,7 @@ sub getRelatedness
     # and now go thru the functions array, get the strings and do the scoring
     my $i = 0;
     my %overlaps;
-    while(defined $self->{'functions'}->[$i])
+    while(defined $self->{functions}->[$i])
     {
 	my $functionsString = "";
 	my $funcStringPrinted = 0;
@@ -428,17 +437,17 @@ sub getRelatedness
 	{
 	    $functionsString = "Functions: ";
 	    my $j = 0;
-	    while(defined $self->{'functions'}->[$i]->[0]->[$j])
+	    while(defined $self->{functions}->[$i]->[0]->[$j])
 	    {
-		$functionsString .= ($self->{'functions'}->[$i]->[0]->[$j])." ";
+		$functionsString .= ($self->{functions}->[$i]->[0]->[$j])." ";
 		$j++;
 	    }
 
 	    $functionsString .= "- ";
 	    $j = 0;
-	    while(defined $self->{'functions'}->[$i]->[1]->[$j])
+	    while(defined $self->{functions}->[$i]->[1]->[$j])
 	    {
-		$functionsString .= ($self->{'functions'}->[$i]->[1]->[$j])." ";
+		$functionsString .= ($self->{functions}->[$i]->[1]->[$j])." ";
 		$j++;
 	    }
 	}
@@ -449,11 +458,11 @@ sub getRelatedness
 	# apply the functions to the arguments, passing the output of
 	# the inner functions to the inputs of the outer ones
 	my $j = 0;
-	no strict;
+	#no strict;
 
-	while(defined $self->{'functions'}->[$i]->[0]->[$j])
+	while(defined $self->{functions}->[$i]->[0]->[$j])
 	{
-	    my $fn = $self->{'functions'}->[$i]->[0]->[$j];
+	    my $fn = $self->{functions}->[$i]->[0]->[$j];
 	    @arguments = $gwi->$fn(@arguments);
 	    $j++;
 	}
@@ -465,9 +474,9 @@ sub getRelatedness
 	@arguments = @secondSet;
 	
 	$j = 0;
-	while(defined $self->{'functions'}->[$i]->[1]->[$j])
+	while(defined $self->{functions}->[$i]->[1]->[$j])
 	{
-	    my $fn = $self->{'functions'}->[$i]->[1]->[$j];
+	    my $fn = $self->{functions}->[$i]->[1]->[$j];
 	    @arguments = $gwi->$fn(@arguments);
 	    $j++;
 	}
@@ -477,47 +486,13 @@ sub getRelatedness
 	# so those are the two strings for this relation pair. get the
 	# string overlaps
 	undef %overlaps;
-	%overlaps = &string_compare_getStringOverlaps($firstString, $secondString);
+	#%overlaps = &string_compare_getStringOverlaps($firstString, $secondString);
 	
-	# now get the number of words (discouting the markers) in
-	# these two strings, if normalizing requested
-	my $numWords1 = 0;
-	my $numWords2 = 0;
-	
-	if($self->{normalize})
-	{
-	    $numWords1 = 0;
-	    my $tempString = $firstString;
-	    $tempString =~ s/^\s+//;
-	    $tempString =~ s/\s+$//;
-	    $tempString =~ s/\s+/ /g;
-	
-	    foreach (split /\s+/, $tempString)
-	    {
-		next if(/EEE\d{5}EEE/);
-		next if(/GGG\d{5}GGG/);
-		next if(/SSS\d{5}SSS/);
-		$numWords1++;
-	    }
+	my ($overlaps, $wc1, $wc2) = $self->{finder}->getOverlaps ($firstString, $secondString);
 
-	    $numWords2 = 0;
-	    $tempString = $secondString;
-	    $tempString =~ s/^\s+//;
-	    $tempString =~ s/\s+$//;
-	    $tempString =~ s/\s+/ /g;
-
-	    foreach (split /\s+/, $tempString)
-	    {
-		next if(/EEE\d{5}EEE/);
-		next if(/GGG\d{5}GGG/);
-		next if(/SSS\d{5}SSS/);
-		$numWords2++;
-	    }
-	}
-	
 	my $overlapsTraceString = "";
 	my $key;
-	foreach $key (keys %overlaps)
+	foreach $key (keys %$overlaps)
 	{
 	    # find the length of the key, square it, multiply with its
 	    # value and finally with the weight associated with this
@@ -525,55 +500,57 @@ sub getRelatedness
 	    # overlap.
 
 	    my @tempArray = split(/\s+/, $key);
-	    my $value = ($#tempArray + 1) * ($#tempArray + 1) * $overlaps{$key};
+	    my $value = ($#tempArray + 1) * ($#tempArray + 1) * $overlaps->{$key};
 	    $functionsScore += $value;
 
 	    # put this overlap into the trace string, if necessary
-	    if($self->{'trace'} == 1)
+	    if($self->{trace} == 1)
 	    {
-		$overlapsTraceString .= "$overlaps{$key} x \"$key\"  ";
+		$overlapsTraceString .= "$overlaps->{$key} x \"$key\"  ";
 	    }
 	}
 	
 	# normalize the function score computed above if required
-	if($self->{normalize} && ($numWords1 * $numWords2))
+#	if($self->{normalize} && ($numWords1 * $numWords2))
+	if ($self->{normalize} && ($wc1 * $wc2))
 	{
-	    $functionsScore /= ($numWords1 * $numWords2);
+	    #$functionsScore /= ($numWords1 * $numWords2);
+	    $functionsScore /= $wc1 * $wc2;
 	}
 	
 	# weight functionsScore with weight of this function
-	$functionsScore *= $self->{'weights'}->[$i];
+	$functionsScore *= $self->{weights}->[$i];
 	
 	# add to main score for this sense
 	$score += $functionsScore;
 	
 	# if we have an overlap, send functionsString, functionsScore
 	# and overlapsTraceString to trace string, if trace string requested
-	if($self->{'trace'} == 1 && $overlapsTraceString ne "")
+	if($self->{trace} == 1 && $overlapsTraceString ne "")
 	{
-	    $self->{'traceString'} .= "$functionsString: $functionsScore\n";
+	    $self->{traceString} .= "$functionsString: $functionsScore\n";
 	    $funcStringPrinted = 1;
 
-	    $self->{'traceString'} .= "Overlaps: $overlapsTraceString\n";
+	    $self->{traceString} .= "Overlaps: $overlapsTraceString\n";
 	}
 	
 	# check if the two strings need to be reported in the trace.
-	if($self->{'trace'} == 2)
+	if ($self->{trace} == 2)
 	{
 	    if(!$funcStringPrinted)
 	    {
-		$self->{'traceString'} .= "$functionsString";
+		$self->{traceString} .= "$functionsString\n";
 		$funcStringPrinted = 1;
 	    }
 
-	    $self->{'traceString'} .= "String 1: \"$firstString\"\n";
-	    $self->{'traceString'} .= "String 2: \"$secondString\"\n";
+	    $self->{traceString} .= "String 1: \"$firstString\"\n";
+	    $self->{traceString} .= "String 2: \"$secondString\"\n";
 	}
 	
 	$i++;
     }
 
-    # that does all the scoring. Put in cache if doing cacheing. Then
+    # that does all the scoring. Put in cache if doing caching. Then
     # return the score.
     $self->{doCache} and $self->storeToCache ($wps1, $wps2, $score);
     return $score;

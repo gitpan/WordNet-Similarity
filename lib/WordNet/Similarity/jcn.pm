@@ -1,5 +1,5 @@
 # WordNet::Similarity::jcn.pm version 0.07
-# (Updated 2/25/2004 -- Jason)
+# (Last updated $Id: jcn.pm,v 1.18 2004/10/23 07:23:04 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Jiang and Conrath (1997).

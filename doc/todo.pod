@@ -13,7 +13,7 @@ Completed Items, make sure to date and initial. When we have
 a version release, all of the recently completed items 
 should be moved into changelog.pod. 
 
-=head2 FOR VERSION 0.12:
+=head2 FOR VERSION 0.13:
 
 =over
 
@@ -54,7 +54,7 @@ update documentation to clarify that stoplists must also be all lowercase
 
 =back
 
-=head2 FOR VERSION 0.13:
+=head2 FOR VERSION 0.14:
 
 =over 4
 
@@ -69,7 +69,7 @@ update lesk/vector to support new relations in WordNet 2.0
 
 =back
 
-=head2 FOR VERSION 0.14:
+=head2 FOR VERSION 0.15:
 
 =over 4
 
@@ -117,20 +117,8 @@ root node (either hypo or "real").
 
 =item * 
 
-store WN version in vector DB file and warn when version is different
-
-=item * 
-
 check if warnings are issued when there are version clashes between info  
 content files and wordnet version. 
-
-=item *
-
-Is it possible to have a default value for vectordb? This is the Berkeley
-DB file used by vector.pm. It is created from the WordNet glosses, and
-is required for vector to run. If vectordb is not specified, or if the
-option is specified without a value, vector will fail. (Sid is pursuing 
-this.)
 
 =back
 

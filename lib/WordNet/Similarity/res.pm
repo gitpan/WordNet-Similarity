@@ -1,5 +1,5 @@
 # WordNet::Similarity::res.pm version 0.07
-# (Updated 1/30/04 -- Jason)
+# (Last updated $Id: res.pm,v 1.16 2004/10/23 07:23:05 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Resnik (1995).

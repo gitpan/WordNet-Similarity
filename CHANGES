@@ -7,18 +7,48 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
+  Version 0.12 (Released 10/29/04)
+    *   10/29/04
+
+        (1) Added vector to the CGI interface. (JM)
+
+        (2) Incorporated a configuration file into similarity_server.pl.
+            (JM)
+
+    *   10/28/04
+
+        (1) Removed readDB.pl. (JM)
+
+    *   10/27/04
+
+        (1) Modified string overlap finding in lesk to use the
+            Text::OverlapFinder module. Removed string_compare.pm. This
+            fixed an old bug where the relatedness of word1 and word2 wasn't
+            always equal to the relatedness of word2 and word1. (JM)
+
+        (2) Updated Makefile.PL, INSTALL, and doc/install.pod to reflect new
+            dependency on Text::OverlapFinder. (JM)
+
+        (3) Removed lib/dbInterface.pm and lib/string_compare.pm from
+            MANIFEST. (JM)
+
+    *   10/19/04
+
+        (1) Word vectors no longer stored in a BerkeleyDB database, a plain
+            text file is now used. Modified wordVectors.pl,
+            WordNet::Similarity::vector to use the plain text word vectors
+            file. New module vectorFile.pm now used to access this plain
+            text database. Module dbInterace.pm is obsolete. (Sid)
+
+        (2) Modified Makefile.PL to no longer check for BerkeleyDB
+            dependency. All modules are installed. (Sid)
+
   Version 0.11 (Released 09/23/04)
     *   09/23/04
 
         (1) Fixed bug in wup that allowed some relatedness scores to be
             greater than 1. This bug is discussed in the archives of the
             mailing list. (JM)
-
-	    http://groups.yahoo.com/group/wn-similarity/message/144
-	    http://groups.yahoo.com/group/wn-similarity/message/143
-
-	(2) Added brief discussion of use of PERL5LIB environment variable
-	    as an alternative to -I option in INSTALL. (TDP)
 
   Version 0.10 (Released 09/03/04)
     *   09/01/04

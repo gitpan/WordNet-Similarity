@@ -1,5 +1,5 @@
 # WordNet::Similarity::PathFinder version 0.11
-# (Updated 9/23/2004 -- Jason)
+# (Last updated $Id: PathFinder.pm,v 1.30 2004/10/23 07:23:04 sidz1979 Exp $)
 #
 # Module containing path-finding code for the various measures of semantic
 # relatedness.

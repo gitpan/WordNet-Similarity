@@ -1,5 +1,5 @@
 # WordNet::Similarity::random.pm version 0.10
-# (Updated 09/01/2004 -- Jason)
+# (Last updated $Id: random.pm,v 1.11 2004/10/23 07:23:05 sidz1979 Exp $)
 #
 # Random semantic distance generator module.
 

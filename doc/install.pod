@@ -17,12 +17,15 @@ install.pod - how to install WordNet::Similarity
 
 =head2 Prerequisites
 
-You need to have WordNet (version 1.7.1 or later, 2.0 preferred) and
-WordNet::QueryData (version 1.30 or later) installed.
+You need to have WordNet (version 1.7.1 or later, 2.0 preferred),
+WordNet::QueryData (version 1.30 or later), and Text::OverlapFinder
+installed.
 
 WordNet is available at http://www.cogsci.princeton.edu/~wn/ and 
 WordNet::QueryData is available from
-http://search.cpan.org/dist/WordNet-QueryData/.
+http://search.cpan.org/dist/WordNet-QueryData/.  Text::OverlapFinder
+is distributed with the Text-Similarity package and is available
+from http://search.cpan.org/dist/Text-Similarity/.
 
 You should set the WNHOME environment variable to the location where you
 have WordNet installed; see the WordNet::QueryData documentation for more
@@ -152,19 +155,9 @@ QueryData.
 
 =item 4.
 
-Berkeley DB: To use the WordNet::Similarity::vector measure, you need to
-have Berkeley DB installed on your system. This can be freely downloaded
-from http://www.sleepycat.com.  The vector measure is still experimental.
-If you don't want to use the vector measure, you needed not worry about
-installing Berkeley DB or the BerkeleyDB.pm module (see below).
-
-=item 5.
-
-BerkeleyDB.pm: You also need the Perl interface (BerkeleyDB.pm) be
-installed on the system. This package was tested with version 0.20 of the
-BerkeleyDB Perl module and version 4.1 of the Berkeley DB database. The
-Perl module for BerkeleyDB can be obtained at CPAN:
-http://search.cpan.org/dist/BerkeleyDB.
+Text::OverlapFinder: This module is used by the WordNet::Similarity::lesk
+measure for finding runs of word overlaps in glosses.  The Text::OverlapFinder
+module can be downloaded from http://search.cpan.org/dist/Text-Similarity/.
 
 =back
 
@@ -182,14 +175,16 @@ The following procedure will work on most Linux systems.
 
  cd /tmp
  wget http://www.cogsci.princeton.edu/2.0/WordNet-2.0.tar.gz
- wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.31.tar.gz
- wget http://search.cpan.org/CPAN/authors/id/S/SI/SID/WordNet-Similarity-0.07.tar.gz
+ wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.35.tar.gz
+ wget http://search.cpan.org/CPAN/authors/id/J/JA/JASONM/Text-Similarity-0.02.tar.gz
+ wget http://search.cpan.org/CPAN/authors/id/T/TP/TPEDERSE/WordNet-Similarity-0.12.tar.gz
 
 Then unpack each one:
 
  tar -zxvf WordNet-2.0.tar.gz
- tar -zxvf WordNet-QueryData-1.31.tar.gz
- tar -zxvf WordNet-Similarity-0.07.tar.gz
+ tar -zxvf WordNet-QueryData-1.35.tar.gz
+ tar -zxvf Text-Similarity-0.02.tar.gz
+ tar -zxvf WordNet-Similarity-0.12.tar.gz
 
 Install WordNet:
 
@@ -207,8 +202,8 @@ Then find the section that looks like this:
  #PLATFORM = irix
  #PLATFORM = linux
 
-Comment out the first line and uncomment the last line so that it looks
-like this:
+If you are using Linux, comment out the first line and uncomment the last
+line so that it looks like this:
 
  #PLATFORM = solaris
  #PLATFORM = irix
@@ -228,7 +223,7 @@ You will need root privileges to install.
 
 Installing QueryData and Similarity is much easier:
 
- cd /tmp/WordNet-QueryData-1.31
+ cd /tmp/WordNet-QueryData-1.35
  perl Makefile.PL
  make
  make test
@@ -236,7 +231,15 @@ Installing QueryData and Similarity is much easier:
  make install
  exit
 
- cd /tmp/WordNet-Similarity-0.07
+ cd /tmp/Text-Similarity-0.02
+ perl Makefile.PL
+ make
+ make test
+ su
+ make install
+ exit
+
+ cd /tmp/WordNet-Similarity-0.11
  perl Makefile.PL
  make
  make test

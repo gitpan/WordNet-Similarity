@@ -1,16 +1,19 @@
 #!/usr/local/bin/perl -w
 #
-# semCorRawFreq.pl version 0.09
+# semCorRawFreq.pl version 0.12
+# (Last updated $Id: semCorRawFreq.pl,v 1.6 2004/10/29 19:25:42 sidz1979 Exp $)
 #
 # This program reads SemCor files and computes the frequency
-# counts for each synset in WordNet, ignoring the sense tags in the corpus
-# (treating it like a raw text corpus). These frequency counts are used by
-# various measures of semantic relatedness to calculate the information
-# content values of concepts. The output is generated in a format as
-# required by the WordNet::Similarity modules for computing semantic
+# counts for each synset in WordNet, ignoring the sense tags
+# in the corpus (treating it like a raw text corpus). These
+# frequency counts are used by various measures of semantic 
+# relatedness to calculate the information content values of
+# concepts. The output is generated in a format as required
+# by the WordNet::Similarity modules for computing semantic 
 # relatedness.
 #
-# Copyright (C) 2002-2004
+# Copyright (c) 2004
+#
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
 #
@@ -527,6 +530,66 @@ EOU
 # Subroutine to print the version information
 sub printVersion
 {
-    print "semCorRawFreq.pl version 0.09\n";
-    print "Copyright (c) 2002-2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
+    print "semCorRawFreq.pl version 0.12\n";
+    print "Copyright (c) 2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
+
+__END__
+
+=head1 NAME
+
+semCorRawFreq.pl
+
+=head1 SYNOPSIS
+
+semCorRawFreq.pl --compfile FILE --outfile FILE [--stopfile FILE] [--resnik]
+  [--wnpath PATH] [--smooth SCHEME] {--stdin | --infile FILE [--infile FILE ...]}
+ | --help | --version
+
+=head1 OPTIONS
+
+B<--compfile>=I<filename>
+
+    Specify a file containing the list of compound words occurring 
+    in WordNet
+
+B<--outfile>=I<filename>
+
+    The name of a file to which output should be written
+
+B<--stopfile>=I<filename>
+
+    A file containing a list of "stop" words that will not be
+    considered during the frequency computation
+
+B<--resnik>
+
+    Use Resnik (1995) frequency counting
+
+B<--wnpath>=I<path>
+
+    Location of the WordNet data files (e.g.,
+    /usr/local/WordNet-2.0/dict)
+
+B<--smooth>=I<SCHEME>
+
+    Smoothing should used on the probabilities computed. SCHEME can
+    only be ADD1 at this time
+
+B<--stdin>
+
+    Use this flag to provide input via the standard input
+
+B<--infile>=I<filename>
+
+    Get the input from the specified file.
+
+B<--help>
+
+    Show a help message
+
+B<--version>
+
+    Display version information
+
+=cut
