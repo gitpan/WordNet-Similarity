@@ -1,14 +1,13 @@
 #!/usr/local/bin/perl -w
 #
-# semCor17Freq.pl version 0.04
+# rawtextFreq.pl version 0.04
 # (Updated 05/01/2003 -- Sid)
 #
-# This program reads the SemCor 1.7 files and computes the frequency 
-# counts for each synset in WordNet, ignoring the sense tags in the corpus
-# (treating it like a raw text corpus). These frequency counts are used by 
+# This program reads raw text and computes the frequency counts
+# for each synset in WordNet. These frequency counts are used by 
 # various measures of semantic relatedness to calculate the information 
 # content values of concepts. The output is generated in a format as 
-# required by the WordNet::Similarity modules (ver 0.01) for computing
+# required by the WordNet::Similarity modules (ver 0.04) for computing
 # semantic relatedness.
 #
 # Copyright (c) 2002-2003
@@ -53,7 +52,7 @@ use WordNet::QueryData;
 
 # First check if no commandline options have been provided... in which case
 # print out the usage notes!
-if($#ARGV == -1)
+if ( $#ARGV == -1 )
 {
     &minimalUsageNotes();
     exit;
@@ -95,20 +94,6 @@ else
     exit;
 }
 
-# Get the path to WordNet...
-if(defined $opt_wnpath)
-{
-    $wnPCPath = $opt_wnpath;
-    $wnUnixPath = $opt_wnpath;
-}
-else
-{
-    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\1.7.1";
-    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-1.7.1";
-    $wnPCPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnPCPath."\\dict";
-    $wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";
-}
-
 # Load the compounds
 print STDERR "Loading compounds... ";
 open (WORDS, "$opt_compfile") || die ("Couldnt open $opt_compfile.\n");
@@ -119,9 +104,6 @@ while (<WORDS>)
 }
 close WORDS;
 print STDERR "done.\n";
-
-# Hack to prevent warning...
-$opt_resnik = 1 if(defined $opt_resnik);
 
 # Load the stop words if specified
 if(defined $opt_stopfile)
@@ -137,9 +119,23 @@ if(defined $opt_stopfile)
     print STDERR "done.\n";
 }
 
+# Get the path to WordNet...
+if(defined $opt_wnpath)
+{
+    $wnPCPath = $opt_wnpath;
+    $wnUnixPath = $opt_wnpath;
+}
+else
+{
+    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\1.7.1";
+    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-1.7.1";
+    $wnPCPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnPCPath."\\dict";
+    $wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";
+}
+
 # Load up WordNet
 print STDERR "Loading WordNet... ";
-$wn=(defined $opt_wnpath)? (WordNet::QueryData->new($opt_wnpath)):(WordNet::QueryData->new());
+$wn = (defined $opt_wnpath) ? (WordNet::QueryData->new($opt_wnpath)) : (WordNet::QueryData->new());
 die "Unable to create WordNet object.\n" if(!$wn);
 print STDERR "done.\n";
 
@@ -154,19 +150,20 @@ $sentence = "";
 while($line=<>)
 {
     $line=~s/[\r\f\n]//g;
-    while($line =~ /<wf([^>]+)>/g)
+    @parts = split(/[.?!]/, $line);
+    foreach (1..$#parts)
     {
-	$tagAttribs = $1;
-	if($tagAttribs =~ /cmd=done/)
-	{
-	    if($tagAttribs =~ /lemma=([^ ]+) /)
-	    {
-		&updateFrequency($1) if(!defined $stopWords{$1});
-	    }
-	}
+	$sentence .= shift(@parts)." ";
+	&process($sentence);
+	$sentence = "";
     }
+    $sentence .= shift(@parts)." " if(@parts);
 }
+&process($sentence);
 print STDERR "done.\n";
+
+# Hack to prevent warning...
+$opt_resnik = 1 if(defined $opt_resnik);
 
 # Smoothing!
 if(defined $opt_smooth)
@@ -236,6 +233,83 @@ close(OUT);
 print "done.\n";
 
 # ----------------- Subroutines start Here ----------------------
+
+# Processing of each sentence
+# (1) Convert to lowercase
+# (2) Remove all unwanted characters
+# (3) Combine all consequetive occurrence of numbers into one
+# (4) Remove leading and trailing spaces
+# (5) Form all possible compounds in the words
+# (6) Get the frequency counts
+sub process
+{
+    my $block;
+    
+    $block = lc(shift);
+    $block =~ s/\'//g;
+    $block =~ s/[^a-z0-9]+/ /g;
+    while($block =~ s/([0-9]+)\s+([0-9]+)/$1$2/g){}
+    $block =~ s/^\s*//;
+    $block =~ s/\s*$//;
+    $block = &compoundify($block);
+    while($block =~ /([\w_]+)/g)
+    {
+	&updateFrequency($1) if(!defined $stopWords{$1});
+    }
+}
+
+# Form all possible compounds within a sentence
+sub compoundify
+{
+    my $block;
+    my $string;
+    my $done;
+    my $temp;
+    my $firstPointer;
+    my $secondPointer;
+    my @wordsArray;
+    
+    # get the block of text
+    $block = shift;
+    
+    # get all the words into an array
+    @wordsArray = ();
+    while ($block =~ /(\w+)/g)
+    {
+	push @wordsArray, $1;
+    }
+    
+    # now compoundify, GREEDILY!!
+    $firstPointer = 0;
+    $string = "";
+    
+    while($firstPointer <= $#wordsArray)
+    {
+	$secondPointer = $#wordsArray;
+	$done = 0;
+	while($secondPointer > $firstPointer && !$done)
+	{
+	    $temp = join ("_", @wordsArray[$firstPointer..$secondPointer]);
+	    if(exists $compounds{$temp})
+	    {
+		$string .= "$temp "; 
+		$done = 1;
+	    }
+	    else 
+	    { 
+		$secondPointer--; 
+	    }
+	}
+	if(!$done) 
+	{ 
+	    $string .= "$wordsArray[$firstPointer] "; 
+	}
+	$firstPointer = $secondPointer + 1;
+    }
+    $string =~ s/ $//;
+    
+    return $string;    
+}
 
 # Subroutine to update frequency tokens on "seeing" a 
 # word in text
@@ -388,7 +462,7 @@ sub printHelp
 {
     &printUsage();
     print "\nThis program computes the information content of concepts, by\n";
-    print "counting the frequency of their occurrence in the Brown Corpus.\n";
+    print "counting the frequency of their occurrence in raw text.\n";
     print "Options: \n";
     print "--compfile       Used to specify the file COMPFILE containing the \n";
     print "                 list of compounds in WordNet.\n";
@@ -415,19 +489,19 @@ sub printHelp
 sub minimalUsageNotes
 {
     &printUsage();
-    print "Type semCor17Freq.pl --help for detailed help.\n";
+    print "Type rawtextFreq.pl --help for detailed help.\n";
 }
 
 # Subroutine that prints the usage
 sub printUsage
 {
-    print "semCor17Freq.pl [{--compfile COMPFILE --outfile OUTFILE [--stopfile STOPFILE]";
+    print "rawtextFreq.pl [{--compfile COMPFILE --outfile OUTFILE [--stopfile STOPFILE]";
     print " [--wnpath WNPATH] [--resnik] [--smooth SCHEME] [FILE...] | --help | --version }]\n"
 }
 
 # Subroutine to print the version information
 sub printVersion
 {
-    print "semCor17Freq.pl version 0.04\n";
+    print "rawtextFreq.pl version 0.04\n";
     print "Copyright (c) 2002-2003 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }

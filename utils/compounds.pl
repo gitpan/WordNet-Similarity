@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
 # compounds.pl ver 0.3
-# (Updated 02/10/2003 -- Sid)
+# (Updated 04/26/2003 -- Sid)
 #
 # Program to generate a list of all compound words 
 # present in WordNet.
@@ -62,8 +62,8 @@ if(defined $opt_wnpath)
 }
 else
 {
-    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\1.7";
-    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/wordnet1.7";
+    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\1.7.1";
+    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-1.7.1";
     $wnPCPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnPCPath."\\dict";
     $wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";    
 }
@@ -137,7 +137,7 @@ sub printHelp
     print "in WordNet\n";
     print "Options: \n";
     print "--wnpath         WNPATH specifies the path of the WordNet data files.\n";
-    print "                 Ordinarily, this path is determined from the $WNHOME\n";
+    print "                 Ordinarily, this path is determined from the \$WNHOME\n";
     print "                 environment variable. But this option overides this\n";
     print "                 behavior.\n";
     print "--help           Displays this help screen.\n";

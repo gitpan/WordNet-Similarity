@@ -22,6 +22,8 @@ samples/relation.dat
 samples/compounds.txt
 samples/stop.txt
 samples/sample.pl
+samples/testwords.txt
+samples/res.conf
 utils/brownFreq.pl
 utils/BNCFreq.pl
 utils/semTagFreq.pl
@@ -29,6 +31,7 @@ utils/compounds.pl
 utils/semCor17Freq.pl
 utils/treebankFreq.pl
 utils/similarity.pl
+utils/rawtextFreq.pl
 t/lesk.t
 t/jcn.t
 t/edge.t

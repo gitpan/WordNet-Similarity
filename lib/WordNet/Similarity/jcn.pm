@@ -1,5 +1,5 @@
-# WordNet::Similarity::jcn.pm version 0.03
-# (Updated 03/10/2003 -- Sid)
+# WordNet::Similarity::jcn.pm version 0.04
+# (Updated 05/02/2003 -- Sid)
 #
 # Semantic Similarity Measure package implementing the semantic 
 # distance measure described by Jiang and Conrath (1997).
@@ -44,7 +44,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 
 # 'new' method for the jcn class... creates and returns a WordNet::Similarity::jcn object.
@@ -345,6 +345,9 @@ sub getRelatedness
     my $wps1 = shift;
     my $wps2 = shift;
     my $wn = $self->{'wn'};
+    my $ic1;
+    my $ic2;
+    my $ic3;
     my $pos;
     my $pos1;
     my $pos2;
@@ -355,6 +358,7 @@ sub getRelatedness
     my $dist;
     my $minDist;
     my $score;
+    my $onceFlag;
     my @retArray;
 
     # Check the existence of the WordNet::QueryData object.
@@ -404,7 +408,7 @@ sub getRelatedness
     # Relatedness is 0 across parts of speech.
     if($pos1 ne $pos2)
     {
-	$self->{'traceString'} = "Relatedness 0 across parts of speech ($wps1, $wps2)." if($self->{'trace'});
+	$self->{'traceString'} = "Relatedness 0 across parts of speech ($wps1, $wps2).\n" if($self->{'trace'});
 	return 0;
     }
     $pos = $pos1;
@@ -412,7 +416,7 @@ sub getRelatedness
     # Relatedness is defined only for nouns and verbs.
     if($pos !~ /[nv]/)
     {
-	$self->{'traceString'} = "Only verbs and nouns have hypernym trees ($wps1, $wps2)." if($self->{'trace'});
+	$self->{'traceString'} = "Only verbs and nouns have hypernym trees ($wps1, $wps2).\n" if($self->{'trace'});
 	return 0;
     }
 
@@ -479,33 +483,67 @@ sub getRelatedness
     }
     # [/trace]
 
+    # Check for the rare possibility of the root node having 0
+    # frequency count... 
+    # If normal (i.e. freqCount(root) > 0)... Set the minimum distance to the
+    # greatest distance possible + 1... (my replacement for infinity)...
+    # If zero root frequency count... return 0 relatedness, with a warning...
     if($self->{'offsetFreq'}->{$pos}->{0})
     {
-	$minDist = (-log(1/($self->{'offsetFreq'}->{$pos}->{0}))) + 1;
+	$minDist = (2*(-log(0.001/($self->{'offsetFreq'}->{$pos}->{0})))) + 1;
     }
     else
     {
-	$minDist = 200000;
+	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::jcn->getRelatedness()) - ";
+	$self->{'errorString'} .= "Root node has a zero frequency count.";
+	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+	return 0;
     }
-    foreach $root (@retArray)
+
+    # Foreach lowest common subsumer...
+    # Find the minimum jcn distance between the two subsuming concepts...
+    # Making sure that neither of the 2 concepts have 0 infocontent
+    $ic1 = $self->IC($offset1, $pos); 
+    $ic2 = $self->IC($offset2, $pos);
+
+    # If either of the two concepts have a zero information content... 
+    # return 0, for lack of data...
+    if($ic1 && $ic2)
     {
-	my $ic1;
-	my $ic2;
-	my $ic3;
+	foreach $root (@retArray)
+	{
+	    $ic3 = $self->IC($root, $pos);
 
-	$ic1 = $self->IC($offset1, $pos); 
-	$ic2 = $self->IC($offset2, $pos);
-	$ic3 = $self->IC($root, $pos);
-
-	$dist = $ic1 + $ic2 - (2 * $ic3);
-	$minDist = $dist if($dist < $minDist && $ic1 && $ic2);
+	    $dist = $ic1 + $ic2 - (2 * $ic3);
+	    $minDist = $dist if($dist < $minDist);
+	}
+    }
+    else
+    {
+	return 0;
     }
     
+    # Now if minDist turns out to be 0...
+    # implies ic1 == ic2 == ic3 (most probably all three represent
+    # the same concept)... i.e. maximum relatedness... i.e. infinity...
+    # We'll return the maximum possible value ("Our infinity").
+    # Here's how we got our infinity...
+    # distance = ic1 + ic2 - (2 x ic3)
+    # Largest possible value for (1/distance) is infinity, when distance = 0.
+    # That won't work for us... Whats the next value on the list... 
+    # the smallest value of distance greater than 0... 
+    # Consider the formula again... distance = ic1 + ic2 - (2 x ic3)
+    # We want the value of distance when ic1 or ic2 have information content 
+    # slightly more than that of the root (ic3)... (let ic2 == ic3 == 0)
+    # Assume frequency counts of 0.01 less than the frequency count of the 
+    # root for computing ic1...
+    # sim = 1/ic1
+    # sim = 1/(-log((freq(root) - 0.01)/freq(root)))
     if($minDist == 0)
     {
-	if($self->{'offsetFreq'}->{$pos}->{0} && $self->{'offsetFreq'}->{$pos}->{0} > 1)
+	if($self->{'offsetFreq'}->{$pos}->{0} && $self->{'offsetFreq'}->{$pos}->{0} > 0.01)
 	{
-	    $score = 1/(-log(($self->{'offsetFreq'}->{$pos}->{0} - 1)/($self->{'offsetFreq'}->{$pos}->{0})));
+	    $score = 1/(-log(($self->{'offsetFreq'}->{$pos}->{0} - 0.01)/($self->{'offsetFreq'}->{$pos}->{0})));
 	    return $score;
 	}
 	else
@@ -514,7 +552,7 @@ sub getRelatedness
 	}
     }
 
-    $score = ($minDist < 200000) ? (1/$minDist) : 0;
+    $score = ($minDist != 0) ? (1/$minDist) : 0;
     $self->{'simCache'}->{"${wps1}::$wps2"} = $score if($self->{'doCache'});
     $self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'doCache'});
 

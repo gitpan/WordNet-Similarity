@@ -1,5 +1,5 @@
-# WordNet::Similarity::hso.pm version 0.03
-# (Updated 03/10/2003 -- Sid)
+# WordNet::Similarity::hso.pm version 0.04
+# (Updated 03/25/2003 -- Sid)
 #
 # Semantic Similarity Measure package implementing the semantic 
 # distance measure described by Hirst and St.Onge (1998).
@@ -44,7 +44,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 
 # 'new' method for the hso class... creates and returns a WordNet::Similarity::hso object.

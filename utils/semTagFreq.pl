@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# semTagFreq.pl version 0.01
-# (Updated 02/10/2003 -- Sid)
+# semTagFreq.pl version 0.04
+# (Updated 05/01/2003 -- Sid)
 #
 # A helper tool perl program for the distance.pl program. 
 # This program is used to generate the frequency count data 
@@ -50,6 +50,7 @@ my $wnUnixPath;
 my $totalCount;
 my $offset;
 my $fname;
+my $unknownSmooth;
 my @line;
 my %offsetMnem;
 my %mnemFreq;
@@ -59,7 +60,7 @@ my %posMap;
 my %topHash;
 
 # Get Command-Line options.
-&GetOptions("help", "version", "wnpath=s", "outfile=s");
+&GetOptions("help", "version", "wnpath=s", "outfile=s", "smooth=s");
 
 # Check if help has been requested ... If so ... display help.
 if(defined $opt_help)
@@ -141,96 +142,89 @@ close(CNT);
 print STDERR "done.\n";
 
 
-print STDERR "Mapping noun offsets to frequencies ... ";
-open(DATA, $wnUnixPath."/data.noun") || open(DATA, $wnPCPath."\\noun.dat") || die "Unable to open data file.\n";
-foreach(1 .. 29)
+# Mapping the frequency counts to offsets...
+print STDERR "Mapping offsets to frequencies ... ";
+$unknownSmooth = 0;
+foreach $tPos ("noun", "verb")
 {
-    $line=<DATA>;
-}
-while($line=<DATA>)
-{
-    $line =~ /^([0-9]+)\s+/;
-    $offset = $1;
-    $offset =~ s/^0*//;
-    if(exists $offsetMnem{$offset."n"})
+    my $xPos = $tPos;
+    $xPos =~ s/(^[nv]).*/$1/;
+    open(DATA, $wnUnixPath."/data.$tPos") || open(DATA, $wnPCPath."\\$tPos.dat") || die "Unable to open data file.\n";
+    foreach(1 .. 29)
     {
-	foreach $mnem (@{$offsetMnem{$offset."n"}})
+	$line=<DATA>;
+    }
+    while($line=<DATA>)
+    {
+	$line =~ /^([0-9]+)\s+/;
+	$offset = $1;
+	$offset =~ s/^0*//;
+	if(exists $offsetMnem{$offset."$xPos"})
 	{
-	    if($offsetFreq{"n"}{$offset})
+	    foreach $mnem (@{$offsetMnem{$offset."$xPos"}})
 	    {
-		$offsetFreq{"n"}{$offset} += ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
+		if($offsetFreq{"$xPos"}{$offset})
+		{
+		    $offsetFreq{"$xPos"}{$offset} += ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
+		}
+		else
+		{
+		    # [old]
+		    # Using initial value of 1 for add-1 smoothing. (added 06/22/2002)
+		    # $offsetFreq{$offset} = ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
+		    # [/old]
+		    # No more add-1 (09/13/2002)
+		    # Option for add-1 ! (05/01/2003)
+		    $offsetFreq{"$xPos"}{$offset} = ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
+		    if(defined $opt_smooth)
+		    {
+			if($opt_smooth eq 'ADD1')
+			{
+			    $offsetFreq{"$xPos"}{$offset}++;
+			}
+			else
+			{
+			    $unknownSmooth = 1;
+			}
+		    }
+		}
 	    }
-	    else
+	}
+	else
+	{
+	    # Code added for Add-1 smoothing (06/22/2002)
+	    # Code changed... no more add-1 (09/13/2002)
+	    # Code changed... option for add-1 (05/01/2003)
+	    $offsetFreq{"$xPos"}{$offset} = 0;
+	    if(defined $opt_smooth)
 	    {
-		# [old]
-		# Using initial value of 1 for add-1 smoothing. (added 06/22/2002)
-		# $offsetFreq{$offset} = ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
-		# [/old]
-		# No more add-1 (09/13/2002)
-		$offsetFreq{"n"}{$offset} = ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
+		if($opt_smooth eq 'ADD1')
+		{
+		    $offsetFreq{"$xPos"}{$offset}++;
+		}
+		else
+		{
+		    $unknownSmooth = 1;
+		}
 	    }
 	}
     }
-    else
-    {
-	# Code added for Add-1 smoothing (06/22/2002)
-	# Code changed... no more add-1 (09/13/2002)
-	$offsetFreq{"n"}{$offset} = 0;
-    }
+    close(DATA);
 }
-close(DATA);
 print STDERR "done.\n";
+print "Unknown smoothing scheme '$opt_smooth'.\nContinuing without smoothing.\n" if($unknownSmooth);
 
 
-print STDERR "Mapping verb offsets to frequencies ... ";
-open(DATA, $wnUnixPath."/data.verb") || open(DATA, $wnPCPath."\\verb.dat") || die "Unable to open data file.\n";
-foreach(1 .. 29)
-{
-    $line=<DATA>;
-}
-while($line=<DATA>)
-{
-    $line =~ /^([0-9]+)\s+/;
-    $offset = $1;
-    $offset =~ s/^0*//;
-    if(exists $offsetMnem{$offset."v"})
-    {
-	foreach $mnem (@{$offsetMnem{$offset."v"}})
-	{
-	    if($offsetFreq{"v"}{$offset})
-	    {
-		$offsetFreq{"v"}{$offset} += ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
-	    }
-	    else
-	    {
-		# [old]
-		# Using initial value of 1 for add-1 smoothing. (added 06/22/2002)
-		# $offsetFreq{$offset} = ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
-		# [/old]
-		# No more add-1 (09/13/2002)
-		$offsetFreq{"v"}{$offset} = ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
-	    }
-	}
-    }
-    else
-    {
-	# Code added for Add-1 smoothing (06/22/2002)
-	# Code changed... no more add-1 (09/13/2002)
-	$offsetFreq{"v"}{$offset} = 0;
-    }
-}
-close(DATA);
-print STDERR "done.\n";
-
-
+# Removing unwanted data structures...
 print STDERR "Cleaning junk from memory ... ";
 undef %offsetMnem;
 undef %mnemFreq;
 print STDERR "done.\n";
 
 
+# Get a WordNet::QueryData object...
 print STDERR "Loading WordNet ... ";
-$wn = WordNet::QueryData->new();
+$wn = ((defined $opt_wnpath) ? (WordNet::QueryData->new($opt_wnpath)) : (WordNet::QueryData->new()));
 if(!$wn)
 {
     print STDERR "\nUnable to create WordNet object.\n";
@@ -239,11 +233,14 @@ if(!$wn)
 print STDERR "done.\n";
 
 
+# Determine the topmost nodes of all hierarchies...
 print STDERR "Determining topmost nodes of all hierarchies ... ";
 &createTopHash();
 print STDERR "done.\n";
 
-print STDERR "Webcrawling through WordNet ... ";
+
+# Propagate the frequencies up...
+print STDERR "Propagating frequencies up through WordNet ... ";
 $offsetFreq{"n"}{0} = 0;
 $offsetFreq{"v"}{0} = 0;
 &updateFrequency(0, "n");
@@ -253,6 +250,7 @@ delete $newFreq{"v"}{0};
 print STDERR "done.\n";
 
 
+# Write out the information content file...
 print STDERR "Writing infocontent file ... ";
 open(DATA, ">$fname") || die "Unable to open data file for writing.\n";
 print DATA "wnver::".$wn->version()."\n";
@@ -270,10 +268,10 @@ foreach $offset (sort {$a <=> $b} keys %{$newFreq{"v"}})
 }
 close(DATA);
 print STDERR "done.\n";
-
-
 print STDERR "Wrote file '$fname'.\n";
 
+
+# ---------------------- Subroutines start here -------------------------
 
 # Recursive subroutine that calculates the cumulative frequencies
 # of all synsets in WordNet.
@@ -316,6 +314,7 @@ sub updateFrequency
     $newFreq{$pos}{$node} = $offsetFreq{$pos}{$node} + $sum;
     return $offsetFreq{$pos}{$node} + $sum;
 }
+
 
 # Creates and loads the topmost nodes hash.
 sub createTopHash
@@ -360,6 +359,7 @@ sub createTopHash
     }
 }
 
+
 # Subroutine that returns the hyponyms of a given synset.
 # INPUT PARAMS  : $offset  .. Offset of the given synset.
 # RETURN PARAMS : @offsets .. Offsets of the hyponyms of $offset. 
@@ -393,11 +393,13 @@ sub getHyponymOffsets
     return [@retVal];
 }
 
+
 # Subroutine to display Usage
 sub showUsage
 {
-    print "Usage: semTagFreq.pl [{ --outfile FILE [--wnpath PATH] | --help | --version }]\n";
+    print "Usage: semTagFreq.pl [{ --outfile FILE [--wnpath PATH] [--smooth SCHEME] | --help | --version }]\n";
 }
+
 
 # Subroutine to show detailed help.
 sub showHelp
@@ -415,14 +417,19 @@ sub showHelp
     print "              information content data to.\n";
     print "--wnpath      Option to specify the path to the WordNet data\n";
     print "              files as PATH.\n";
+    print "--smooth      Specifies the smoothing to be used on the\n"; 
+    print "              probabilities computed. SCHEME specifies the type\n";
+    print "              of smoothing to perform. It is a string, which can be\n";
+    print "              only be 'ADD1' as of now. Other smoothing schemes\n";
+    print "              will be added in future releases.\n";
     print "--help        Displays this help screen.\n";
     print "--version     Displays version information.\n";
 }
 
+
 # Subroutine to display version information.
 sub showVersion
 {
-    print "semTagFreq.pl  -  version 0.01\n";
+    print "semTagFreq.pl  -  version 0.04\n";
     print "Copyright (c) 2003, Siddharth Patwardhan & Ted Pedersen\n";
 }
-

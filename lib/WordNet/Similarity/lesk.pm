@@ -1,5 +1,5 @@
-# WordNet::Similarity::lesk.pm version 0.03
-# (Updated 03/10/2003 -- Sid)
+# WordNet::Similarity::lesk.pm version 0.04
+# (Updated 03/25/2003 -- Sid)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using an
@@ -54,7 +54,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 
 # 'new' method for the lesk class... creates and returns a WordNet::Similarity::lesk object.

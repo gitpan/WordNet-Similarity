@@ -1,5 +1,5 @@
-# WordNet::Similarity.pm version 0.03
-# (Updated 03/10/2003 -- Sid)
+# WordNet::Similarity.pm version 0.04
+# (Updated 04/10/2003 -- Sid)
 #
 # Module containing the version information and pod 
 # for the WordNet::Similarity package.
@@ -44,7 +44,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 1;
 

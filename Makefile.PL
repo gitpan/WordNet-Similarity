@@ -1,5 +1,5 @@
-# Makefile.PL  (for WordNet::Similarity ver 0.03)
-# (Last Updated 03/10/2003 -- Sid)
+# Makefile.PL  (for WordNet::Similarity ver 0.04)
+# (Last Updated 03/25/2003 -- Sid)
 #
 # Generates the Makefile for the WordNet::Similarity CPAN modules. Requires
 # WordNet::QueryData (1.26 or above) be installed and be accessible via the
@@ -262,7 +262,7 @@ WriteMakefile(
     'NAME'		=> 'WordNet::Similarity',
     'VERSION_FROM'	=> 'lib/WordNet/Similarity.pm', # finds $VERSION
     'PREREQ_PM'		=> {'WordNet::QueryData' => '1.26'}, # e.g., Module::Name => 1.1
-    'dist'              => {'COMPRESS' => 'gzip'},
+    'dist'              => {'COMPRESS' => 'gzip', 'SUFFIX' => 'gz'},
     'clean'             => {'FILES' => 'lib/WordNet/infocontent.dat'},
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       ('ABSTRACT_FROM'  => 'lib/WordNet/Similarity.pm', # retrieve abstract from module

@@ -1,5 +1,5 @@
-# WordNet::Similarity::lin.pm version 0.03
-# (Updated 03/10/2003 -- Sid)
+# WordNet::Similarity::lin.pm version 0.04
+# (Updated 04/26/2003 -- Sid)
 #
 # Semantic Similarity Measure package implementing the semantic 
 # relatedness  measure described by Lin (1998).
@@ -44,7 +44,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 
 # 'new' method for the lin class... creates and returns a WordNet::Similarity::lin object.
@@ -178,13 +178,12 @@ sub _initialize
 	    return;
 	}
     }
-
+    
     # Look for the default infocontent file if not specified by the user.
     # Search the @INC path in WordNet/Similarity.
     if(!(defined $infoContentFile))
     {
 	my $path;
-	my $wnver;
 	my @possiblePaths = ();
 
 	# Look for all possible default data files installed.
@@ -204,95 +203,22 @@ sub _initialize
 	# the installed version of WordNet.
 	foreach $path (@possiblePaths)
 	{
-	    if(open(INFOCONTENT, $path))
+	    if($self->_isValidInfoContentFile($path))
 	    {
-		$wnver = <INFOCONTENT>;
-		$wnver =~ s/[\r\f\n]//g;
-		$wnver =~ s/\s+//g;
-		if($wnver =~ /wnver::(.*)/)
-		{
-		    $wnver = $1;
-		    if(defined $wnver && $wnver eq $wn->version())
-		    {
-			$infoContentFile = $path;
-			close(INFOCONTENT);
-			last;
-		    }
-		}
-		close(INFOCONTENT);
+		$infoContentFile = $path;
+		last;
 	    }
 	}
     }
 
     # Load the information content data.
-    if($infoContentFile)
+    if(defined $infoContentFile)
     {
-	my $wnver;
-	my $offsetPOS;
-	my $frequency;
-	my $topmost;
-
-	if(open(INFOCONTENT, $infoContentFile))
-	{
-	    $wnver = <INFOCONTENT>;
-	    $wnver =~ s/[\r\f\n]//g;
-	    $wnver =~ s/\s+//g;
-	    if($wnver =~ /wnver::(.*)/)
-	    {
-		$wnver = $1;
-		if(defined $wnver && $wnver eq $wn->version())
-		{
-		    $self->{'offsetFreq'}->{"n"}->{0} = 0;
-		    $self->{'offsetFreq'}->{"v"}->{0} = 0;
-		    while(<INFOCONTENT>)
-		    {
-			s/[\r\f\n]//g;
-			s/^\s*//;
-			s/\s*$//;
-			($offsetPOS, $frequency, $topmost) = split /\s+/, $_, 3;
-			if($offsetPOS =~ /([0-9]+)([nvar])/)
-			{
-			    my $curOffset;
-			    my $curPOS;
-			    
-			    $curOffset = $1;
-			    $curPOS = $2;
-			    $self->{'offsetFreq'}->{$curPOS}->{$curOffset} = $frequency;
-			    if(defined $topmost && $topmost =~ /ROOT/)
-			    {
-				$self->{'offsetFreq'}->{$curPOS}->{0} += $self->{'offsetFreq'}->{$curPOS}->{$curOffset};
-			    }
-			}
-			else
-			{
-			    $self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_initialize()) - ";
-			    $self->{'errorString'} .= "Bad file format ($infoContentFile).";
-			    $self->{'error'} = 2;
-			    return;
-			}
-		    }
-		}
-		else
-		{
-		    $self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_initialize()) - ";
-		    $self->{'errorString'} .= "WordNet version does not match data file.";
-		    $self->{'error'} = 2;
-		    return;
-		}
-	    }
-	    else
-	    {
-		$self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_initialize()) - ";
-		$self->{'errorString'} .= "Bad file format ($infoContentFile).";
-		$self->{'error'} = 2;
-		return;		
-	    }
-	    close(INFOCONTENT);   
-	}
-	else
+	my $retVal = $self->_loadInfoContentFile($infoContentFile);
+	if($retVal ne "")
 	{
 	    $self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open $infoContentFile.";
+	    $self->{'errorString'} .= $retVal;
 	    $self->{'error'} = 2;
 	    return;
 	}
@@ -331,6 +257,104 @@ sub _initialize
 	$self->{'errorString'} .= "Verb root node freqeuncy 0. Something's amiss. (No 'ROOT' tags in infocontent file?)";
 	$self->{'error'} = 2;
     }
+}
+
+# Subroutine that checks the validity of an information content file.
+sub _isValidInfoContentFile
+{
+    my $self = shift;
+    my $path = shift;
+    my $wn = $self->{'wn'};
+    my $wnver;
+
+    if(open(INFOCONTENT, $path))
+    {
+	$wnver = <INFOCONTENT>;
+	$wnver =~ s/[\r\f\n]//g;
+	$wnver =~ s/\s+//g;
+	if($wnver =~ /wnver::(.*)/)
+	{
+	    $wnver = $1;
+	    if(defined $wnver && $wnver eq $wn->version())
+	    {
+		close(INFOCONTENT);
+		return 1;
+	    }
+	}
+	close(INFOCONTENT);
+    }
+
+    return 0;
+}
+
+# Subroutine to load frequency counts from an information content file.
+sub _loadInfoContentFile
+{
+    my $self = shift;
+    my $infoContentFile = shift;
+    my $wn = $self->{'wn'};
+    my $wnver;
+    my $offsetPOS;
+    my $frequency;
+    my $topmost;
+    my $localFreq = {};
+    
+    if(open(INFOCONTENT, $infoContentFile))
+    {
+	$wnver = <INFOCONTENT>;
+	$wnver =~ s/[\r\f\n]//g;
+	$wnver =~ s/\s+//g;
+	if($wnver =~ /wnver::(.*)/)
+	{
+	    $wnver = $1;
+	    if(defined $wnver && $wnver eq $wn->version())
+	    {
+		$localFreq->{"n"}->{0} = 0;
+		$localFreq->{"v"}->{0} = 0;
+		while(<INFOCONTENT>)
+		{
+		    s/[\r\f\n]//g;
+		    s/^\s*//;
+		    s/\s*$//;
+		    ($offsetPOS, $frequency, $topmost) = split /\s+/, $_, 3;
+		    if($offsetPOS =~ /([0-9]+)([nvar])/)
+		    {
+			my $curOffset;
+			my $curPOS;
+			
+			$curOffset = $1;
+			$curPOS = $2;
+			$localFreq->{$curPOS}->{$curOffset} = $frequency;
+			if(defined $topmost && $topmost =~ /ROOT/)
+			{
+			    $localFreq->{$curPOS}->{0} += $localFreq->{$curPOS}->{$curOffset};
+			}
+		    }
+		    else
+		    {
+			return "Bad file format ($infoContentFile).";
+		    }
+		}
+	    }
+	    else
+	    {
+		return "WordNet version does not match data file.";
+	    }
+	}
+	else
+	{
+	    return "Bad file format ($infoContentFile).";
+	}
+	close(INFOCONTENT);   
+    }
+    else
+    {
+	return "Unable to open '$infoContentFile'.";
+    }
+
+    $self->{'offsetFreq'} = $localFreq;
+
+    return "";
 }
 
 # The Lin relatedness measure subroutine ...
@@ -377,7 +401,7 @@ sub getRelatedness
 	return undef;
     }
 
-    # Security check -- are the input strings in the correct format (word#pos#sense).
+    # Security check -- are the input strings in the correct format (word#pos#sense)?
     if($wps1 =~ /^\S+\#([nvar])\#\d+$/)
     {
 	$pos1 = $1;
@@ -404,7 +428,7 @@ sub getRelatedness
     # Relatedness is 0 across parts of speech.
     if($pos1 ne $pos2)
     {
-	$self->{'traceString'} = "Relatedness 0 across parts of speech ($wps1, $wps2)." if($self->{'trace'});
+	$self->{'traceString'} = "Relatedness 0 across parts of speech ($wps1, $wps2).\n" if($self->{'trace'});
 	return 0;
     }
     $pos = $pos1;
@@ -412,7 +436,7 @@ sub getRelatedness
     # Relatedness is defined only for nouns and verbs.
     if($pos !~ /[nv]/)
     {
-	$self->{'traceString'} = "Only verbs and nouns have hypernym trees ($wps1, $wps2)." if($self->{'trace'});
+	$self->{'traceString'} = "Only verbs and nouns have hypernym trees ($wps1, $wps2).\n" if($self->{'trace'});
 	return 0;
     }
 
@@ -489,7 +513,7 @@ sub getRelatedness
 	$ic1 = $self->IC($offset1, $pos);
 	$ic2 = $self->IC($offset2, $pos);
 	$ic3 = $self->IC($root, $pos);
-	$dist = ($ic1 || $ic2) ? ((2 * $ic3)/($ic1 + $ic2)) : 0;
+	$dist = ($ic1 && $ic2) ? ((2 * $ic3)/($ic1 + $ic2)) : 0;
 
 	$minDist = $dist if($dist > $minDist);
     }

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# similarity.pl Version 0.01
-# (Updated 02/10/2003 -- Sid)
+# similarity.pl Version 0.04
+# (Updated 04/25/2003 -- Sid)
 #
 # Implementation of semantic relatedness measures between words as 
 # described in Budanitsky and Hirst (1995) "Semantic distance in 
@@ -55,6 +55,8 @@ my $sourceWord1;         # The source word entered by the user.
 my $sourceWord2;         # The source word entered by the user.
 my $word1;               # Contains the first word of the two.
 my $word2;               # Contains the second word of the two.
+my $pos1;                # Part of Speech of word1.
+my $pos2;                # Part of Speech of word2.
 my $type;                # The type of measure to use.
 my $wn;                  # Contains an instance of WordNet used by QueryData.
 my $traceFlag;           # Flag indicating "verbose" mode.
@@ -69,7 +71,7 @@ if($#ARGV < 0)
 }
 
 # Get Command-Line options.
-GetOptions("help", "version", "wnpath=s", "type=s", "file=s", "trace", "allsenses", "offsets");
+&GetOptions("help", "version", "wnpath=s", "type=s", "config=s", "file=s", "trace", "allsenses", "offsets");
 
 # Check if help has been requested ... If so ... display help.
 if(defined $opt_help)
@@ -151,7 +153,14 @@ print STDERR "Loading Module... ";
 $type =~ s/::/\//g;
 $type .= ".pm";
 require $type;
-$measure = $opt_type->new($wn);
+if(defined $opt_config)
+{
+    $measure = $opt_type->new($wn, $opt_config);
+}
+else
+{
+    $measure = $opt_type->new($wn);
+}
 if(!$measure)
 {
     print STDERR "Unable to create similarity object.\n";
@@ -163,7 +172,18 @@ if($error > 1)
     print STDERR $errorString."\n";
     exit;
 }
-$measure->{'trace'} = (($offsetFlag) ? 2 : 1) if($traceFlag);
+if($traceFlag)
+{
+    $measure->{'trace'} = (($offsetFlag) ? 2 : 1);
+}
+else
+{
+    if($measure->{'trace'})
+    {
+	$traceFlag = 1;
+	$measure->{'trace'} = (($offsetFlag) ? 2 : 1);
+    }
+}
 print STDERR "done.\n";
 print STDERR $errorString."\n" if($error == 1);
 
@@ -183,7 +203,7 @@ if(defined $opt_file)
 	    {
 		$sourceWord1 = $words[0];
 		$sourceWord2 = $words[1];
-		last if(&getValidForms() == 0);
+		next if(&getValidForms() == 0);
 		&coreProcess();
 	    }
 	}
@@ -214,17 +234,24 @@ sub coreProcess
 	$opt_allsenses = 1;
 	
 	# What are the words being measured.
-	print "$word1  $word2  (allsenses)\n";
+	print "$word1";
+	print "\#$pos1" if($pos1 =~ /^[nvar]$/);
+	print "  $word2";
+	print "\#$pos2" if($pos2 =~ /^[nvar]$/);
+	print "  (allsenses)\n";
 	
 	# Getting the hash containing the relatedness.
-	$retHash = &allDistances($word1, $word2);
+	$retHash = &allDistances($word1, $pos1, $word2, $pos2);
 	if(defined $retHash)
 	{
 	    foreach $key1 (keys %{$retHash})
 	    {
 		foreach $key2 (keys %{${$retHash}{$key1}})
 		{
-		    print "$key1  $key2  ${$retHash}{$key1}{$key2}\n";
+		    &_printSet($key1);
+		    print "  ";
+		    &_printSet($key2);
+		    print"  ${$retHash}{$key1}{$key2}\n";
 		}
 	    }
 	}
@@ -237,7 +264,7 @@ sub coreProcess
     else
     {
 	# Getting the similarity between the words.
-	$dist = &distance($word1, $word2);
+	$dist = &distance($word1, $pos1, $word2, $pos2);
 	
 	# Putting back the underscores.
 	$word1 =~ s/ +/_/g;
@@ -246,7 +273,11 @@ sub coreProcess
 	# Printing the output.
 	if(defined $dist)
 	{
-	    print "$word1  $word2  $dist\n";
+	    print "$word1";
+	    print "\#$pos1" if($pos1 =~ /^[nvar]$/);
+	    print "  $word2";
+	    print "\#$pos2" if($pos2 =~ /^[nvar]$/);
+	    print "  $dist\n";
 	}
 	else
 	{
@@ -262,8 +293,8 @@ sub coreProcess
 #                 0      .. if unsuccessful.
 sub getValidForms
 {
-    $word1 = &_getValidForm($sourceWord1, $forms);
-    $word2 = &_getValidForm($sourceWord2, $forms);
+    ($word1, $pos1) = &_getValidForm($sourceWord1);
+    ($word2, $pos2) = &_getValidForm($sourceWord2);
     if(!$word1)
     {
 	print STDERR "Word '$sourceWord1' not defined in WordNet.\n";
@@ -291,18 +322,26 @@ sub _getValidForm
     my $word;
     my $wordWithPOS;
     my $pos;
+    my $poses;
     my @forms;
 
     $word = shift;
+    $poses = "nvar";
+    if($word =~ /([^\#]*)\#(.*)/)
+    {
+	$word = $1;
+	$poses = $2;
+	$poses = "nvar" if($poses !~ /^[nvar]$/);
+    }
     foreach $pos ("n", "v", "a", "r")
     {
-	if($measure->{$pos})
+	if($measure->{$pos} && $poses =~ /$pos/)
 	{
 	    $wordWithPOS = $word."\#$pos";
 	    @forms = $wn->validForms($wordWithPOS);
 	    if(@forms)
 	    {
-		return $1 if($forms[0] =~ /([^\#]*)(\#.*)?/);
+		return ($1, $poses) if($forms[0] =~ /([^\#]*)(\#.*)?/);
 	    }
 	}
     }
@@ -319,6 +358,8 @@ sub distance
 {
     my $word1;
     my $word2;
+    my $pos1;
+    my $pos2;
     my $synset1;
     my $synset2;
     my $selSynset1;
@@ -331,13 +372,15 @@ sub distance
     my @synsets2;
 
     $word1 = shift;
+    $pos1 = shift;
     $word2 = shift;
+    $pos2 = shift;
 
     # Get the offsets of all the synsets of <Word1> ... 
-    @synsets1 = &_getSynsets($word1);
+    @synsets1 = &_getSynsets($word1, $pos1);
 
     # Get the offsets of all the synsets of <Word2> ... 
-    @synsets2 = &_getSynsets($word2);
+    @synsets2 = &_getSynsets($word2, $pos2);
     
     # For each offset1-offset2 pair calculate the similarity value for
     # each pair ... select the pair with the smallest similarity.
@@ -382,6 +425,8 @@ sub allDistances
 {
     my $word1;
     my $word2;
+    my $pos1;
+    my $pos2;
     my $synset1;
     my $synset2;
     my $err;
@@ -391,13 +436,15 @@ sub allDistances
     my %returnHash;
 
     $word1 = shift;
+    $pos1 = shift;
     $word2 = shift;
+    $pos2 = shift;
 
     # Get the offsets of all the synsets of <Word1> ... 
-    @synsets1 = &_getSynsets($word1);
+    @synsets1 = &_getSynsets($word1, $pos1);
 
     # Get the offsets of all the synsets of <Word2> ... 
-    @synsets2 = &_getSynsets($word2);
+    @synsets2 = &_getSynsets($word2, $pos2);
     
     # For each offset1-offset2 pair calculate the similarity value for
     # each pair ... select the pair with the smallest similarity.
@@ -431,24 +478,52 @@ sub allDistances
 sub _getSynsets
 {
     my $word;
+    my $wpos;
     my $pos;
     my @synsets;
 
     $word = shift;
+    $wpos = shift;
     @synsets = ();
     foreach $pos ("n", "v", "a", "r")
     {
-	push(@synsets, $wn->querySense($word."\#$pos")) if($measure->{$pos});
+	push(@synsets, $wn->querySense($word."\#$pos")) if($measure->{$pos} && $wpos =~ /$pos/);
     }
 
     return @synsets;
 }
 
+# Print routine to print synsets...
+sub _printSet
+{
+    my $synset = shift;
+    my $offset;
+    my $printString;
+    
+    if($synset =~ /(.*)\#([nvar])\#(.*)/)
+    {
+	if($offsetFlag)
+	{
+	    $offset = $wn->offset($synset);
+	    $printString = "$1\#$2\#$offset";
+	    $printString =~ s/\s*$//;
+	    $printString =~ s/^\s*//;
+	}
+	else
+	{
+	    $printString = "$synset";
+	    $printString =~ s/\s*$//;
+	    $printString =~ s/^\s*//;
+	}
+    }
+    print "$printString";
+}
+
 # Subroutine to show minimal help.
 sub showUsage
 {
-    print "Usage: similarity.pl [{--type TYPE [--allsenses] [--offsets] [--trace] [--file FILENAME]";
-    print " [--wnpath PATH] WORD1 WORD2 |--help |--version }]\n";
+    print "Usage: similarity.pl [{--type TYPE [--config CONFIGFILE] [--allsenses] [--offsets]";
+    print " [--trace] [--file FILENAME] [--wnpath PATH] WORD1 WORD2 |--help |--version }]\n";
 }
 
 # Subroutine to show detailed help.
@@ -457,7 +532,11 @@ sub showHelp
     &showUsage;
     print "\nDisplays the semantic similarity between the base forms of \n";
     print "WORD1 and WORD2 using various similarity measures described\n";
-    print "in Budanitsky Hirst (2001).\n\n";
+    print "in Budanitsky Hirst (2001). The parts of speech of WORD1 and/or\n";
+    print "WORD2 can be restricted by appending the part of speech (n, v, a, r)\n";
+    print "to the word. (For eg. car#n will consider only the noun forms of the\n";
+    print "word 'car' and walk#v will consider only the verb forms of the word\n";
+    print "'walk')\n\n";
     print "Options:\n";
     print "--type        Switch to select the type of similarity measure\n";
     print "              to be used while calculating the semantic\n";
@@ -470,6 +549,12 @@ sub showHelp
     print "               'WordNet::Similarity::lesk'   Adapted Lesk measure.\n";
     print "               'WordNet::Similarity::edge'   Simple edge-counts (inverted).\n";
     print "               'WordNet::Similarity::random' A random measure.\n";
+    print "--config      Module-specific configuration file CONFIGFILE. This file\n";
+    print "              contains the configuration that is used by the\n";
+    print "              WordNet::Similarity modules during initialization. The format\n";
+    print "              of this file is specific to each modules and is specified in the\n";
+    print "              module man pages and in the documentation of the\n";
+    print "              WordNet::Similarity package.\n";
     print "--allsenses   Displays the relatedness between every sense pair of the\n";
     print "              two input words WORD1 and WORD2.\n";
     print "--offsets     Displays all synsets (in the output, including traces) as\n";
@@ -478,15 +563,16 @@ sub showHelp
     print "              With this option any WordNet synset is displayed as \n";
     print "              word#partOfSpeech#synsetOffset in the output.\n";
     print "--trace       Switches on 'Trace' mode. Displays as output on STDOUT,\n";
-    print "              the various stages of the processing.\n";
+    print "              the various stages of the processing. This option overrides\n";
+    print "              the trace option in the configuration file (if specified).\n";
     print "--file        Allows the user to specify an input file FILENAME\n";
     print "              containing pairs of word whose semantic similarity needs\n";
     print "              to be measured. The file is assumed to be a plain text\n";
     print "              file with pairs of words separated by newlines, and the\n";
     print "              words of each pair separated by a space.\n";
     print "--wnpath      Option to specify the path of the WordNet data files\n";
-    print "              as PATH. (Defaults to /usr/local/wordnet1.7/dict on Unix\n";
-    print "              systems and C:\\wn17\\dict on Windows systems)\n";
+    print "              as PATH. (Defaults to /usr/local/WordNet-1.7.1/dict on Unix\n";
+    print "              systems and C:\\WordNet\\1.7.1\\dict on Windows systems)\n";
     print "--help        Displays this help screen.\n";
     print "--version     Displays version information.\n";
     print "\nNOTE: The environment variables WNHOME and WNSEARCHDIR, if present,\n";
@@ -497,7 +583,7 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "similarity.pl  version 0.01\n";
+    print "similarity.pl  version 0.04\n";
     print "Copyright (c) 2003, Siddharth Patwardhan & Ted Pedersen\n";
 }
 

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# BNCFreq.pl version 0.01
-# (Updated 02/10/2003 -- Sid)
+# BNCFreq.pl version 0.04
+# (Updated 04/27/2003 -- Sid)
 #
 # This program reads the BNCorpus and computes the frequency counts
 # for each synset in WordNet. These frequency counts are used by 
@@ -60,7 +60,7 @@ if ( $#ARGV == -1 )
 }
 
 # Now get the options!
-&GetOptions("version", "help", "compfile=s", "stopfile=s", "outfile=s");
+&GetOptions("version", "help", "compfile=s", "stopfile=s", "outfile=s", "wnpath=s", "resnik", "smooth=s");
 
 # If the version information has been requested
 if(defined $opt_version)
@@ -113,6 +113,20 @@ else
     }
 }
 
+# Get the path to WordNet...
+if(defined $opt_wnpath)
+{
+    $wnPCPath = $opt_wnpath;
+    $wnUnixPath = $opt_wnpath;
+}
+else
+{
+    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\1.7.1";
+    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-1.7.1";
+    $wnPCPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnPCPath."\\dict";
+    $wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";
+}
+
 # Load the compounds
 print STDERR "Loading compounds... ";
 open (WORDS, "$opt_compfile") || die ("Couldnt open $opt_compfile.\n");
@@ -140,7 +154,7 @@ if(defined $opt_stopfile)
 
 # Load up WordNet
 print STDERR "Loading WordNet... ";
-$wn=WordNet::QueryData->new();
+$wn=(defined $opt_wnpath)? (WordNet::QueryData->new($opt_wnpath)):(WordNet::QueryData->new());
 die "Unable to create WordNet object.\n" if(!$wn);
 print STDERR "done.\n";
 
@@ -175,6 +189,50 @@ foreach $levelOnePath (@levelOneFiles)
 		}
 	    }
 	}
+    }
+}
+
+# Hack to prevent warning...
+$opt_resnik = 1 if(defined $opt_resnik);
+
+# Smoothing!
+if(defined $opt_smooth)
+{
+    print STDERR "Smoothing... ";
+    if($opt_smooth eq 'ADD1')
+    {
+	foreach $pos ("noun", "verb")
+	{
+	    my $localpos = $pos;
+
+	    if(!open(IDX, $wnUnixPath."/data.$pos"))
+	    {
+		if(!open(IDX, $wnPCPath."/$pos.dat"))
+		{
+		    print STDERR "Unable to open WordNet data files.\n";
+		    exit;
+		}
+	    }
+	    $localpos =~ s/(^[nv]).*/$1/;
+	    foreach (1 .. 29)
+	    {
+		<IDX>;
+	    }
+	    while(<IDX>)
+	    {
+		($offset) = split(/\s+/, $_, 2);
+		$offset =~ s/^0*//;
+		$offsetFreq{$localpos}{$offset}++;
+	    }
+	    close(IDX);
+	}
+	print STDERR "done.\n";
+    }
+    else
+    {
+	print STDERR "\nWarning: Unknown smoothing '$opt_smooth'.\n";
+	print STDERR "Use --help for details.\n";
+	print STDERR "Continuing without smoothing.\n";
     }
 }
 
@@ -336,7 +394,14 @@ sub updateFrequency
 	}
 	foreach (@senses)
 	{
-	    $offsetFreq{$pos}{$wn->offset($_)}++;
+	    if(defined $opt_resnik)
+	    {
+		$offsetFreq{$pos}{$wn->offset($_)} += (1/($#senses + 1));
+	    }
+	    else
+	    {
+		$offsetFreq{$pos}{$wn->offset($_)}++;
+	    }
 	}
     }
 }
@@ -468,6 +533,18 @@ sub printHelp
     print "--outfile        Specifies the output file OUTFILE.\n";
     print "--stopfile       STOPFILE is a list of stop listed words that will\n";
     print "                 not be considered in the frequency count.\n";
+    print "--wnpath         Option to specify WNPATH as the location of WordNet data\n";
+    print "                 files. If this option is not specified, the program tries\n";
+    print "                 to determine the path to the WordNet data files using the\n";
+    print "                 WNHOME environment variable.\n";
+    print "--resnik         Option to specify that the frequency counting should\n";
+    print "                 be performed according to the method described by\n";
+    print "                 Resnik (1995).\n";
+    print "--smooth         Specifies the smoothing to be used on the probabilities\n"; 
+    print "                 computed. SCHEME specifies the type of smoothing to\n";
+    print "                 perform. It is a string, which can be only be 'ADD1'\n";
+    print "                 as of now. Other smoothing schemes will be added in\n";
+    print "                 future releases.\n";
     print "--help           Displays this help screen.\n";
     print "--version        Displays version information.\n\n";
 }
@@ -482,12 +559,13 @@ sub minimalUsageNotes
 # Subroutine that prints the usage
 sub printUsage
 {
-    print "BNCFreq.pl [{--compfile COMPFILE --outfile OUTFILE [--stopfile STOPFILE] PATH | --help | --version }]\n"
+    print "BNCFreq.pl [{--compfile COMPFILE --outfile OUTFILE [--stopfile STOPFILE]";
+    print " [--wnpath WNPATH] [--resnik] [--smooth SCHEME] PATH | --help | --version }]\n"
 }
 
 # Subroutine to print the version information
 sub printVersion
 {
-    print "BNCFreq.pl version 0.01\n";
+    print "BNCFreq.pl version 0.04\n";
     print "Copyright (c) 2002-2003 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }

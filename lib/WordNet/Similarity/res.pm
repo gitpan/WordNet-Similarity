@@ -1,5 +1,5 @@
-# WordNet::Similarity::res.pm version 0.03
-# (Updated 03/10/2003 -- Sid)
+# WordNet::Similarity::res.pm version 0.04
+# (Updated 03/25/2003 -- Sid)
 #
 # Semantic Similarity Measure package implementing the semantic 
 # distance measure described by Resnik (1995).
@@ -44,7 +44,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 
 # 'new' method for the res class... creates and returns a WordNet::Similarity::res object.
@@ -404,7 +404,7 @@ sub getRelatedness
     # Relatedness is 0 across parts of speech.
     if($pos1 ne $pos2)
     {
-	$self->{'traceString'} = "Relatedness 0 across parts of speech ($wps1, $wps2)." if($self->{'trace'});
+	$self->{'traceString'} = "Relatedness 0 across parts of speech ($wps1, $wps2).\n" if($self->{'trace'});
 	return 0;
     }
     $pos = $pos1;
@@ -412,7 +412,7 @@ sub getRelatedness
     # Relatedness is defined only for nouns and verbs.
     if($pos !~ /[nv]/)
     {
-	$self->{'traceString'} = "Only verbs and nouns have hypernym trees ($wps1, $wps2)." if($self->{'trace'});
+	$self->{'traceString'} = "Only verbs and nouns have hypernym trees ($wps1, $wps2).\n" if($self->{'trace'});
 	return 0;
     }
 

@@ -1,5 +1,44 @@
 Revision history for WordNet::Similarity.
-(Last modified -- 03/10/2003 -- Sid.)
+(Last modified -- 05/02/2003 -- Sid.)
+
+
+
+04/22/2003 WordNet::Similarity ver 0.04
+
+(1)  *Fixed* newline in traces.
+
+(2)  *Fixed* blank line bug in brownFreq.pl.
+
+(3)  *Fixed* "--offset" option bug in similarity.pl.
+
+(4)  *Fixed* lin measure non-normalized scores... added zero infocontent
+      handling in jcn and lin.
+
+(5)  New utility rawtextFreq.pl, to generate information content files from
+     plain text.
+
+(6)  similarity.pl supports option to specify part-of-speech of input words
+     while measuring relatedness.
+
+(7)  Added option to specify (conifuration / information content) file in
+     similarity.pl. 
+
+(8)  Added Resnik counting option to the information content generation
+     utilities. 
+
+(9)  More documentation on information content utilities.
+
+(10) Added Add-1 smoothing option to the information content generation
+     utilities. 
+
+
+
+03/10/2003 WordNet::Similarity ver 0.03
+
+(1) Removed trace bug in hso.pm.
+
+(2) Added test cases for all modules.
+
 
 
 02/10/2003 WordNet::Similarity ver 0.01
@@ -25,9 +64,3 @@ Revision history for WordNet::Similarity.
 (9) Various parameters now control the behavior of the modules. These
     parameters are passed to the modules through 'configuration files'.
 
-
-03/10/2003 WordNet::Similarity ver 0.03
-
-(1) Removed trace bug in hso.pm.
-
-(2) Added test cases for all modules.

@@ -1,5 +1,5 @@
-# WordNet::Similarity::random.pm version 0.03
-# (Updated 03/10/2003 -- Sid)
+# WordNet::Similarity::random.pm version 0.04
+# (Updated 03/25/2003 -- Sid)
 #
 # Random semantic distance generator module.
 #
@@ -43,7 +43,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 
 # 'new' method for the random class... creates and returns a WordNet::Similarity::random object.
