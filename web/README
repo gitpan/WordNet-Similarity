@@ -1,0 +1,57 @@
+Quick Installation Instructions
+-------------------------------
+
+Step 1
+------
+
+Unpack everything in the correct directory (you may have already done this
+if you're reading this).  For example:
+
+$ su
+# mv similarity-cgi.tar.gz /usr/local/apache2/cgi-bin
+# cd /usr/local/apache2/cgi-bin
+# tar -zxvf similarity-cgi.tar.gz
+
+Step 2
+------
+
+The following three files may need to be edited:
+similarity.cgi
+similarity_server.pl
+wps.cgi
+
+- similarity.cgi
+   * change $remote_host to be the hostname or IP addr of the machine
+     that similarty_server.pl.  If similarity_server.pl is running
+     on the same machine as your web server, then 'localhost' or
+     '127.0.0.1' will be sufficient
+
+- similarity_server.pl
+   * $BASEDIR should be changed to be a file writable by the UID under
+     which the script will be running.  Usually $BASEDIR can be the
+     absolute path of the directory in which this script resides.  E.g.,
+     if the script is in /usr/local/apache2/cgi-bin/similarity, then this
+     could be your $BASEDIR.
+
+   * $wnlocation should be the location of the WordNet dictionary files.
+     If you are using WordNet-2.0 on a Unix box, then
+     /usr/local/WordNet-2.0/dict is probably what you want.
+
+- wps.cgi
+   * $remote_host should be the same as $remote_host for similarity.cgi
+
+Step 3
+------
+Start similarity_server.pl running:
+
+# similarity_server.pl &
+
+COPYRIGHT
+---------
+
+Copyright (C) 2004, Jason Michelizzi and Ted Pedersen
+
+This is distribution is free software; you may redistribute and/or modify it
+under the terms of the GNU General Public License, version 2 or, at your
+option, any later version.
+

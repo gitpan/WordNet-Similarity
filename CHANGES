@@ -1,17 +1,28 @@
 NAME
-
     Revision History for WordNet::Similarity.
 
 SYNOPSIS
-
     A list of changes to the WordNet::Similarity package. These are copied
     from the Recently Completed Items in the file todo.pod when a new
     version is released.
 
 DESCRIPTION
+  Version 0.08 (Released 04/28/04)
+    *   04/28/2004
+
+        (1) Created a CGI-based web interface for the relatedness modules.
+            (JM)
+
+    *   04/19/2004
+
+        (1) Fixed problem with path to Perl interpreter in Makefile.PL. This
+            was causing problems during installation if there was no
+            /usr/local/bin/perl. (JM)
+
+        (2) wnDepths.pl had forgotten that on Windows some filenames are
+            different; for example, data.noun is noun.dat. (JM)
 
   Version 0.07 (Released 03/24/04)
-
     *   03/23/2004
 
         (1) In /t, save diff files between 0.06 and 0.07. Make sure to run
@@ -20,7 +31,7 @@ DESCRIPTION
     *   03/16/2004
 
         (1) make sure that every .pm and .pl file has the same GNU copyleft
-            language.  Use PathFinder.pm as a template.
+            language. Use PathFinder.pm as a template.
 
         (2) make sure that documentation is clear that vector and lesk
             require different format relation files (ie they are not
@@ -48,8 +59,8 @@ DESCRIPTION
         (2) developers.pod should be a tutorial that explains how to create
             a new measure. It should take the reader through a complete
             example, such as creating a measure that returns the sum of the
-            information content of  the concpets found in the shortest path
-            between two  concepts. This should include an example of how to
+            information content of the concpets found in the shortest path
+            between two concepts. This should include an example of how to
             use all of the available configuration options, and also adding
             a new one.
 
@@ -60,11 +71,11 @@ DESCRIPTION
             explaining why it has an effect, and why it doesn't have an
             effect) and make it a part of the .pm perldoc. This will
             eventually be used in thesis writing, so it should be complete
-            and  detailed. Of particular important is the behavior of
-            lch.pm, but all of the modules should have their expected
-            behaviour with and without the hypo  root node clearly
-            documented. Also, you should note what the behavior was in 0.06
-            for both nouns and verbs, and if this has changed.
+            and detailed. Of particular important is the behavior of lch.pm,
+            but all of the modules should have their expected behaviour with
+            and without the hypo root node clearly documented. Also, you
+            should note what the behavior was in 0.06 for both nouns and
+            verbs, and if this has changed.
 
     *   03/09/2004
 
@@ -153,7 +164,7 @@ DESCRIPTION
         (5) There is replicated code in the measure modules that checks
             validity of input. This should be removed to a common module
             that can be called by all of the measures. Any other replicated
-            code should be removed as well.  The goal of 0.07 is to largely
+            code should be removed as well. The goal of 0.07 is to largely
             eliminate replicated code via the use of inheritance, and to
             make the writing of new measures simpler.
 
@@ -174,7 +185,7 @@ DESCRIPTION
             LCSFinder.pm, which should inherit from both ICFinder and
             Pathfiner.
 
-        (2) The measures (lch, path, jcn, lin, res, wup) should  default to
+        (2) The measures (lch, path, jcn, lin, res, wup) should default to
             having the hypo root node turned on (for both nouns and verbs).
             This will eventually be true of hso, but is not currently. hypo
             root nodes could also be used for lesk and vector, although they
@@ -184,7 +195,7 @@ DESCRIPTION
 
         (1) Wps and offsets will be supported internally. The user can
             request either mode via an option to getRelatedness. offset is
-            our default.  profiling has shown wps to be somewhat faster, in
+            our default. profiling has shown wps to be somewhat faster, in
             that it makes fewer calls to getSense, although it does make
             some. For input, we only support wps. For trace output we
             support wps and offset. For output we support wps and offset.
@@ -211,7 +222,7 @@ DESCRIPTION
             what we make changes to. Then specific example files can be
             created via copy and paste. Make sure all possible options for a
             measure are included, and that the explanations describe all
-            possible values as well as default handling.  (TDP updated
+            possible values as well as default handling. (TDP updated
             all-options.conf on 12/10/03, use this as source of cut and
             paste).
 
@@ -224,7 +235,7 @@ DESCRIPTION
             /t directory that test specific situations/problems, etc. The .t
             files themselves should be documented with an explanation of
             what is being tested. We should have lots of smaller, specific
-            .t tests (rather than a few big test files).  Whenever a bug is
+            .t tests (rather than a few big test files). Whenever a bug is
             found and fixed, a .t file should be created that tests the fix,
             and this should be mentioned in the source code comments where
             the fix is made (this fix is tested by t/xyz.t).
@@ -271,8 +282,8 @@ DESCRIPTION
             that is subject to fewer changes than offsets.
 
             a "big" file of word pairs (maybe 100 pairs) that run all the
-            measures and  compare values to what is obtained in 0.6. If
-            there are differences, let's see what they are.
+            measures and compare values to what is obtained in 0.6. If there
+            are differences, let's see what they are.
 
         (5) Test cases for information content programs should include:
 
@@ -317,7 +328,7 @@ DESCRIPTION
 
         (1) SemCor1.7Freq.pl and SemTagFreq.pl need to be renamed. They are
             now called semCorRawFreq.pl and SemCorFreq.pl. semCorRawFreq.pl
-            counts without sense tags and  SemCorFreq.pl counts the  sense
+            counts without sense tags and SemCorFreq.pl counts the sense
             tags. (TDP)
 
     *   12/09/2003
@@ -332,13 +343,13 @@ DESCRIPTION
             (a) Enhance similarity.pl file handling (for input files).
                 Comments should be allowed - this will help in creation of
                 test data (we can explain in the comment what "case" is
-                being tested by a particular set of pairs.  Use standard
-                perl commenting style line starting with a # is a comment. 
-                Note that I don't think we can use the convention of #
-                anywhere in a line as being the start of a comment (due to
-                w#p#s) but I think any line that starts with a # can be
-                safely treated as a comment. (JM -- we are using // to
-                indicated the start of a comment)
+                being tested by a particular set of pairs. Use standard perl
+                commenting style line starting with a # is a comment. Note
+                that I don't think we can use the convention of # anywhere
+                in a line as being the start of a comment (due to w#p#s) but
+                I think any line that starts with a # can be safely treated
+                as a comment. (JM -- we are using // to indicated the start
+                of a comment)
 
             (b) Enhance similarity.pl file handling (for input files). At
                 present if a single word (not a pair) appears on a line, no
@@ -351,7 +362,7 @@ DESCRIPTION
                 "well formed", that is to say do they adhere to the word,
                 word#pos, or word#pos#number format. It would be good to
                 have a simple check that verifies we have alphanumeric
-                words, pos of n, v, a, or r, and numeric numbers.  (JM)
+                words, pos of n, v, a, or r, and numeric numbers. (JM)
 
     *   12/08/2003
 
@@ -365,15 +376,15 @@ DESCRIPTION
             paste).
 
         (2) Determine if it is feasible (not too difficult or time
-            consuming) to modify  --version option so it can display both
-            the version of similarity.pl and the version of the module used
-            when --type is specified.  (JM -- version will show module
-            version as well if a module is specified)
+            consuming) to modify --version option so it can display both the
+            version of similarity.pl and the version of the module used when
+            --type is specified. (JM -- version will show module version as
+            well if a module is specified)
 
     *   12/05/2003
 
         (1) all configuration options are now printed to traceString after
-            module initialization.  (JM)
+            module initialization. (JM)
 
         (2) explain the distinction between compounds and collocations
             raised in sample README. (Drop the distinction, and clarify what
@@ -386,13 +397,13 @@ DESCRIPTION
             measures)
 
         (2) determine a reasonable default cache size. Should not be
-            unlimited.  Current default is 1000, maybe it can be increased
-            to 5000 or 10000.  Let lesk with trace be the standard as to
-            what is reasonable. (JM -- default is now 5,000).
+            unlimited. Current default is 1000, maybe it can be increased to
+            5000 or 10000. Let lesk with trace be the standard as to what is
+            reasonable. (JM -- default is now 5,000).
 
-        (3) Improve error handling when processing config files.  Make sure
+        (3) Improve error handling when processing config files. Make sure
             the values specified are valid and that filenames refer to
-            extant files.  All options should allow the value to be omitted,
+            extant files. All options should allow the value to be omitted,
             in which case the default is used. (JM)
 
     *   12/01/2003
@@ -413,22 +424,22 @@ DESCRIPTION
 
         (4) relation.dat is in lib/WordNet. Should be referred to as
             lesk-relation.dat. Should also have vector-relation.dat I would
-            think. (if not, what does vector do?).  JM (vector doesn't try
+            think. (if not, what does vector do?). JM (vector doesn't try
             finding a default relation file--it fails silently).
 
         (5) /sample/vector-relation.dat is wrong. Calls itself
             LeskRelationFile. JM
 
         (6) In intro.pod, provide instruction on how to convert to html or
-            whatever if  user wishes (just point them to documentation that
-            describes this elsewhere even).  JM
+            whatever if user wishes (just point them to documentation that
+            describes this elsewhere even). JM
 
     *   11/28/2003
 
         (1) remove wordnet 1.7.1 compounds from samples directory. (TDP)
 
         (2) change comment in Similarity.pm to explain the pluses and
-            minuses of using/not using a unique root node.  (JM)
+            minuses of using/not using a unique root node. (JM)
 
     *   11/26/2003
 
@@ -465,10 +476,9 @@ DESCRIPTION
 
         (4) added an INSTALL file
 
-        (5) cleaned up /samples.  relation.dat is now named
-            lesk-relation.dat and added vector-relation.dat.  A sample
-            config file is also provided for each measure (in
-            /samples/config-files)
+        (5) cleaned up /samples. relation.dat is now named lesk-relation.dat
+            and added vector-relation.dat. A sample config file is also
+            provided for each measure (in /samples/config-files)
 
     *   11/15/2003
 
@@ -476,8 +486,8 @@ DESCRIPTION
             have been moved to Similarity.pm (such as the cache management
             functions).
 
-        (2) cleaned up the /samples directory.  Removed outdated files.  Put
-            sample config files in samples/config-files.  Added README in
+        (2) cleaned up the /samples directory. Removed outdated files. Put
+            sample config files in samples/config-files. Added README in
             /samples.
 
     *   11/12/2003
@@ -491,18 +501,17 @@ DESCRIPTION
     *   10/25/2003
 
         (1) Reduced the amount of duplication code in the measure modules by
-            moving some common code to WordNet::Similarity. 
-            WordNet::Similarity is now a base class for all the measures. 
+            moving some common code to WordNet::Similarity.
+            WordNet::Similarity is now a base class for all the measures.
             Also added a module called infocontent.pm from which all
             information content measures are descended (i.e., res, lin,
             jcn).
 
         (2) Removed @ symbol from all email addresses in all files (I
-            think).  This might help keep spammers from harvesting our email
+            think). This might help keep spammers from harvesting our email
             addresses.
 
   Version 0.06
-
     *   10/18/2003
 
         (1) Removed dependence of the vector measure on PDL. Implemented
@@ -534,7 +543,7 @@ DESCRIPTION
         (1) Replaced instances of deprecated WordNet::QueryData::query with
             WordNet::QueryData::queryWord in hso.pm
 
-        (2) made hso.pm check QueryData version.  queryWord was broken in
+        (2) made hso.pm check QueryData version. queryWord was broken in
             QueryData 1.29 and earlier
 
         (3) added support for new relations in WordNet 2.0 to get_wn_info.pm
@@ -566,9 +575,9 @@ DESCRIPTION
         (2) Added option to wup to specify a cache size in a configuration
             file.
 
-        (3) similarity.pl now 'use's QueryData 1.30 or later. Previous 
-            versions of QueryData will not work.  t/access.t also 'use's 
-            QueryData 1.30.  get_wn_info.pm and lesk.pm both check for
+        (3) similarity.pl now 'use's QueryData 1.30 or later. Previous
+            versions of QueryData will not work. t/access.t also 'use's
+            QueryData 1.30. get_wn_info.pm and lesk.pm both check for
             QueryData 1.30 and will die if it not found.
 
         (4) Reorganized the bibliography in README and slightly re-worded
@@ -600,13 +609,12 @@ DESCRIPTION
         (4) Updated the perldocs for the measures.
 
         (5) Incorporated some new features into the 'wordVectors.pl'
-            utility.  These features were used for thesis experiments.
+            utility. These features were used for thesis experiments.
 
         (6) Added documentation about the Lesk and Vector relation files
             (they have different formats now).
 
   Version 0.05
-
     *   06/03/2003
 
         (1) Added new measure of semantic relatedness, based on
@@ -647,7 +655,6 @@ DESCRIPTION
             WordNet::Similarity::vector module.
 
   Version 0.04
-
     *   05/02/2003
 
         (1) *Fixed* newline in traces.
@@ -678,7 +685,6 @@ DESCRIPTION
             generation utilities.
 
   Version 0.03
-
     *   03/10/2003
 
         (1) Removed trace bug in hso.pm.
@@ -686,7 +692,6 @@ DESCRIPTION
         (2) Added test cases for all modules.
 
   Version 0.01
-
     *   02/10/2003
 
         (1) Created CPAN modules from distance ver 0.11.
@@ -713,7 +718,6 @@ DESCRIPTION
             'configuration files'.
 
 AUTHORS
-
       Siddharth Patwardhan, University of Utah, Salt Lake City
       sidd at cs.utah.edu
 
@@ -727,20 +731,17 @@ AUTHORS
       mich0212 at d.umn.edu
 
 BUGS
-
     None.
 
 SEE ALSO
-
     todo.pod
 
 COPYRIGHT
-
     Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, Satanjeev
     Banerjee, and Jason Michelizzi
 
-    Permission is granted to copy, distribute and/or modify this  document
-    under the terms of the GNU Free Documentation License, Version 1.2 or 
+    Permission is granted to copy, distribute and/or modify this document
+    under the terms of the GNU Free Documentation License, Version 1.2 or
     any later version published by the Free Software Foundation; with no
     Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
 

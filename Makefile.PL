@@ -175,7 +175,7 @@ sub configSub
     my $wnversion = $wn->version();
     my $synsetsfile = "lib/WordNet/synsetdepths-$wnversion.dat";
     my $taxonomyfile = "lib/WordNet/treedepths-$wnversion.dat";
-    system ("utils/wnDepths.pl", "--outfile=$taxonomyfile",
+    system ($^X, "utils/wnDepths.pl", "--outfile=$taxonomyfile",
 	    "--depthfile=$synsetsfile");
     if (-z $synsetsfile or -z $taxonomyfile) {
       print STDERR "Error: failed to create WordNet depths file\n";
@@ -381,17 +381,21 @@ sub configSub
     {
 	my $rHash = {};
 	my $pmHash = {};
+	print STDERR <<'EOFD';
+*** Failed dependencies for module Wordnet::Similarity::vector.pm
+    Not installing WordNet::Similarity::vector.pm
 
-	print STDERR "*** Failed dependencies for module WordNet::Similarity::vector.pm\n";
-	print STDERR "    Not installing WordNet::Similarity::vector.pm\n\n";
-	print STDERR "    Module vector.pm requires that BerkeleyDB and the perl\n";
-	print STDERR "    interface to BerkeleyDB be installed on your system.\n";
-	print STDERR "    BerkeleyDB can be obtained from http://www.sleepycat.com\n";
-	print STDERR "    and the perl interface to BerkeleyDB can be obtained from\n";
-	print STDERR "    http://search.cpan.org/dist/BerkeleyDB\n\n";
-	print STDERR "    For now this installation will continue without installing\n";
-	print STDERR "    the WordNet::Similarity::vector module. The installation\n";
-	print STDERR "    can be re-run once BerkeleyDB and BerkeleyDB.pm are installed.\n\n";
+    Module vector.pm requires that BerkeleyDB and the Perl
+    interface to BerkeleyDB be installed on your system.
+    BerkeleyDB can be obtained from http://www.sleepycat.com
+    and the Perl interface to BerkeleyDB can be obtained from
+    http://search.cpan.org/dist/BerkeleyDB
+
+    For now this installation will continue without installing
+    the WordNet::Similarity::vector module.  The installation
+    can be re-run once BerkeleyDB and BerkeleyDB.pm are installed.
+
+EOFD
 
 	$pmHash->{'lib/string_compare.pm'} = "\$(INST_LIB)/string_compare.pm";
 	$pmHash->{'lib/stem.pm'}           = "\$(INST_LIB)/stem.pm";

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 
 # wnDepths.pl version 0.07
-# (Updated 3/20/2004 -- Jason)
+# (Updated 4/1/2004 -- Jason)
 
 # A program to generate a list of the depths of the top-level nodes
 # in the WordNet IS-A taxonomies.  The program can also produce a
@@ -77,6 +77,8 @@ print STDERR "done\n";
 my %top_level;
 
 my $datafile = File::Spec->catfile ($wnpath, "data.noun");
+$datafile = File::Spec->catfile ($wnpath, "noun.dat") if ($^O =~ m/^MSWin/i);
+
 open FH, "$datafile" or die "Cannot open $datafile: $!";
 
 my $line;
@@ -97,6 +99,8 @@ if ($opt_verbose) {
 }
 
 $datafile = File::Spec->catfile ($wnpath, "data.verb");
+$datafile = File::Spec->catfile ($wnpath, "verb.dat") if ($^O =~ /MSWin/i);
+
 open FH, "$datafile" or die "Cannot open $datafile: $!";
 
 while ($line = <FH>) {
@@ -296,9 +300,11 @@ sub findLeafs {
   my $file;
   if ($pos eq "n") {
     $file = File::Spec->catfile ($wnpath, "data.noun");
+    $file = File::Spec->catfile ($wnpath, "noun.dat") if $^O =~ /MSWin/i;
   }
   elsif ($pos eq "v") {
     $file = File::Spec->catfile ($wnpath, "data.verb");
+    $file = File::Spec->catfile ($wnpath, "verb.dat") if $^O =~ /MSWin/i;
   }
   else {
     die "Invalid pos: $pos";
