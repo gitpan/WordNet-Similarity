@@ -1,5 +1,5 @@
-# WordNet::Similarity::DepthFinder version 0.07
-# (Updated 3/04/2004 -- Jason)
+# WordNet::Similarity::DepthFinder version 0.10
+# (Updated 9/01/2004 -- Jason)
 #
 # Module containing code to find the depths of (noun and verb) synsets in
 # the WordNet 'is-a' taxonomies
@@ -52,10 +52,10 @@ use WordNet::Similarity::ICFinder;
 
 our @ISA = qw/WordNet::Similarity::ICFinder/;
 
-our $VERSION = '0.07';
+our $VERSION = '0.10';
 
-WordNet::Similarity::addConfigOption ("taxonomyDepthsFile", "p", 1, undef);
-WordNet::Similarity::addConfigOption ("synsetDepthsFile", "p", 1, undef);
+WordNet::Similarity::addConfigOption ("taxonomyDepthsFile", 1, "p", undef);
+WordNet::Similarity::addConfigOption ("synsetDepthsFile", 1, "p", undef);
 
 =item $obj->initialize ($configfile)
 

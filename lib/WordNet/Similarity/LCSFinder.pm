@@ -1,5 +1,5 @@
-# WordNet::Similarity::LCSFinder.pm version 0.09
-# (Updated 5/19/2004 -- Jason)
+# WordNet::Similarity::LCSFinder.pm version 0.10
+# (Updated 9/01/2004 -- Jason)
 #
 # Module that finds the LCS of two synsets.
 
@@ -39,7 +39,7 @@ use WordNet::Similarity::DepthFinder;
 
 our @ISA = qw/WordNet::Similarity::DepthFinder/;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =item getLCSbyDepth($synset1, $synset2, $pos, $mode)
 

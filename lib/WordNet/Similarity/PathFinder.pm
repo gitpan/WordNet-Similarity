@@ -1,5 +1,5 @@
-# WordNet::Similarity::PathFinder version 0.09
-# (Updated 5/19/2004 -- Jason)
+# WordNet::Similarity::PathFinder version 0.10
+# (Updated 9/01/2004 -- Jason)
 #
 # Module containing path-finding code for the various measures of semantic
 # relatedness.
@@ -78,9 +78,9 @@ use File::Spec;
 
 our @ISA = qw/WordNet::Similarity/;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
-WordNet::Similarity::addConfigOption ('rootNode', ':', 'i', 1);
+WordNet::Similarity::addConfigOption ('rootNode', 0, 'i', 1);
 
 =item $measure->setPosList(Z<>)
 

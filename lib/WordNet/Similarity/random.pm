@@ -1,5 +1,5 @@
-# WordNet::Similarity::random.pm version 0.07
-# (Updated 11/26/2003 -- Sid)
+# WordNet::Similarity::random.pm version 0.10
+# (Updated 09/01/2004 -- Jason)
 #
 # Random semantic distance generator module.
 
@@ -58,7 +58,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 $VERSION = '0.07';
 
-WordNet::Similarity::addConfigOption ('maxrand', '=', 'f', 1.0);
+WordNet::Similarity::addConfigOption ('maxrand', 1, 'f', 1.0);
 
 sub setPosList
 {

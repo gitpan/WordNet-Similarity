@@ -7,6 +7,25 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
+  Version 0.10 (Released 09/03/04)
+    *   09/01/04
+
+        (1) Modified vector to look like the other measures. It now is
+            derived from WordNet::Similarity.pm. (Sid)
+
+        (2) Updated the MANIFEST. (Sid)
+
+        (3) Fixed some minor typos in Makefile.PL. (Sid)
+
+        (4) Added single test case (for vector) to t/access.t. (Sid)
+
+        (5) Fixed config option name conflict in WordNet::Similarity.pm.
+            (JM)
+
+        (6) Fixed WNHOME and WNSEARCHDIR related bugs. (JM)
+
+        (7) Updated documentation for the web interface. (JM)
+
   Version 0.09 (Released 05/19/04)
     *   05/19/04
 

@@ -1,11 +1,11 @@
-#!/usr/bin/perl -wT
+#!/usr/local/bin/perl -wT
 
 use strict;
 
 # where do we connect to the Similarity server?  Here:
 my $remote_host = '127.0.0.1';
 my $remote_port = '31134';
-my $doc_base = '../../similarity';
+my $doc_base = '../docs';
 
 use CGI;
 use Socket;

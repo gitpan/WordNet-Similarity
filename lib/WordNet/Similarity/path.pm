@@ -1,5 +1,5 @@
-# WordNet::Similarity::path.pm version 0.09
-# (Updated 5/19/2004 -- Jason)
+# WordNet::Similarity::path.pm version 0.10
+# (Updated 9/01/2004 -- Jason)
 #
 # N.B., this module was formerly named edge.pm
 #
@@ -59,7 +59,7 @@ use constant MAX_DIST => 100;
 
 our @ISA = qw(WordNet::Similarity::PathFinder);
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =item $path->getRelatedness()
 

@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for WordNet::Similarity
-# (Last Updated 1/07/2004 -- Jason)
+# (Last Updated 08/22/2004 -- Sid)
 #
 # Generates the Makefile for the WordNet::Similarity CPAN modules. Requires
 # WordNet::QueryData (1.30 or above) be installed and be accessible via the
@@ -26,7 +26,7 @@ END
 The installation of WordNet::Similarity requires that WordNet and
 the WordNet::QueryData module (ver 1.30 or above) be installed on
 this machine and that the module be accessible via the @INC perl
-library paths.  Make sure tese are installed before installing
+library paths.  Make sure these are installed before installing
 WordNet::Similarity.
 EONL
     }
@@ -88,7 +88,6 @@ WriteMakefile(
     'EXE_FILES'         => [ map "utils/$_", @programs_to_install ],
     'dist'              => {'COMPRESS' => 'gzip -9f', 'SUFFIX' => 'gz'},
     'clean'             => {'FILES' => 'lib/WordNet/ic-semcor.dat lib/WordNet/*depths-*.dat'},
-#    'test'              => {TESTS => 't/*.t t/config/*.t t/utils/*.t'},
     'test'            => {TESTS => $short_tests},
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
     ('ABSTRACT_FROM'   => 'lib/WordNet/Similarity.pm', # retrieve abstract from module
@@ -340,25 +339,6 @@ sub configSub
     close(DATA);
     print STDERR "done.\n";
     print STDERR "Wrote file $fname (WordNet ver ".$wn->version().").\n";
-
-
-    # Check if PDL is installed.
-#    print STDERR "Dependency check for PDL ... ";
-#    eval
-#    {
-#	require PDL;
-#    };
-#
-#    if($@)
-#    {
-#	print STDERR "failed.\n";
-#	$missing_modules++;
-#    }
-#    else
-#    {
-#	print STDERR "ok.\n";
-#    }
-
 
     # Check if the BerkeleyDB Perl module is installed.
     print STDERR "Dependency check for BerkeleyDB (Perl module) ... ";

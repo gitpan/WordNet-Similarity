@@ -1,37 +1,69 @@
+WordNet::Similarity Web Interface
+=================================
+
+The web interface distribution contains three Perl scripts, which are in the
+cgi-bin directory:
+
+cgi-bin/similarity.cgi
+cgi-bin/similarity_server.pl
+cgi-bin/wps.cgi
+
+The interface employs a client-server model.  The two CGI scripts,
+similarity.cgi and wps.cgi, are the clients that request information
+from the server, similarity_server.pl.  It is similarity_server.pl that
+actually interacts with WordNet and computes relatedness scores.
+
+The similarity_server.pl can be run on the same machine on which your
+webserver is running or it can be on a different machine.  Running
+similarity_server.pl on a different machine than the webserver can be
+useful if you have only limited control over the webserver machine (for
+example, you might not be able to install WordNet on the webserver machine).
+
 Quick Installation Instructions
 -------------------------------
 
+This guide assumes that you are using the Apache webserver.  If you are
+using a different server, then the setup process will probably vary
+a little.
+
 Step 1
 ------
-
-Unpack everything in the correct directory (you may have already done this
-if you're reading this).  For example:
-
-$ su
-# mv similarity-cgi.tar.gz /usr/local/apache2/cgi-bin
-# cd /usr/local/apache2/cgi-bin
-# tar -zxvf similarity-cgi.tar.gz
+Put the similarity.cgi and wps.cgi scripts whereever CGI scripts go on your
+webserver (e.g., /usr/local/apache2/cgi-bin).  The similarity_server.pl
+script can also go in the same directory, or you can put it elsewhere.  As
+noted above, similarity_server.pl can even run on a different machine.
 
 Step 2
 ------
 
 The following three files may need to be edited:
+
 similarity.cgi
 similarity_server.pl
 wps.cgi
 
 - similarity.cgi
    * change $remote_host to be the hostname or IP addr of the machine
-     that similarty_server.pl.  If similarity_server.pl is running
-     on the same machine as your web server, then 'localhost' or
-     '127.0.0.1' will be sufficient
+     on which similarty_server.pl is located.  If similarity_server.pl is
+     running on the same machine as your web server, then 'localhost' or
+     '127.0.0.1' will work.  Note: the setting for $remote_host and
+     $remote_port in similarity.cgi are not related to Apache's LISTEN
+     setting.  In fact, $remote_port needs to be different than the
+     port on which Apache is listening.
+   * set $doc_base to be the relative path to the HTML files that are
+     in the 'doc' directory in the distribution.  For example, if you
+     have the .cgi files in /usr/local/apache2/cgi-bin and the HTML
+     files in /usr/local/apache2/htdocs, then you would set $doc_base
+     to '../htdocs'.  Note: this variable is not (closely) related to
+     Apache's DOCUMENT_ROOT setting.
 
 - similarity_server.pl
    * $BASEDIR should be changed to be a file writable by the UID under
      which the script will be running.  Usually $BASEDIR can be the
      absolute path of the directory in which this script resides.  E.g.,
-     if the script is in /usr/local/apache2/cgi-bin/similarity, then this
-     could be your $BASEDIR.
+     if the script is in /home/jsmith, then this could be your $BASEDIR.
+     Note: the setting for this variable is not related to Apache's
+     DOCUMENT_ROOT setting.
 
    * $wnlocation should be the location of the WordNet dictionary files.
      If you are using WordNet-2.0 on a Unix box, then
@@ -44,14 +76,19 @@ Step 3
 ------
 Start similarity_server.pl running:
 
-# similarity_server.pl &
+$ similarity_server.pl &
 
 COPYRIGHT
 ---------
 
 Copyright (C) 2004, Jason Michelizzi and Ted Pedersen
 
-This is distribution is free software; you may redistribute and/or modify it
+This distribution is free software; you may redistribute and/or modify it
 under the terms of the GNU General Public License, version 2 or, at your
 option, any later version.
+
+SEE ALSO
+--------
+http://wn-similarity.sourceforge.net
+http://groups.yahoo.com/group/wn-similarity/
 

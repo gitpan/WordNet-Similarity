@@ -10,6 +10,49 @@ is released.
 
 =head1 DESCRIPTION
 
+=head2  Version 0.10 (Released 09/03/04)
+
+=over
+
+=item *   
+
+09/01/04
+
+=over
+
+=item (1) 
+
+Modified vector to look like the other measures. It now is
+derived from WordNet::Similarity.pm. (Sid)
+        
+=item (2) 
+
+Updated the MANIFEST. (Sid)
+        
+=item (3) 
+
+Fixed some minor typos in Makefile.PL. (Sid)
+        
+=item (4) 
+
+Added single test case (for vector) to t/access.t. (Sid)
+
+=item (5)
+
+Fixed config option name conflict in WordNet::Similarity.pm. (JM)
+
+=item (6)
+
+Fixed WNHOME and WNSEARCHDIR related bugs. (JM)
+
+=item (7)
+
+Updated documentation for the web interface. (JM)
+
+=back
+
+=back
+
 =head2 Version 0.09 (Released 05/19/04)
 
 =over

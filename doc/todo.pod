@@ -13,31 +13,9 @@ Completed Items, make sure to date and initial. When we have
 a version release, all of the recently completed items 
 should be moved into changelog.pod. 
 
-=head2 FOR VERSION 0.10:
+=head2 FOR VERSION 0.11:
 
 =over
-
-=item *
-
-The trace output for certain measures appears to "stutter".  For example,
-for the path measure, comparing beer#n#1 and wine#n#1 will result in
-the trace containing the same shortest path several times.
-
-=item *
-
-Repair addConfigOption(). addConfigOption is a class function in Similarity.
-This causes problems when two different measures define an option of the
-same name and then a script tries to C<use> both of those measure modules.
-For example, both vector and lesk have an option called 'relation'.  When
-a script, like access.t, tries to use both measures, an error occurs
-because one script is attempting to redefine the option of another.
-
-=item * 
-
-Standardize "path to wordnet" handling. utilities should have an option
-to specify the path, and then if it is not go through the same looking
-procedure. wnDepths.pl and *Freq.pl, for example, do this somewhat
-differently. Let's standardize, maybe even putting into a module. 
 
 =item *
 
@@ -76,7 +54,7 @@ update documentation to clarify that stoplists must also be all lowercase
 
 =back
 
-=head2 FOR VERSION 0.11:
+=head2 FOR VERSION 0.12:
 
 =over 4
 
@@ -91,7 +69,7 @@ update lesk/vector to support new relations in WordNet 2.0
 
 =back
 
-=head2 FOR VERSION 0.12:
+=head2 FOR VERSION 0.13:
 
 =over 4
 

@@ -105,13 +105,22 @@ if(defined $opt_wnpath)
     $wnPCPath = $opt_wnpath;
     $wnUnixPath = $opt_wnpath;
 }
+elsif (defined $ENV{WNSEARCHDIR})
+{
+    $wnPCPath = $ENV{WNSEARCHDIR};
+    $wnUnixPath = $ENV{WNSEARCHDIR};
+}
+elsif (defined $ENV{WNHOME})
+{
+    $wnPCPath = $ENV{WNHOME} . "\\dict";
+    $wnUnixPath = $ENV{WNHOME} . "/dict";
+}
 else
 {
-    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\2.0";
-    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-2.0";
-    $wnPCPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnPCPath."\\dict";
-    $wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-2.0/dict";
 }
+
 
 # Get the PATH of the Treebank texts...
 if($#ARGV < 0)

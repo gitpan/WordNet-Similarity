@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
 # wordVectors.pl version 0.07
-# (Last updated 11/26/2003 -- Jason)
+# (Last updated 07/09/2004 -- Sid)
 #
 # Program to create word vectors (co-occurrence vectors) for all
 # words in WordNet glosses.
@@ -144,19 +144,23 @@ if(defined $opt_wnpath)
 }
 else
 {
-    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\1.7.1";
-    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-1.7.1";
-    $wnPCPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnPCPath."\\dict";
-    $wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";
-    if(defined $ENV{"WNHOME"})
+    if (defined $ENV{WNSEARCHDIR})
     {
-	$wn = WordNet::QueryData->new();
+	$wnPCPath = $ENV{WNSEARCHDIR};
+	$wnUnixPath = $ENV{WNSEARCHDIR};
+    }
+    elsif (defined $ENV{WNHOME})
+    {
+	$wnPCPath = $ENV{WNHOME} . "\\dict";
+	$wnUnixPath = $ENV{WNHOME} . "/dict";
     }
     else
     {
-	$wn = WordNet::QueryData->new("/usr/local/WordNet-1.7.1");
-	$wn = WordNet::QueryData->new("C:\\Program Files\\WordNet\\1.7.1") if(!$wn);
+	$wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
+	$wnUnixPath = "/usr/local/WordNet-2.0/dict";
     }
+
+    $wn = WordNet::QueryData->new;
 }
 if(!$wn)
 {
@@ -186,7 +190,6 @@ foreach $fh (NIDX, VIDX, AIDX, RIDX)
     while($line = <$fh>)
     {
 	next if ($line =~ m/^\s/);
-#	last if(($documentCount + 1) % 10000 == 0);
 	$line =~ s/[\r\f\n]//g;
 	$line =~ s/.*\|//;
 	$line = lc($line);
@@ -223,11 +226,11 @@ foreach $fh (NIDX, VIDX, AIDX, RIDX)
 	}
 	$documentCount++;
 	print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
-	printf STDERR "%6d (of approximately 111400) done.", $documentCount;
+	printf STDERR "%6d (of approximately 116000) done.", $documentCount;
     }
 }
 print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
-printf STDERR "%6d (of approximately 111400) done.", $documentCount;
+printf STDERR "%6d (of approximately 116000) done.", $documentCount;
 close(NIDX);
 close(VIDX);
 close(AIDX);

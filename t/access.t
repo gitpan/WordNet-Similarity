@@ -17,7 +17,7 @@ use WordNet::Similarity::hso;
 use WordNet::Similarity::lesk;
 use WordNet::Similarity::path;
 use WordNet::Similarity::random;
-#use WordNet::Similarity::vector;
+use WordNet::Similarity::vector;
 use WordNet::Similarity::wup;
 use WordNet::Similarity::ICFinder;
 use WordNet::Similarity::PathFinder;

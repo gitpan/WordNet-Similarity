@@ -1,5 +1,5 @@
-# WordNet::Similarity::vector.pm version 0.07
-# (Updated 11/13/2003 -- Jason)
+# WordNet::Similarity::vector.pm version 0.10
+# (Updated 07/09/2004 -- Sid)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using a
@@ -46,206 +46,64 @@ the cosine of their representative gloss vectors.
 =cut
 
 use strict;
-# use PDL;
-use Exporter;
 use get_wn_info;
 use stem;
 use dbInterface;
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+use WordNet::Similarity;
+use vars qw($VERSION @ISA);
 
-@ISA = qw(Exporter);
+@ISA = qw(WordNet::Similarity);
 
-%EXPORT_TAGS = ();
+$VERSION = '0.10';
 
-@EXPORT_OK = ();
+WordNet::Similarity::addConfigOption("relation", 0, "p", undef);
+WordNet::Similarity::addConfigOption("vectordb", 1, "p", undef);
+WordNet::Similarity::addConfigOption("stop", 0, "p", undef);
+WordNet::Similarity::addConfigOption("stem", 0, "i", 0);
+WordNet::Similarity::addConfigOption("compounds", 0, "p", undef);
 
-@EXPORT = ();
-
-$VERSION = '0.07';
-
-
-# 'new' method for the vector class... creates and returns a WordNet::Similarity::vector object.
-# INPUT PARAMS  : $className  .. (WordNet::Similarity::vector) (required)
-#                 $wn         .. The WordNet::QueryData object (required).
-#                 $configFile .. Name of the config file for getting the parameters (optional).
-# RETURN VALUE  : $vector     .. The newly created vector object.
-sub new
+sub setPosList
 {
-    my $className;
-    my $self = {};
-    my $wn;
-
-    # The name of my class.
-    $className = shift;
-
-    # Initialize the error string and the error level.
-    $self->{'errorString'} = "";
-    $self->{'error'} = 0;
-
-    # The WordNet::QueryData object.
-    $wn = shift;
-    $self->{'wn'} = $wn;
-    if(!$wn)
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->new()) - ";
-	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
-	$self->{'error'} = 2;
-    }
-
-    # Bless object, initialize it and return it.
-    bless($self, $className);
-    $self->_initialize(shift) if($self->{'error'} < 2);
-
-    return $self;
+  my $self = shift;
+  $self->{n} = 1;
+  $self->{v} = 1;
+  $self->{a} = 1;
+  $self->{r} = 1;
+  return 1;
 }
-
 
 # Initialization of the WordNet::Similarity::vector object... parses the config file and sets up
 # global variables, or sets them to default values.
 # INPUT PARAMS  : $paramFile .. File containing the module specific params.
 # RETURN VALUES : (none)
-sub _initialize
+sub initialize
 {
-    my $self;
-    my $paramFile;
-    my $relationFile;
-    my $stopFile;
-    my $compFile;
+    my $self = shift;
     my $vectorDB;
     my $documentCount;
-    my $wn;
+    my $wn = $self->{wn};
     my $gwi;
     my $db;
     my %stopHash = ();
 
-    # Reference to the object.
-    $self = shift;
+    # Stemming? Compounds? StopWords?
+    $self->{stem} = 0;
+    $self->{compoundHash} = {};
+    $self->{stopHash} = {};
 
-    # Get reference to WordNet.
-    $wn = $self->{'wn'};
+    # Call the initialize method of the super-class.
+    $self->SUPER::initialize(@_);
 
-    # Name of the parameter file.
-    $paramFile = shift;
-
-    # Initialize the $posList... Parts of Speech that this module can handle.
-    $self->{"n"} = 1;
-    $self->{"v"} = 1;
-    $self->{"a"} = 1;
-    $self->{"r"} = 1;
-
-    # Initialize the cache stuff.
-    $self->{'doCache'} = 1;
-    $self->{'simCache'} = ();
-    $self->{'traceCache'} = ();
-    $self->{'cacheQ'} = ();
-    $self->{'maxCacheSize'} = 1000;
-    $self->{'vCache'} = ();
-    $self->{'vCacheQ'} = ();
-    $self->{'vCacheSize'} = 80;
-
-    # Initialize tracing.
-    $self->{'trace'} = 0;
-    $self->{'traceString'} = "";
-
-    # Stemming? Cutoff? Compounds?
-    $self->{'doStem'} = 0;
-#   $self->{'cutoff'} = -1;
-    $self->{'compounds'} = {};
-    $self->{'stopHash'} = {};
-
-    # Parse the config file and
-    # read parameters from the file.
-    # Looking for params -->
-    # trace, infocontent file, cache
-    if(defined $paramFile)
-    {
-	my $modname;
-	
-	if(!open(PARAM, $paramFile))
-	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open config file $paramFile.";
-	    $self->{'error'} = 2;
-	    return;
-	}
-	$modname = <PARAM>;
-	$modname =~ s/[\r\f\n]//g;
-	$modname =~ s/\s+//g;
-	if($modname !~ /^WordNet::Similarity::vector/)
-	{
-	    close PARAM;
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-	    $self->{'errorString'} .= "$paramFile does not appear to be a config file.";
-	    $self->{'error'} = 2;
-	    return;
-	}
-	while(<PARAM>)
-	{
-	    s/[\r\f\n]//g;
-	    s/\#.*//;
-	    s/\s+//g;
-	    if(/^trace::(.*)/)
-	    {
-		my $tmp = $1;
-		$self->{'trace'} = 1;
-		$self->{'trace'} = $tmp if($tmp =~ /^[01]$/);
-	    }
-	    elsif(/^relation::(.*)/)
-	    {
-		$relationFile = $1;
-	    }
-	    elsif(/^vectordb::(.*)/)
-	    {
-		$vectorDB = $1;
-	    }
-	    elsif(/^stop::(.*)/)
-	    {
-		$stopFile = $1;
-	    }
-	    elsif(/^compounds::(.*)/)
-	    {
-		$compFile = $1;
-	    }
-	    elsif(/^stem::(.*)/)
-	    {
-		my $tmp = $1;
-		$self->{'doStem'} = 1;
-		$self->{'doStem'} = $tmp if($tmp =~ /^[01]$/);
-	    }
-	    elsif(/^cache::(.*)/)
-	    {
-		my $tmp = $1;
-		$self->{'doCache'} = 1;
-		$self->{'doCache'} = $tmp if($tmp =~ /^[01]$/);
-	    }
-	    elsif(m/^(?:max)?CacheSize::(.*)/i)
-	    {
-		my $mcs = $1;
-		$self->{'maxCacheSize'} = 1000;
-		$self->{'maxCacheSize'} = $mcs
-		    if(defined ($mcs) && $mcs =~ m/^\d+$/);
-		$self->{'maxCacheSize'} = 0 if($self->{'maxCacheSize'} < 0);
-	    }
-#	    elsif(/^cutoff::(.*)/)
-#	    {
-#		my $tmp = $1;
-#		$self->{'cutoff'} = $tmp if($tmp =~ /^(([0-9]+(\.[0-9]+)?)|(\.[0-9]+))$/);
-#	    }
-	    elsif($_ ne "")
-	    {
-		s/::.*//;
-		$self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->_initialize()) - ";
-		$self->{'errorString'} .= "Unrecognized parameter '$_'. Ignoring.";
-		$self->{'error'} = 1;
-	    }
-	}
-	close(PARAM);
-    }
+    # Initialize the vector cache.
+    $self->{vCache} = ();
+    $self->{vCacheQ} = ();
+    $self->{vCacheSize} = 80;
 
     # Load the stop list.
-    if($stopFile)
+    if(defined $self->{stop})
     {
 	my $line;
+        my $stopFile = $self->{stop};
 
 	if(open(STOP, $stopFile))
 	{
@@ -256,22 +114,23 @@ sub _initialize
 		$line =~ s/\s+$//;
 		$line =~ s/\s+/_/g;
 		$stopHash{$line} = 1;
-		$self->{'stopHash'}->{$line} = 1;
+		$self->{stopHash}->{$line} = 1;
 	    }
 	    close(STOP);
 	}
 	else
 	{
-	    $self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open $stopFile.";
-	    $self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+	    $self->{errorString} .= "\nWarning (WordNet::Similarity::vector->initialize()) - ";
+	    $self->{errorString} .= "Unable to open $stopFile.";
+	    $self->{error} = 1 if($self->{error} < 1);
 	}
     }
 
     # Load the compounds.
-    if($compFile)
+    if(defined $self->{compounds})
     {
 	my $line;
+        my $compFile = $self->{compounds};
 
 	if(open(COMP, $compFile))
 	{
@@ -281,71 +140,72 @@ sub _initialize
 		$line =~ s/^\s+//;
 		$line =~ s/\s+$//;
 		$line =~ s/\s+/_/g;
-		$self->{'compounds'}->{$line} = 1;		
+		$self->{compoundHash}->{$line} = 1;		
 	    }
 	    close(COMP);
 	}
 	else
 	{
-	    $self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open $compFile.";
-	    $self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+	    $self->{errorString} .= "\nWarning (WordNet::Similarity::vector->initialize()) - ";
+	    $self->{errorString} .= "Unable to open $compFile.";
+	    $self->{error} = 1 if($self->{error} < 1);
 	}
     }
 
     # so now we are ready to initialize the get_wn_info package with
     # the wordnet object, 0/1 depending on if stemming is required and
     # the stop hash
-    if($self->{'doStem'})
+    if($self->{stem})
     {
 	$gwi = get_wn_info->new($wn, 1, %stopHash);
-	$self->{'gwi'} = $gwi;
+	$self->{gwi} = $gwi;
     }
     else
     {
 	$gwi = get_wn_info->new($wn, 0, %stopHash);
-	$self->{'gwi'} = $gwi;
+	$self->{gwi} = $gwi;
     }
 
     # Initialize the word vector database interface...
-    if(!defined $vectorDB)
+    if(!defined $self->{vectordb})
     {	
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-	$self->{'errorString'} .= "Word Vector database file not specified. Use configuration file.";
-	$self->{'error'} = 2;
+	$self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
+	$self->{errorString} .= "Word Vector database file not specified. Use configuration file.";
+	$self->{error} = 2;
 	return;
     }
+    $vectorDB = $self->{vectordb};
 
     # Get the documentCount...
     $db = dbInterface->new($vectorDB, "DocumentCount");
     if(!$db)
     {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-	$self->{'errorString'} .= "Unable to open word vector database.";
-	$self->{'error'} = 2;
+	$self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
+	$self->{errorString} .= "Unable to open word vector database.";
+	$self->{error} = 2;
 	return;
     }
     ($documentCount) = $db->getKeys();
     $db->finalize();
-
+    
     # Load the word vector dimensions...
     $db = dbInterface->new($vectorDB, "Dimensions");
     if(!$db)
     {
-      $self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open word vector database.";
-	    $self->{'error'} = 2;
-	    return;
+        $self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
+        $self->{errorString} .= "Unable to open word vector database.";
+        $self->{error} = 2;
+        return;
     }
     my @keys = $db->getKeys();
     my $key;
-    $self->{'numberOfDimensions'} = scalar(@keys);
+    $self->{numberOfDimensions} = scalar(@keys);
     foreach $key (@keys)
     {
 	my $ans = $db->getValue($key);
 	my @prts = split(/\s+/, $ans);
-	$self->{'wordIndex'}->{$key} = $prts[0];
-	$self->{'indexWord'}->[$prts[0]] = $key;
+	$self->{wordIndex}->{$key} = $prts[0];
+	$self->{indexWord}->[$prts[0]] = $key;
     }
     $db->finalize();
 
@@ -353,9 +213,9 @@ sub _initialize
     $db = dbInterface->new($vectorDB, "Vectors");
     if(!$db)
     {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-	$self->{'errorString'} .= "Unable to open word vector database.";
-	$self->{'error'} = 2;
+	$self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
+	$self->{errorString} .= "Unable to open word vector database.";
+	$self->{error} = 2;
 	return;
     }
     @keys = $db->getKeys();
@@ -364,23 +224,24 @@ sub _initialize
 	my $vec = $db->getValue($key);
 	if(defined $vec)
 	{
-	    $self->{'table'}->{$key} = $vec;
+	    $self->{table}->{$key} = $vec;
 	}
     }
     $db->finalize();
 
     # If relation file not specified... manually add the relations to
     # be used...
-    if(!(defined $relationFile))
+    if(!(defined $self->{relation}))
     {
-	$self->{'weights'}->[0] = 1;
-	$self->{'functions'}->[0]->[0] = "glosexample";
+	$self->{weights}->[0] = 1;
+	$self->{functions}->[0]->[0] = "glosexample";
     }
     else
     {
 	# Load the relations data
 	my $header;
 	my $relation;
+        my $relationFile = $self->{relation};
 	
 	if(open(RELATIONS, $relationFile))
 	{
@@ -390,8 +251,8 @@ sub _initialize
 	    if($header =~ /VectorRelationFile/)
 	    {
 		my $index = 0;
-		$self->{'functions'} = ();
-		$self->{'weights'} = ();
+		$self->{functions} = ();
+		$self->{weights} = ();
 		while($relation = <RELATIONS>)
 		{
 		    $relation =~ s/[\r\f\n]//g;
@@ -409,64 +270,46 @@ sub _initialize
 		    if($relation =~ /(\S+)\s+(\S+)/)
 		    {
 			$relation = $1;
-			$self->{'weights'}->[$index] = $2;
+			$self->{weights}->[$index] = $2;
 		    }
 		    else
 		    {
-			$self->{'weights'}->[$index] = 1;
+			$self->{weights}->[$index] = 1;
 		    }
 	
-# 		    # check if we have a "proper" relation, that is a relation in
-# 		    # there are two blocks of functions!
-# # 		    if($relation !~ /(.*)-(.*)/)
-# # 		    {
-# # 			$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-# # 			$self->{'errorString'} .= "Bad file format ($relationFile).";
-# # 			$self->{'error'} = 2;
-# # 			close(RELATIONS);
-# # 			return;		
-# # 		    }
-	
-# 		    # get the two parts of the relation pair
-# 		    my @twoParts;
-# 		    my $l;
-# 		    $twoParts[0] = $1;
-# 		    $twoParts[1] = $2;
-	
-		    # process the relation and put into functions array
-#		    for($l = 0; $l < 2; $l++)
-		    {
-			no strict;
-
-			$relation =~ s/[\s\)]//g;
-			my @functionArray = split(/\(/, $relation);
-			
-			my $j = 0;
-			my $fn = $functionArray[$#functionArray];
-			if(!($gwi->can($fn)))
-			{
-			    $self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-			    $self->{'errorString'} .= "Undefined function ($functionArray[$#functionArray]) in relations file.";
-			    $self->{'error'} = 2;
-			    close(RELATIONS);
-			    return;
-			}
-			
-			$self->{'functions'}->[$index]->[$j++] = $functionArray[$#functionArray];
-			my $input;
-			my $output;
-			my $dummy;
-			my $k;
-			
+                    # Need to remove strict for this block.
+                    {
+                        no strict;
+                        
+                        $relation =~ s/[\s\)]//g;
+                        my @functionArray = split(/\(/, $relation);
+                        
+                        my $j = 0;
+                        my $fn = $functionArray[$#functionArray];
+                        if(!($gwi->can($fn)))
+                        {
+                            $self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
+                            $self->{errorString} .= "Undefined function ($functionArray[$#functionArray]) in relations file.";
+                            $self->{error} = 2;
+                            close(RELATIONS);
+                            return;
+                        }
+                        
+                        $self->{functions}->[$index]->[$j++] = $functionArray[$#functionArray];
+                        my $input;
+                        my $output;
+                        my $dummy;
+                        my $k;
+                        
 			for ($k = $#functionArray-1; $k >= 0; $k--)
 			{
 			    my $fn2 = $functionArray[$k];
 			    my $fn3 = $functionArray[$k+1];
 			    if(!($gwi->can($fn2)))
 			    {
-				$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-				$self->{'errorString'} .= "Undefined function ($functionArray[$k]) in relations file.";
-				$self->{'error'} = 2;
+				$self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
+				$self->{errorString} .= "Undefined function ($functionArray[$k]) in relations file.";
+				$self->{error} = 2;
 				close(RELATIONS);
 				return;
 			    }
@@ -476,23 +319,23 @@ sub _initialize
 	
 			    if($input != $output)
 			    {
-				$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-				$self->{'errorString'} .= "Invalid function combination - $functionArray[$k]($functionArray[$k+1]).";
-				$self->{'error'} = 2;
+				$self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
+				$self->{errorString} .= "Invalid function combination - $functionArray[$k]($functionArray[$k+1]).";
+				$self->{error} = 2;
 				close(RELATIONS);
 				return;
 			    }
 	
-			    $self->{'functions'}->[$index]->[$j++] = $functionArray[$k];
+			    $self->{functions}->[$index]->[$j++] = $functionArray[$k];
 			}
 			
 			# if the output of the outermost function is synset array (1)
-			# wrap a glos around it
+			# wrap a glosexample around it
 			my $xfn = $functionArray[0];
 			($dummy, $output) = $gwi->$xfn(0);
 			if($output == 1)
 			{
-			    $self->{'functions'}->[$index]->[$j++] = "glos";
+			    $self->{functions}->[$index]->[$j++] = "glosexample";
 			}
 		    }
 	
@@ -501,9 +344,9 @@ sub _initialize
 	    }
 	    else
 	    {
-		$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-		$self->{'errorString'} .= "Bad file format ($relationFile).";
-		$self->{'error'} = 2;
+		$self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
+		$self->{errorString} .= "Bad file format ($relationFile).";
+		$self->{error} = 2;
 		close(RELATIONS);
 		return;		
 	    }
@@ -511,39 +354,35 @@ sub _initialize
 	}
 	else
 	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::vector->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open $relationFile.";
-	    $self->{'error'} = 2;
+	    $self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";
+	    $self->{errorString} .= "Unable to open $relationFile.";
+	    $self->{error} = 2;
 	    return;
 	}
     }
-
-    # [trace]
-    $self->{'traceString'} = "WordNet::Similarity::vector object created:\n";
-    $self->{'traceString'} .= "trace          :: ".($self->{'trace'})."\n" if(defined $self->{'trace'});
-    $self->{'traceString'} .= "cache          :: ".($self->{'doCache'})."\n" if(defined $self->{'doCache'});
-    $self->{'traceString'} .= "stem           :: ".($self->{'doStem'})."\n" if(defined $self->{'doStem'});
-#   $self->{'traceString'} .= "cutoff         :: ".($self->{'cutoff'})."\n" if(defined $self->{'cutoff'} && $self->{'cutoff'} >= 0);
-    $self->{'traceString'} .= "max Cache Size :: ".($self->{'maxCacheSize'})."\n" if(defined $self->{'maxCacheSize'});
-    $self->{'traceString'} .= "relation File  :: $relationFile\n" if(defined $relationFile);
-    $self->{'traceString'} .= "stop List      :: $stopFile\n" if(defined $stopFile);
-    $self->{'traceString'} .= "compounds file :: $compFile\n" if(defined $compFile);
-    $self->{'traceString'} .= "word Vector DB :: $vectorDB\n" if(defined $vectorDB);
-    # [/trace]
 }
 
 
-=item $vector->getRelatedness ($synset1, $synset2)
+# show all config options specific to this module
+sub traceOptions {
+  my $self = shift;
+  $self->{traceString} .= "relation File :: ".((defined $self->{relation})?"$self->{relation}":"")."\n";
+  $self->{traceString} .= "vectorDB File :: ".((defined $self->{vectordb})?"$self->{vectordb}":"")."\n";
+  $self->{traceString} .= "compounds File :: ".((defined $self->{compounds})?"$self->{compounds}":"")."\n";
+  $self->{traceString} .= "stop File :: ".((defined $self->{stop})?"$self->{stop}":"")."\n";
+  $self->{traceString} .= "stem :: $self->{stem}\n";
+}
 
-Computes the relatedness of two word senses using the vector measure
-developed by Patwardhan.
+=item $vector->getRelatedness
+
+Computes the relatedness of two word senses using the Vector Algorithm.
 
 Parameters: two word senses in "word#pos#sense" format.
 
 Returns: Unless a problem occurs, the return value is the relatedness
-score, which is greater-than or equal-to 0.  If an error occurs,
-then the error level is set to non-zero and an error string
-is created (see the description of getError()).
+score, which is greater-than or equal-to 0. If an error occurs,
+then the error level is set to non-zero and an error
+string is created (see the description of getError()).
 
 =cut
 
@@ -552,85 +391,67 @@ sub getRelatedness
     my $self = shift;
     my $wps1 = shift;
     my $wps2 = shift;
-    my $wn = $self->{'wn'};
-    my $gwi = $self->{'gwi'};
-    my $db = $self->{'db'};
+    my $wn = $self->{wn};
+    my $gwi = $self->{gwi};
+    my $db = $self->{db};
 
     # Check the existence of the WordNet::QueryData object.
     if(!$wn)
     {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::vector->getRelatedness()) - ";
-	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
-	$self->{'error'} = 2;
+	$self->{errorString} .= "\nError (WordNet::Similarity::vector->getRelatedness()) - ";
+	$self->{errorString} .= "A WordNet::QueryData object is required.";
+	$self->{error} = 2;
 	return undef;
     }
 
     # Initialize traces.
-    $self->{'traceString'} = "" if($self->{'trace'});
+    $self->{traceString} = "" if($self->{trace});
 
     # Undefined input cannot go unpunished.
     if(!$wps1 || !$wps2)
     {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->getRelatedness()) - Undefined input values.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+	$self->{errorString} .= "\nWarning (WordNet::Similarity::vector->getRelatedness()) - Undefined input values.";
+	$self->{error} = 1 if($self->{error} < 1);
 	return undef;
     }
 
     # Security check -- are the input strings in the correct format (word#pos#sense).
     if($wps1 !~ /^\S+\#([nvar])\#\d+$/)
     {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+	$self->{errorString} .= "\nWarning (WordNet::Similarity::vector->getRelatedness()) - ";
+	$self->{errorString} .= "Input not in word\#pos\#sense format.";
+	$self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
 	return undef;
     }
     if($wps2 !~ /^\S+\#([nvar])\#\d+$/)
     {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::vector->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+	$self->{errorString} .= "\nWarning (WordNet::Similarity::vector->getRelatedness()) - ";
+	$self->{errorString} .= "Input not in word\#pos\#sense format.";
+	$self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
 	return undef;
     }
 
     # Now check if the similarity value for these two synsets is in
     # fact in the cache... if so return the cached value.
-    if($self->{'doCache'} && defined $self->{'simCache'}->{"${wps1}::$wps2"})
-    {
-	$self->{'traceString'} = $self->{'traceCache'}->{"${wps1}::$wps2"} if($self->{'trace'});
-	return $self->{'simCache'}->{"${wps1}::$wps2"};
-    }
+    my $relatedness = $self->{doCache} ? $self->fetchFromCache($wps1, $wps2) : undef;
+    defined $relatedness and return $relatedness;
 
     # Are the gloss vectors present in the cache...
-    if(defined $self->{'vCache'}->{$wps1} && defined $self->{'vCache'}->{$wps2})
+    if(defined $self->{vCache}->{$wps1} && defined $self->{vCache}->{$wps2})
     {
-	if($self->{'trace'})
+	if($self->{trace})
 	{
 	    # ah so we do need SOME traces! put in the synset names.
-	    $self->{'traceString'} .= "Synset 1: $wps1 (Gloss Vector found in Cache)\n";
-	    $self->{'traceString'} .= "Synset 2: $wps2 (Gloss Vector found in Cache)\n";
+	    $self->{traceString} .= "Synset 1: $wps1 (Gloss Vector found in Cache)\n";
+	    $self->{traceString} .= "Synset 2: $wps2 (Gloss Vector found in Cache)\n";
 	}	
-	my $a = $self->{'vCache'}->{$wps1};
-	my $b = $self->{'vCache'}->{$wps2};
+	my $a = $self->{vCache}->{$wps1};
+	my $b = $self->{vCache}->{$wps2};
 	my $score = &_inner($a, $b);
-#	my $score = $cos->sclr();
 
 	# that does all the scoring. Put in cache if doing cacheing. Then
 	# return the score.
-	if($self->{'doCache'})
-	{
-	    $self->{'simCache'}->{"${wps1}::$wps2"} = $score;
-	    $self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
-	    push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
-	    if($self->{'maxCacheSize'} >= 0)
-	    {
-		while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
-		{
-		    my $delItem = shift(@{$self->{'cacheQ'}});
-		    delete $self->{'simCache'}->{$delItem};
-		    delete $self->{'traceCache'}->{$delItem};
-		}
-	    }
-	}
+        $self->{doCache} and $self->storeToCache($wps1, $wps2, $score);
 	return $score;
     }
 
@@ -655,7 +476,7 @@ sub getRelatedness
     my %overlaps;
     my $firstString = "";
     my $secondString = "";
-    while(defined $self->{'functions'}->[$i])
+    while(defined $self->{functions}->[$i])
     {
 	my $functionsString = "";
 	my $funcStringPrinted = 0;
@@ -664,13 +485,13 @@ sub getRelatedness
 	# see if any traces reqd. if so, create the functions string
 	# however don't send it to the trace string immediately - will
 	# print it only if there are any overlaps for this rel
-	if($self->{'trace'})
+	if($self->{trace})
 	{
 	    $functionsString = "Functions: ";
 	    my $j = 0;
-	    while(defined $self->{'functions'}->[$i]->[$j])
+	    while(defined $self->{functions}->[$i]->[$j])
 	    {
-		$functionsString .= ($self->{'functions'}->[$i]->[$j])." ";
+		$functionsString .= ($self->{functions}->[$i]->[$j])." ";
 		$j++;
 	    }
 	}
@@ -683,9 +504,9 @@ sub getRelatedness
 	my $j = 0;
 	no strict;
 
-	while(defined $self->{'functions'}->[$i]->[$j])
+	while(defined $self->{functions}->[$i]->[$j])
 	{
-	    my $fn = $self->{'functions'}->[$i]->[$j];
+	    my $fn = $self->{functions}->[$i]->[$j];
 	    @arguments = $gwi->$fn(@arguments);
 	    $j++;
 	}
@@ -697,9 +518,9 @@ sub getRelatedness
 	@arguments = @secondSet;
 	
 	$j = 0;
-	while(defined $self->{'functions'}->[$i]->[$j])
+	while(defined $self->{functions}->[$i]->[$j])
 	{
-	    my $fn = $self->{'functions'}->[$i]->[$j];
+	    my $fn = $self->{functions}->[$i]->[$j];
 	    @arguments = $gwi->$fn(@arguments);
 	    $j++;
 	}
@@ -707,11 +528,11 @@ sub getRelatedness
 	$secondString .= $arguments[0];
 		
 	# check if the two strings need to be reported in the trace.
-	if($self->{'trace'})
+	if($self->{trace})
 	{
 	    if(!$funcStringPrinted)
 	    {
-		$self->{'traceString'} .= "$functionsString\n";
+		$self->{traceString} .= "$functionsString\n";
 		$funcStringPrinted = 1;
 	    }
 	}
@@ -741,107 +562,69 @@ sub getRelatedness
     my $trr;
 
     # see if any traces reqd. if so, put in the synset arrays.
-    if($self->{'trace'})
+    if($self->{trace})
     {
 	# ah so we do need SOME traces! put in the synset names.
-	$self->{'traceString'} .= "Synset 1: $wps1";
+	$self->{traceString} .= "Synset 1: $wps1";
     }
-    if(defined $self->{'vCache'}->{$wps1})
+    if(defined $self->{vCache}->{$wps1})
     {
-	$a = $self->{'vCache'}->{$wps1};
-	$self->{'traceString'} .= " (Gloss vector found in cache)\n" if($self->{'trace'});
+	$a = $self->{vCache}->{$wps1};
+	$self->{traceString} .= " (Gloss vector found in cache)\n" if($self->{trace});
     }
     else
     {
 	($a, $trr, $maga) = $self->_getVector($firstString);
-	$self->{'traceString'} .= "\nString: \"$firstString\"\n$trr\n" if($self->{'trace'});
+	$self->{traceString} .= "\nString: \"$firstString\"\n$trr\n" if($self->{trace});
 	&_norm($a, $maga);
-	$self->{'vCache'}->{$wps1} = $a;
-	push(@{$self->{'vCacheQ'}}, $wps1);
-	while(scalar(@{$self->{'vCacheQ'}}) > $self->{'vCacheSize'})
+	$self->{vCache}->{$wps1} = $a;
+	push(@{$self->{vCacheQ}}, $wps1);
+	while(scalar(@{$self->{vCacheQ}}) > $self->{vCacheSize})
 	{
-	    my $wps = shift(@{$self->{'vCacheQ'}});
-	    delete $self->{'vCache'}->{$wps}
+	    my $wps = shift(@{$self->{vCacheQ}});
+	    delete $self->{vCache}->{$wps}
 	}
     }
 
-    if($self->{'trace'})
+    if($self->{trace})
     {
 	# ah so we do need SOME traces! put in the synset names.
-	$self->{'traceString'} .= "Synset 2: $wps2";
+	$self->{traceString} .= "Synset 2: $wps2";
     }
-    if(defined $self->{'vCache'}->{$wps2})
+    if(defined $self->{vCache}->{$wps2})
     {
-	$b = $self->{'vCache'}->{$wps2};
-	$self->{'traceString'} .= " (Gloss vector found in cache)\n" if($self->{'trace'});
+	$b = $self->{vCache}->{$wps2};
+	$self->{traceString} .= " (Gloss vector found in cache)\n" if($self->{trace});
     }
     else
     {
 	($b, $trr, $magb) = $self->_getVector($secondString);
-	$self->{'traceString'} .= "\nString: \"$secondString\"\n$trr\n" if($self->{'trace'});
+	$self->{traceString} .= "\nString: \"$secondString\"\n$trr\n" if($self->{trace});
 	&_norm($b, $magb);
-	$self->{'vCache'}->{$wps2} = $b;
-	push(@{$self->{'vCacheQ'}}, $wps2);
-	while(scalar(@{$self->{'vCacheQ'}}) > $self->{'vCacheSize'})
+	$self->{vCache}->{$wps2} = $b;
+	push(@{$self->{vCacheQ}}, $wps2);
+	while(scalar(@{$self->{vCacheQ}}) > $self->{vCacheSize})
 	{
-	    my $wps = shift(@{$self->{'vCacheQ'}});
-	    delete $self->{'vCache'}->{$wps}
+	    my $wps = shift(@{$self->{vCacheQ}});
+	    delete $self->{vCache}->{$wps}
 	}
     }
 
     $score = &_inner($a, $b);
-#    $score = $cos->sclr();
 
     # that does all the scoring. Put in cache if doing cacheing. Then
     # return the score.
-    if($self->{'doCache'})
-    {
-	$self->{'simCache'}->{"${wps1}::$wps2"} = $score;
-	$self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
-	push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
-	if($self->{'maxCacheSize'} >= 0)
-	{
-	    while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
-	    {
-		my $delItem = shift(@{$self->{'cacheQ'}});
-		delete $self->{'simCache'}->{$delItem};
-		delete $self->{'traceCache'}->{$delItem};
-	    }
-	}
-    }
+    $self->{doCache} and $self->storeToCache($wps1, $wps2, $score);
 
     return $score;
 }
 
-
-# Function to return the current trace string
-sub getTraceString
-{
-    my $self = shift;
-    my $returnString = $self->{'traceString'}."\n";
-    $self->{'traceString'} = "" if($self->{'trace'});
-    return $returnString;
-}
-
-
-# Method to return recent error/warning condition
-sub getError
-{
-    my $self = shift;
-    my $error = $self->{'error'};
-    my $errorString = $self->{'errorString'};
-    $self->{'error'} = 0;
-    $self->{'errorString'} = "";
-    $errorString =~ s/^\n//;
-    return ($error, $errorString);
-}
 
 # Method to compute a context vector from a given body of text...
 sub _getVector
 {
     my $self = shift;
     my $text = shift;
-#    my $ret = zeroes($self->{'numberOfDimensions'});
     my $ret = {};
     return $ret if(!defined $text);
     my @words = split(/\s+/, $text);
@@ -853,7 +636,7 @@ sub _getVector
     my $mag;
 
     # [trace]
-    if($self->{'trace'})
+    if($self->{trace})
     {
 	$localTraces .= "Word Vectors for: ";
     }
@@ -865,12 +648,12 @@ sub _getVector
     }
     foreach $word (keys %types)
     {
-	if(defined $self->{'table'}->{$word} && !defined $self->{'stopHash'}->{$word})
+	if(defined $self->{table}->{$word} && !defined $self->{stopHash}->{$word})
 	{
-	    my %pieces = split(/\s+/, $self->{'table'}->{$word});
+	    my %pieces = split(/\s+/, $self->{table}->{$word});
 
 	    # [trace]
-	    if($self->{'trace'})
+	    if($self->{trace})
 	    {
 		$localTraces .= ", " if(!$fstFlag);
 		$localTraces .= "$word";
@@ -880,7 +663,6 @@ sub _getVector
 
 	    foreach $kk (keys %pieces)
 	    {
-#		$ret->index($kk) += $pieces{$kk};
 		$ret->{$kk} = ((defined $ret->{$kk})?($ret->{$kk}):0) + $pieces{$kk};
 	    }
 	}
@@ -976,7 +758,7 @@ sub _compoundify
 	while($secondPointer > $firstPointer && !$done)
 	{
 	    $temp = join ("_", @wordsArray[$firstPointer..$secondPointer]);
-	    if(exists $self->{'compounds'}->{$temp})
+	    if(exists $self->{compoundHash}->{$temp})
 	    {
 		$string .= "$temp ";
 		$done = 1;

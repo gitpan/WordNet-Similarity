@@ -49,26 +49,42 @@ else {
   *OUTFH = *STDOUT;
 }
 
-my $rootdir = File::Spec->rootdir;
-my $wnhome = File::Spec->catdir ($rootdir, 'usr', 'local', 'WordNet-2.0');
+my $wnPCPath;
+my $wnUnixPath;
+# Check if path to WordNet Data files has been provided ... If so ... save it.
+if(defined $opt_wnpath)
+{
+    $wnPCPath = $opt_wnpath;
+    $wnUnixPath = $opt_wnpath;
+}
+elsif (defined $ENV{WNSEARCHDIR})
+{
+    $wnPCPath = $ENV{WNSEARCHDIR};
+    $wnUnixPath = $ENV{WNSEARCHDIR};
+}
+elsif (defined $ENV{WNHOME})
+{
+    $wnPCPath = $ENV{WNHOME} . "\\dict";
+    $wnUnixPath = $ENV{WNHOME} . "/dict";
+}
+else
+{
+    $wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-2.0/dict";
+}
 
 # I think the actual OS name for most versions of Windows is 'MSWin32',
 # even for 64-bit Windows.  See here for why:
 # http://www.perlmonks.org/index.pl?node_id=315372
-
-$wnhome = File::Spec->catdir ($rootdir, 'WordNet', '2.0') if $^O =~ m/^MSWin/i;
-
-$wnhome = $ENV{WNHOME} if defined $ENV{WNHOME};
-my $wnsearchdir = defined $ENV{WNSEARCHDIR} ? $ENV{WNSEARCHDIR} : 'dict';
-my $wnpath = $opt_wnpath || File::Spec->catfile ($wnhome, $wnsearchdir);
-
-undef $wnhome;
-undef $wnsearchdir;
+my $wnpath = ($^O =~ /^MSWin/i) ? $wnPCPath : $wnUnixPath;
 
 print STDERR "Loading WordNet::QueryData... ";
 my $wn = WordNet::QueryData->new ($wnpath);
 
-$wn or print STDERR ("failed.\n"), exit (1);
+unless ($wn) {
+  print STDERR ("failed.\n");
+  exit (1);
+}
 
 print STDERR "done\n";
 

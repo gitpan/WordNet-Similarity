@@ -1,5 +1,5 @@
-# WordNet::Similarity.pm version 0.09
-# (Updated 5/19/2004 -- Jason)
+# WordNet::Similarity.pm version 0.10
+# (Updated 8/31/2004 -- Jason)
 #
 # Module containing the version information and pod
 # for the WordNet::Similarity package.
@@ -118,7 +118,7 @@ our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 $VERSION = '0.09';
 
 # a hash to contain the module-specific configuration options.
-my %config_options;
+our %config_options;
 
 =item addConfigOption ($name, $required, $type, $default_val)
 
@@ -144,15 +144,12 @@ sub addConfigOption
   my $type = shift;
   my $default = shift;
 
-  if (defined $config_options{$name}) {
-    my ($package, $filename, $line) = caller;
-    my $msg = "\nError: $package is attempting to redefine\n";
-    $msg .= "the configuration option $name at $filename line $line.";
-
-    die "$msg\n";
+  my ($package, $filename, $line) = caller;
+  if ($package eq 'vector') {
+    print "vector\n"
   }
 
-  $config_options{$name} = [($required ? '=' : ':'), $type, $default];
+  $config_options{$name}->{$package} = [($required ? 1 : 0), $type, $default];
 }
 
 =back
@@ -289,10 +286,13 @@ sub configure
   my $file = shift;
   my $class = ref $self || $self;
 
-  while (my ($key, $value) = each %config_options) {
-    $self->{$key} = $value->[2];
+  while (my ($opt, $classHash) = each %config_options) {
+      while (my ($class, $arrayRef) = each %$classHash) {
+	  if ($self->isa ($class)) {
+	      $self->{$opt} = $arrayRef->[2];
+	  }
+      }
   }
-
   return unless defined $file;
 
 #  my %options = %config_options;
@@ -419,11 +419,29 @@ sub configure
     # JM 1/26/04
     # moved code for the rootNode option to PathFinder.pm
     else {
+OPTION_LOOP:
       foreach my $option (keys %config_options) {
+	  my $found = 0;
+CLASS_LOOP:
+	  foreach my $class (keys %{$config_options{$option}}) {
+	      if ($self->isa ($class)
+		  and defined $config_options{$option}->{$class}) {
+		  $found = $class;
+		  last CLASS_LOOP;
+	      }
+	  }
+	  next OPTION_LOOP unless $found;
+	
+	  if (not defined $config_options{$option}->{$found}) {
+	      print STDERR "$option $class\n";
+	  }
+	  my ($required, $type, $dflt)= @{$config_options{$option}->{$found}};
+
+
 	if (m/^${option}::(.*)$/i) {
 	  my $t = $1;
 	  if ($t =~ m/^\s*$/) {
-	    if ($config_options{$option}->[0] eq '=') {
+	    if ($required) {
 	      #error
 	      $self->{errorString} .= "\nWarning (${class}::configure()) - ";
 	      $self->{errorString} .= "Option $option has no value.";
@@ -431,13 +449,13 @@ sub configure
 	    }
 	    else {
 	      # do nothing
+	      $self->{$option} = $dflt
 	    }
 	  }
 	  else {
-	    if ($config_options{$option}->[1] eq 'i') {
+	    if ($type eq 'i') {
 	      # JM 12/4/03 (#3)
 	      # $self->{$option} = int ($t);
-
 	      if ($t =~ m/^\d+$/) {
 		$self->{$option} = $t + 0;
 	      }
@@ -448,7 +466,7 @@ sub configure
 		$self->{error} = ($self->{error} > 1) ? $self->{error} : 1;
 	      }
 	    }
-	    elsif ($config_options{$option}->[1] eq 'f') {
+	    elsif ($type eq 'f') {
 	      # JM 12/4/03 (#3)
 
 	      # check if this is a float
@@ -462,7 +480,7 @@ sub configure
 		$self->{error} = ($self->{error} > 1) ? $self->{error} : 1;
 	      }
 	    }
-	    elsif ($config_options{$option}->[1] eq 'p') {
+	    elsif ($type eq 'p') {
 	      if (-e $t) {
 		$self->{$option} = $t;
 	      }
@@ -473,13 +491,13 @@ sub configure
 		$self->{error} = ($self->{error} > 1) ? $self->{error} : 1;
 	      }
 	    }
-	    elsif ($config_options{$option}->[1] eq 's') {
+	    elsif ($type eq 's') {
 	      $self->{$option} = $t;
 	    }
 	    else {
 	      $self->{errorString} .= "\nWarning (${class}::configure()) - ";
 	      $self->{errorString} .=
-		"Unknown/invalid option type ".$config_options{$option}->[1]."\n";
+		"Unknown/invalid option type $type.\n";
 	    }
 	  }
 	  next OPTION_READ;

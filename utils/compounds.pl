@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# compounds.pl ver 0.09
-# (Updated 05/04/2004 -- Jason)
+# compounds.pl ver 0.10
+# (Updated 09/01/2004 -- Jason)
 #
 # Program to generate a list of all compound words
 # present in WordNet.
@@ -16,6 +16,9 @@
 #
 # Siddharth Patwardhan, University of Utah, Salt Lake City
 # sidd at cs.utah.edu
+#
+# Jason Michelizzi, University of Minnesota, Duluth
+# mich0212 at d.umn.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -32,7 +35,6 @@
 #    The Free Software Foundation, Inc.,
 #    59 Temple Place - Suite 330,
 #    Boston, MA  02111-1307, USA.
-#
 #
 #-----------------------------------------------------------------------------
 
@@ -63,12 +65,20 @@ if(defined $opt_wnpath)
     $wnPCPath = $opt_wnpath;
     $wnUnixPath = $opt_wnpath;
 }
+elsif (defined $ENV{WNSEARCHDIR})
+{
+    $wnPCPath = $ENV{WNSEARCHDIR};
+    $wnUnixPath = $ENV{WNSEARCHDIR};
+}
+elsif (defined $ENV{WNHOME})
+{
+    $wnPCPath = $ENV{WNHOME} . "\\dict";
+    $wnUnixPath = $ENV{WNHOME} . "/dict";
+}
 else
 {
-    $wnPCPath = (defined $ENV{WNHOME}) ? $ENV{WNHOME} : "C:\\Program Files\\WordNet\\2.0";
-    $wnUnixPath = (defined $ENV{WNHOME}) ? $ENV{WNHOME} : "/usr/local/WordNet-2.0";
-    $wnPCPath = (defined $ENV{WNSEARCHDIR}) ? $ENV{WNSEARCHDIR} : $wnPCPath."\\dict";
-    $wnUnixPath = (defined $ENV{WNSEARCHDIR}) ? $ENV{WNSEARCHDIR} : $wnUnixPath."/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-2.0/dict";
 }
 
 open(NIDX, $wnUnixPath."/index.noun") || open(NIDX, $wnPCPath."\\noun.idx") || die "Unable to open index file.\n";

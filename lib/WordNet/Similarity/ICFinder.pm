@@ -1,5 +1,5 @@
-# WordNet::Similarity::ICFinder.pm version 0.07
-# (Updated 1/30/2004 -- Jason)
+# WordNet::Similarity::ICFinder.pm version 0.10
+# (Updated 9/01/2004 -- Jason)
 #
 # A generic (and abstract) information content measure--this is not a
 # real measure.  The res, lin, and jcn measures inherit from this class.
@@ -96,9 +96,9 @@ use WordNet::Similarity::PathFinder;
 
 our @ISA = qw/WordNet::Similarity::PathFinder/;
 
-our $VERSION = '0.07';
+our $VERSION = '0.10';
 
-WordNet::Similarity::addConfigOption ('infocontent', ':', 'p', undef);
+WordNet::Similarity::addConfigOption ('infocontent', 0, 'p', undef);
 
 
 =item $module->traceOptions (Z<>)
