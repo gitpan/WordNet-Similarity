@@ -1,7 +1,16 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl edge.t'
+
+# A script to test the Wu & Palmer (wup.pm) measure.  This script runs the
+# following tests:
+#
+# 1) tests whether the modules are constructed correctly
+# 2) tests whether an error is given when no WordNet::QueryData object
+#    is supplied
+# 3) simply getRelatedness queries are performed on valid words, invalid
+#    words, and words from different parts of speech
 
 ##################### We start with some black magic to print on failure.
 
@@ -124,7 +133,7 @@ else
 
 ############ Relatedness across parts of speech.
 $wup->{trace} = 1;
-if($wup->getRelatedness("object#n#1", "run#v#1") != 0)
+if($wup->getRelatedness("object#n#1", "run#v#1") >= 0)
   {
     print "not ok 7\n";
   }
@@ -134,8 +143,11 @@ else
   }
 
 ############ Test traces.
-my $str = $wup->getTraceString();
-if($str !~ /Relatedness .* across parts of speech/)
+# JM 1-6-04
+# we changed how words from different parts of speech are handled
+#if($m->getTraceString() !~ /Relatedness 0 across parts of speech/)
+
+if (($wup->getError())[0] != 1)
   {
     print "not ok 8\n";
   }

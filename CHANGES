@@ -1,0 +1,750 @@
+NAME
+
+    Revision History for WordNet::Similarity.
+
+SYNOPSIS
+
+    A list of changes to the WordNet::Similarity package. These are copied
+    from the Recently Completed Items in the file todo.pod when a new
+    version is released.
+
+DESCRIPTION
+
+  Version 0.07 (Released 03/24/04)
+
+    *   03/23/2004
+
+        (1) In /t, save diff files between 0.06 and 0.07. Make sure to run
+            diff tests for path/0.07 and edge/0.06.
+
+    *   03/16/2004
+
+        (1) make sure that every .pm and .pl file has the same GNU copyleft
+            language.  Use PathFinder.pm as a template.
+
+        (2) make sure that documentation is clear that vector and lesk
+            require different format relation files (ie they are not
+            interchangeable).
+
+        (3) convert README into a series of pod documents in doc directory.
+            In the intro.pod, provide a table of contents like structure
+            (much like perldoc perl does).
+
+            Make sure that each pod documents follows the cpan style (name,
+            synopsis, etc.) This should be true of any pod documentation in
+            the package.
+
+        (4) Modify INSTALL to describe local install correctly. In
+            particular, the description of how to do a 'use lib' or -I may
+            need adjustment.
+
+    *   03/12/2004
+
+        (1) Make developers.pod into a self contained document that provides
+            a step by step tutorial on how to write a measure of
+            relatedness. The file NewStats.txt in NSP provides an example of
+            the style of presentation that is expected.
+
+        (2) developers.pod should be a tutorial that explains how to create
+            a new measure. It should take the reader through a complete
+            example, such as creating a measure that returns the sum of the
+            information content of  the concpets found in the shortest path
+            between two  concepts. This should include an example of how to
+            use all of the available configuration options, and also adding
+            a new one.
+
+    *   03/11/2004
+
+        (1) document measure modules (lch.pm, wup.pm, etc.) with information
+            about effect of hypo root node. (Take discussion from email
+            explaining why it has an effect, and why it doesn't have an
+            effect) and make it a part of the .pm perldoc. This will
+            eventually be used in thesis writing, so it should be complete
+            and  detailed. Of particular important is the behavior of
+            lch.pm, but all of the modules should have their expected
+            behaviour with and without the hypo  root node clearly
+            documented. Also, you should note what the behavior was in 0.06
+            for both nouns and verbs, and if this has changed.
+
+    *   03/09/2004
+
+        (1) lch.pm does not yet support not having a hypo root. Remember
+            that the lack of hypo root will change (potentially) the max
+            path length found for each taxonomy.
+
+    *   03/08/2004
+
+        (1) depth finding code should be contained with DepthFinder.pm. We
+            should not do any depth finding on the fly, rather that should
+            all be precomputed (like we do info content). That includes the
+            depth of individual concepts, and the max depths of taxonomies.
+
+        (2) When wup.pm encounters two or more paths to the root, the trace
+            output "condenses" those paths into a single path. It would be
+            better to show all paths in the trace (as res does, for
+            example). Also, make sure that the depth reported in such cases
+            is always the minimum (shortest path to root).
+
+    *   03/05/2004
+
+        (1) Modify wnDepths such that it shows both the depths of individual
+            concepts, as well as the max distance from a root node. In the
+            case of multiple inheritance, wndepths should show the depth of
+            the concept in each case, and also the relevant root node.
+            wnDepths should sort these depths from shortest to longest. The
+            output of wndepths should be formatted like infocontent.dat,
+            anticipating an eventual merger.
+
+    *   03/02/2004
+
+        (1) in docs, update/replace current discussion of modules. Include
+            example usage as well. Make sure that path length is clearly
+            defined for lch, edge, and wup.
+
+    *   02/25/2004
+
+        (1) In PathFinder.pm, Infocontent.pm, Similarity.pm, and
+            LCSFinder.pm each function should be documented in perldoc form
+            such that their input, output and basic functionality is
+            described. This should then appear in the DESCRIPTION portion of
+            the perldoc. The SYNOPSIS should contain examples or templates
+            of each function being used.
+
+    *   02/23/2004
+
+        (1) redo random pairs testing such that we have 60 noun-noun pairs,
+            25 verb-verb pairs, and 15 mixed pairs.
+
+    *   02/20/2004
+
+        (1) Revisit the distance versus similarity issue in jcn.pm. It maybe
+            be that simply inverting the distance is too extreme a solution.
+            One possibility is to make it a linear transformation via
+            maxdist - dist instead. (JM - we'll stick with inverting the
+            distance, but added a discussion of this issue to the
+            documentation)
+
+    *   02/18/2004
+
+        (1) document all multiple inheritance issues that are being handled
+            for measures.
+
+    *   02/16/2004
+
+        (1) validateSynset should check wps format fairly closely, and issue
+            descriptive errors if the wps is ill formed. Words can
+            apparently be about anything (except #) but pos should be lower
+            case nvra, and senses should be digits. Error messages should
+            point out which field is the problem, or if there are too few or
+            too many fields.
+
+        (2) place all hypo root handling node code in PathFinder.pm. The
+            measures should not have any hypo root handling code in them.
+
+        (3) PathFinder.pm should include a function getAllPaths.pm that
+            returns all paths between two concepts, their length, and their
+            "tops" (the candidate LCSs). This should be used as the main
+            source of input for the getLCS* functions, and for
+            getShortestPath.
+
+        (4) remove all "input verifcation" code from the measures. That
+            should be inherited from Similarity.pm.
+
+        (5) There is replicated code in the measure modules that checks
+            validity of input. This should be removed to a common module
+            that can be called by all of the measures. Any other replicated
+            code should be removed as well.  The goal of 0.07 is to largely
+            eliminate replicated code via the use of inheritance, and to
+            make the writing of new measures simpler.
+
+    *   02/13/2004
+
+        (1) add pod/perldoc to lib/ICFinder.pm. Should also be done for all
+            other files as they are modified for other reasons. In
+            particular, introductory material that appears in source code
+            comments, author information, GPL, etc. should be moved into pod
+            and removed from source code comments. See similarity.pl for an
+            example.
+
+        (2) path should use getShortestPath from PathFinder.pm.
+
+    *   02/09/2004
+
+        (1) getLCSDepth, getLCSInfo, getLCSPath should appear in
+            LCSFinder.pm, which should inherit from both ICFinder and
+            Pathfiner.
+
+        (2) The measures (lch, path, jcn, lin, res, wup) should  default to
+            having the hypo root node turned on (for both nouns and verbs).
+            This will eventually be true of hso, but is not currently. hypo
+            root nodes could also be used for lesk and vector, although they
+            are not currently.
+
+    *   02/04/2004
+
+        (1) Wps and offsets will be supported internally. The user can
+            request either mode via an option to getRelatedness. offset is
+            our default.  profiling has shown wps to be somewhat faster, in
+            that it makes fewer calls to getSense, although it does make
+            some. For input, we only support wps. For trace output we
+            support wps and offset. For output we support wps and offset.
+
+    *   01/29/2004
+
+        (1) modify option in config files such that an option without a
+            value reverts to the default in all cases (except vectordb).
+
+    *   01/24/2004
+
+        (1) Provide support for undefined values in the path finding and
+            info content measures (path, wup, lch, res, lin, jcn). If two
+            concepts are not in the same taxonomy then an error should be
+            issued and a large negative integer should be returned. This can
+            occur in two cases, between the same part of speech (noun-noun,
+            verb-verb), or between nouns and verbs. Distinct error messsages
+            should be indicated in both cases.
+
+    *   01/20/2004
+
+        (1) Clean up configuration file examples (in samples). Make them
+            consistent by having a master list (all-options.conf) that is
+            what we make changes to. Then specific example files can be
+            created via copy and paste. Make sure all possible options for a
+            measure are included, and that the explanations describe all
+            possible values as well as default handling.  (TDP updated
+            all-options.conf on 12/10/03, use this as source of cut and
+            paste).
+
+    *   01/19/2004
+
+        (1) Create test scripts that can be run to verify the correctness of
+            output - they should include "correct" answers that can be
+            compared to (automatically) and rerun as the system changes. We
+            should use the CPAN module Test::More, and create .t files in a
+            /t directory that test specific situations/problems, etc. The .t
+            files themselves should be documented with an explanation of
+            what is being tested. We should have lots of smaller, specific
+            .t tests (rather than a few big test files).  Whenever a bug is
+            found and fixed, a .t file should be created that tests the fix,
+            and this should be mentioned in the source code comments where
+            the fix is made (this fix is tested by t/xyz.t).
+
+            Make sure that the testing system can be easily
+            extended/modified, and that it can support the use of multiple
+            input files and configuration files. We should have multiple *.t
+            files to run our tests, and each module and utility should have
+            at least its own *.t file (maybe more than one in some cases).
+            We should also have *.t files that are dedicated to particular
+            situations that affect a number of measures (like what happens
+            when info content is zero for one concept, what happens if one
+            of the concepts being compared is the lcs of the other, what if
+            the two concepts are the same (self similarity), and so forth.
+
+        (2) Test cases for configuration file handling should include:
+
+            repeated options in configuration file, as in
+
+                trace::0
+                trace::1 
+
+            bad values in configuration file, as in
+
+                trace::nothankyou
+
+            bad options in configuration file, as in
+
+                tracer::0
+
+        (3) Test cases for similarity.pl should include:
+
+            ill formed file input for similarity.pl, as in
+
+                cat#dog#1 cat#n#2
+                cat#n#n cat#n#2
+                cat
+
+        (4) Test cases for measures should include:
+
+            show that wps and offset methods of path finding are equivalent
+
+            check trace output for each of the measures. use wps format, as
+            that is subject to fewer changes than offsets.
+
+            a "big" file of word pairs (maybe 100 pairs) that run all the
+            measures and  compare values to what is obtained in 0.6. If
+            there are differences, let's see what they are.
+
+        (5) Test cases for information content programs should include:
+
+            an information content file based on one of our resident text
+            files that is large enough to be interesting (readme, gpl, etc.)
+            as computed in 0.6/0.7 (should be the same). This can be used as
+            a reference point when we make changes in future.
+
+            Information content computed with a very small number of
+            concepts, to expose the counting problem that ted mentions
+            below.
+
+        (6) Test cases for wnDepth...
+
+            Generate output for 0.07 to use as a point of reference. A few
+            specific manual checks would be good too (leather_carp, entity,
+            etc.)
+
+        (7) run tests to determine where the system now provides different
+            results from version 0.06 - make sure to document these cases
+            (that are different).
+
+    *   01/12/2004
+
+        (1) document configuration options extensively in a separate pod
+            called doc/config.pod. Organize such that you have options that
+            are used with all measures, and then those that are used with
+            certain classes of measures. Then, use this as a master copy to
+            update .pm files with.
+
+    *   01/09/2004
+
+        (1) modify option handling such that multiple occurrences of an
+            option in a config file cause an error. For example
+
+              trace::
+              trace::1
+
+            should cause an error.
+
+    *   12/17/2003
+
+        (1) SemCor1.7Freq.pl and SemTagFreq.pl need to be renamed. They are
+            now called semCorRawFreq.pl and SemCorFreq.pl. semCorRawFreq.pl
+            counts without sense tags and  SemCorFreq.pl counts the  sense
+            tags. (TDP)
+
+    *   12/09/2003
+
+        (1) In similarity.pl cache error strings that indicate that two
+            input synsets are from different parts of speech so that we only
+            print out a warning once for each unique word1#pos1 word2#pos2
+            combination (JM)
+
+        (2)
+
+            (a) Enhance similarity.pl file handling (for input files).
+                Comments should be allowed - this will help in creation of
+                test data (we can explain in the comment what "case" is
+                being tested by a particular set of pairs.  Use standard
+                perl commenting style line starting with a # is a comment. 
+                Note that I don't think we can use the convention of #
+                anywhere in a line as being the start of a comment (due to
+                w#p#s) but I think any line that starts with a # can be
+                safely treated as a comment. (JM -- we are using // to
+                indicated the start of a comment)
+
+            (b) Enhance similarity.pl file handling (for input files). At
+                present if a single word (not a pair) appears on a line, no
+                error is issued. It silently ignores this case. This should
+                result in an error to the effect that the input format is
+                invalid, only one word. Also, I'm not sure what happens if
+                you have more than two words on a line. An error of some
+                sort would also be necessary in that case. Also, I am not
+                sure if similarity.pl checks to see that the words pairs are
+                "well formed", that is to say do they adhere to the word,
+                word#pos, or word#pos#number format. It would be good to
+                have a simple check that verifies we have alphanumeric
+                words, pos of n, v, a, or r, and numeric numbers.  (JM)
+
+    *   12/08/2003
+
+        (1) Clean up configuration file examples (in samples). Make them
+            consistent by having a master list (all-options.conf) that is
+            what we make changes to. Then specific example files can be
+            created via copy and paste. Make sure all possible options for a
+            measure are included, and that the explanations describe all
+            possible values as well as default handling. (JM) (TDP updated
+            all-options.conf on 12/10/03, use this as source of cut and
+            paste).
+
+        (2) Determine if it is feasible (not too difficult or time
+            consuming) to modify  --version option so it can display both
+            the version of similarity.pl and the version of the module used
+            when --type is specified.  (JM -- version will show module
+            version as well if a module is specified)
+
+    *   12/05/2003
+
+        (1) all configuration options are now printed to traceString after
+            module initialization.  (JM)
+
+        (2) explain the distinction between compounds and collocations
+            raised in sample README. (Drop the distinction, and clarify what
+            we mean by Wordnet compounds. TDP Dec 3). (JM)
+
+    *   12/04/2003
+
+        (1) document caching for random (normally random uses an unlimited
+            cache size) (JM -- random now uses the same default as all other
+            measures)
+
+        (2) determine a reasonable default cache size. Should not be
+            unlimited.  Current default is 1000, maybe it can be increased
+            to 5000 or 10000.  Let lesk with trace be the standard as to
+            what is reasonable. (JM -- default is now 5,000).
+
+        (3) Improve error handling when processing config files.  Make sure
+            the values specified are valid and that filenames refer to
+            extant files.  All options should allow the value to be omitted,
+            in which case the default is used. (JM)
+
+    *   12/01/2003
+
+        (1) Adjust Makefile.PL to account for new contents of samples
+            directory. Added entries to MANIFEST as well. JM
+
+        (2) update samples/sample.pl to run with the new files (and
+            organization) provided in the samples directory. This was also a
+            problem in 0.06, where it did not run for hso properly due to a
+            mismatch in the name specified in sample.pl and the
+            configuration file.
+
+        (3) Rename infocontent.dat in Makefile.PL to use our standard name
+            for semcor information content files. Name should reflect
+            options used in computing information content values (if any).
+            JM
+
+        (4) relation.dat is in lib/WordNet. Should be referred to as
+            lesk-relation.dat. Should also have vector-relation.dat I would
+            think. (if not, what does vector do?).  JM (vector doesn't try
+            finding a default relation file--it fails silently).
+
+        (5) /sample/vector-relation.dat is wrong. Calls itself
+            LeskRelationFile. JM
+
+        (6) In intro.pod, provide instruction on how to convert to html or
+            whatever if  user wishes (just point them to documentation that
+            describes this elsewhere even).  JM
+
+    *   11/28/2003
+
+        (1) remove wordnet 1.7.1 compounds from samples directory. (TDP)
+
+        (2) change comment in Similarity.pm to explain the pluses and
+            minuses of using/not using a unique root node.  (JM)
+
+    *   11/26/2003
+
+        (1) added info content files in samples/Infocontent
+
+        (2) changed version numbers to 0.07 in all modules and utils
+
+        (3) fixed bug in wup: if user supplies car#n#1 and auto#n#1, the LCS
+            found by wup is motor_vehicle#n#1, not car#n#1
+
+        (4) added POD to all programs in /samples
+
+    *   11/24/2003
+
+        (1) added documentation (in the form of POD) to /doc
+
+    *   11/21/2003
+
+        (1) added /doc directory to contain documentation
+
+    *   11/18/2003
+
+        (1) ensured that each measure initializes a part-of-speech list in
+            _initialize
+
+        (2) all measures (except vector) now use fetchFromCache and
+            storeToCache
+
+        (3) updated README:
+
+            (a) Replaces most references to WordNet 1.7.1 with 2.0
+
+            (b) Add some documentation on how to write a new measure
+
+        (4) added an INSTALL file
+
+        (5) cleaned up /samples.  relation.dat is now named
+            lesk-relation.dat and added vector-relation.dat.  A sample
+            config file is also provided for each measure (in
+            /samples/config-files)
+
+    *   11/15/2003
+
+        (1) updated jcn, hso, random, and lesk to use the funcitions that
+            have been moved to Similarity.pm (such as the cache management
+            functions).
+
+        (2) cleaned up the /samples directory.  Removed outdated files.  Put
+            sample config files in samples/config-files.  Added README in
+            /samples.
+
+    *   11/12/2003
+
+        (1) Added fetchFromCache() and storeToCache() to Similarity.pm to
+            make caching easier and cleaner.
+
+        (2) Updated wup, edge, lch, res, and lin to use fetchFromCache() and
+            storeToCache().
+
+    *   10/25/2003
+
+        (1) Reduced the amount of duplication code in the measure modules by
+            moving some common code to WordNet::Similarity. 
+            WordNet::Similarity is now a base class for all the measures. 
+            Also added a module called infocontent.pm from which all
+            information content measures are descended (i.e., res, lin,
+            jcn).
+
+        (2) Removed @ symbol from all email addresses in all files (I
+            think).  This might help keep spammers from harvesting our email
+            addresses.
+
+  Version 0.06
+
+    *   10/18/2003
+
+        (1) Removed dependence of the vector measure on PDL. Implemented
+            "in-house" sparse vector manipulation functions.
+
+        (2) Modified the README with updated documentation of similarity.pl
+            (--interact option) and wordVectors.pl.
+
+    *   10/15/2003
+
+        (1) Changed Makefile.PL so that it checks for version 1.30 of
+            QueryData
+
+    *   10/13/2003
+
+        (1) Added "maxCacheSize" option to all measures.
+
+        (2) Added "maxCacheSize" option info to the man/pod documentation.
+
+        (3) Used the new dataPath() method of QueryData 1.31 in all the
+            utilities to obtain the path of the WordNet data files.
+
+        (4) Modified Makefile.PL to check for PDL and BerkeleyDB dependency
+            during installation. vector.pm is not installed on failed
+            dependencies.
+
+    *   10/11/2003
+
+        (1) Replaced instances of deprecated WordNet::QueryData::query with
+            WordNet::QueryData::queryWord in hso.pm
+
+        (2) made hso.pm check QueryData version.  queryWord was broken in
+            QueryData 1.29 and earlier
+
+        (3) added support for new relations in WordNet 2.0 to get_wn_info.pm
+
+        (4) updated test scripts to work with WN 2.0 (and WN 1.7.1)
+
+    *   10/06/2003
+
+        (1) Added rootNode option to wup.pm
+
+    *   09/27/2003
+
+        (1) Fixed syntax error in wordVectors.pl.
+
+        (2) Added readDB.pl to utils.
+
+        (3) Changed contact information in docs.
+
+        (4) Re-organized the samples subdirectory.
+
+        (5) Fixed typo in random.pm.
+
+        (6) Updated the MANIFEST.
+
+    *   09/21/2003
+
+        (1) Updated POD for WordNet::Similarity::wup
+
+        (2) Added option to wup to specify a cache size in a configuration
+            file.
+
+        (3) similarity.pl now 'use's QueryData 1.30 or later. Previous 
+            versions of QueryData will not work.  t/access.t also 'use's 
+            QueryData 1.30.  get_wn_info.pm and lesk.pm both check for
+            QueryData 1.30 and will die if it not found.
+
+        (4) Reorganized the bibliography in README and slightly re-worded
+            part of the introduction.
+
+    *   09/18/2003
+
+        (1) Added new Wu Palmer measure of similarity
+            (lib/WordNet/Similarity/wup.pm)
+
+        (2) Updated README to mention wup
+
+        (3) Added t/wup.t
+
+        (4) Updated POD for WordNet::Similarity to mention wup
+
+        (5) Updated the help message of similarity.pl to mention wup
+
+        (6) Added t/wup.t and lib/WordNet/Similarity/wup.pm to MANIFEST
+
+    *   09/05/2003
+
+        (1) Added '--interact' option to similarity.pl.
+
+        (2) Changed the structure of the Vector Relation File.
+
+        (3) Fixed a minor bug in similarity.pl. (s///g)
+
+        (4) Updated the perldocs for the measures.
+
+        (5) Incorporated some new features into the 'wordVectors.pl'
+            utility.  These features were used for thesis experiments.
+
+        (6) Added documentation about the Lesk and Vector relation files
+            (they have different formats now).
+
+  Version 0.05
+
+    *   06/03/2003
+
+        (1) Added new measure of semantic relatedness, based on
+            co-occurrence vectors of WordNet glosses.
+
+        (2) Set up the package so that similarity.pl and the other perl
+            utilities get installed in "/usr/local/bin".
+
+        (3) Complete rewrite of similarity.pl with cleaner code and added
+            functionality:
+
+            (a) Multiple parts of speech can be specified as car#nv (noun
+                and verb forms of car) or cool#nar (noun, adjective and
+                adverb forms of cool).
+
+            (b) Word senses can now be specified as car#n#2, jump#v#2, etc.
+
+            (c) Added functionality to similarity.pl to use a local install
+                of WordNet::Similarity modules (in non-standard
+                directories).
+
+            (d) Output of similarity.pl now specifies the senses that
+                represent the relatedness of two words.
+
+        (4) Enforced limit on the cache size of modules.
+
+        (5) Updated README to reflect the changes and to specify options for
+            local installs of similarity.pl and the other utilities.
+
+        (6) Fixed the perl docs (remove leading spaces).
+
+        (7) Added mailing list address to documentation --
+            (http://groups.yahoo.com/group/wn-similarity).
+
+        (8) Improved jcn and lin tracing ("bird-crane" problem obvious now).
+
+        (9) Added new utility wordVectors.pl required for
+            WordNet::Similarity::vector module.
+
+  Version 0.04
+
+    *   05/02/2003
+
+        (1) *Fixed* newline in traces.
+
+        (2) *Fixed* blank line bug in brownFreq.pl.
+
+        (3) *Fixed* "--offset" option bug in similarity.pl.
+
+        (4) *Fixed* lin measure non-normalized scores... added zero
+            infocontent handling in jcn and lin.
+
+        (5) New utility rawtextFreq.pl, to generate information content
+            files from plain text.
+
+        (6) similarity.pl supports option to specify part-of-speech of input
+            words while measuring relatedness.
+
+        (7) Added option to specify (conifuration / information content)
+            file in similarity.pl.
+
+        (8) Added Resnik counting option to the information content
+            generation utilities.
+
+        (9) More documentation on information content utilities.
+
+        (10)
+            Added Add-1 smoothing option to the information content
+            generation utilities.
+
+  Version 0.03
+
+    *   03/10/2003
+
+        (1) Removed trace bug in hso.pm.
+
+        (2) Added test cases for all modules.
+
+  Version 0.01
+
+    *   02/10/2003
+
+        (1) Created CPAN modules from distance ver 0.11.
+
+        (2) Modules are completely object oriented.
+
+        (3) Added Adapted Lesk semantic relatedness measure -- lesk.pm.
+
+        (4) Added simple edge counting semantic relatedness measure --
+            edge.pm.
+
+        (5) Added a random relatedness measure -- random.pm.
+
+        (6) jcn, res and lin measures now support verb hierarchies.
+
+        (7) Information content files can now be specified as parameters to
+            the modules.
+
+        (8) Tools provided to build information content files from various
+            publicly available corpora.
+
+        (9) Various parameters now control the behavior of the modules.
+            These parameters are passed to the modules through
+            'configuration files'.
+
+AUTHORS
+
+      Siddharth Patwardhan, University of Utah, Salt Lake City
+      sidd at cs.utah.edu
+
+      Ted Pedersen, University of Minnesota Duluth
+      tpederse at d.umn.edu
+
+      Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+      banerjee+ at cs.cmu.edu
+
+      Jason Michelizzi, University of Minnesota Duluth
+      mich0212 at d.umn.edu
+
+BUGS
+
+    None.
+
+SEE ALSO
+
+    todo.pod
+
+COPYRIGHT
+
+    Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, Satanjeev
+    Banerjee, and Jason Michelizzi
+
+    Permission is granted to copy, distribute and/or modify this  document
+    under the terms of the GNU Free Documentation License, Version 1.2 or 
+    any later version published by the Free Software Foundation; with no
+    Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+
+    Note: a copy of the GNU Free Documentation License is available on the
+    web at <http://www.gnu.org/copyleft/fdl.html> and is included in this
+    distribution as FDL.txt.
+

@@ -1,317 +1,9 @@
-# WordNet::Similarity::random.pm version 0.06
-# (Updated 10/10/2003 -- Sid)
+# WordNet::Similarity::random.pm version 0.07
+# (Updated 11/26/2003 -- Sid)
 #
 # Random semantic distance generator module.
-#
-# Copyright (c) 2003,
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd@cs.utah.edu
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to 
-#
-# The Free Software Foundation, Inc., 
-# 59 Temple Place - Suite 330, 
-# Boston, MA  02111-1307, USA.
-
 
 package WordNet::Similarity::random;
-
-use strict;
-
-use Exporter;
-
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
-
-@ISA = qw(Exporter);
-
-%EXPORT_TAGS = ();
-
-@EXPORT_OK = ();
-
-@EXPORT = ();
-
-$VERSION = '0.06';
-
-
-# 'new' method for the random class... creates and returns a WordNet::Similarity::random object.
-# INPUT PARAMS  : $className  .. (WordNet::Similarity::random) (required)
-#                 $wn         .. The WordNet::QueryData object (required).
-#                 $configFile .. Name of the config file for getting the parameters (optional).
-# RETURN VALUE  : $random        .. The newly created random object.
-sub new
-{
-    my $className;
-    my $self = {};
-    my $wn;
-
-    # The name of my class.
-    $className = shift;
-    
-    # Initialize the error string and the error level.
-    $self->{'errorString'} = "";
-    $self->{'error'} = 0;
-    
-    # The WordNet::QueryData object.
-    $wn = shift;
-    $self->{'wn'} = $wn;
-    if(!$wn)
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::random->new()) - ";
-	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
-	$self->{'error'} = 2;
-    }
-
-    # Bless object, initialize it and return it.
-    bless($self, $className);
-    $self->_initialize(shift) if($self->{'error'} < 2);
-
-    return $self;
-}
-
-
-# Initialization of the WordNet::Similarity::random object... parses the config file and sets up 
-# global variables, or sets them to default values.
-# INPUT PARAMS  : $paramFile .. File containing the module specific params.
-# RETURN VALUES : (none)
-sub _initialize
-{
-    my $self;
-    my $paramFile;
-    my $infoContentFile;
-    my $wn;
-
-    # Reference to the object.
-    $self = shift;
-    
-    # Get reference to WordNet.
-    $wn = $self->{'wn'};
-
-    # Name of the parameter file.
-    $paramFile = shift;
-    
-    # Initialize the $posList... Parts of Speech that this module can handle.
-    $self->{"n"} = 1;
-    $self->{"v"} = 1;
-    $self->{"a"} = 1;
-    $self->{"r"} = 1;
-    
-    # Initialize the cache stuff.
-    $self->{'doCache'} = 1;
-    $self->{'simCache'} = ();
-    $self->{'traceCache'} = ();
-    
-    # Initialize tracing.
-    $self->{'trace'} = 0;
-
-    # Parse the config file and
-    # read parameters from the file.
-    # Looking for params --> 
-    # trace, infocontent file, cache
-    if(defined $paramFile)
-    {
-	my $modname;
-	
-	if(open(PARAM, $paramFile))
-	{
-	    $modname = <PARAM>;
-	    $modname =~ s/[\r\f\n]//g;
-	    $modname =~ s/\s+//g;
-	    if($modname =~ /^WordNet::Similarity::random/)
-	    {
-		while(<PARAM>)
-		{
-		    s/[\r\f\n]//g;
-		    s/\#.*//;
-		    s/\s+//g;
-		    if(/^trace::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'trace'} = 1;
-			$self->{'trace'} = $tmp if($tmp =~ /^[012]$/);
-		    }
-		    elsif(/^cache::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'doCache'} = 1;
-			$self->{'doCache'} = $tmp if($tmp =~ /^[01]$/);
-		    }
-		    elsif(/^maxrand::(.*)/)
-		    {
-			$self->{'maxrand'} = $1;
-		    }
-		    elsif($_ ne "")
-		    {
-			s/::.*//;
-			$self->{'errorString'} .= "\nWarning (WordNet::Similarity::random->_initialize()) - ";
-			$self->{'errorString'} .= "Unrecognized parameter '$_'. Ignoring.";
-			$self->{'error'} = 1;
-		    }
-		}
-	    }
-	    else
-	    {
-		$self->{'errorString'} .= "\nError (WordNet::Similarity::random->_initialize()) - ";
-		$self->{'errorString'} .= "$paramFile does not appear to be a config file.";
-		$self->{'error'} = 2;
-		return;
-	    }
-	    close(PARAM);
-	}
-	else
-	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::random->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open config file $paramFile.";
-	    $self->{'error'} = 2;
-	    return;
-	}
-    }
-
-    # [trace]
-    $self->{'traceString'} = "";
-    $self->{'traceString'} .= "WordNet::Similarity::random object created:\n";
-    $self->{'traceString'} .= "trace   :: ".($self->{'trace'})."\n" if(defined $self->{'trace'});
-    $self->{'traceString'} .= "cache   :: ".($self->{'doCache'})."\n" if(defined $self->{'doCache'});
-    $self->{'traceString'} .= "maxRand :: ".($self->{'maxrand'})."\n" if(defined $self->{'maxrand'});
-    $self->{'traceString'} .= "Switching on caching allows the measure to save random values and\n";
-    $self->{'traceString'} .= "retrieve them later for previously 'seen' pairs of concepts.\n";
-    # [/trace]
-}
-
-# The Random relatedness measure subroutine ...
-# INPUT PARAMS  : $wps1     .. one of the two wordsenses.
-#                 $wps2     .. the second wordsense of the two whose 
-#                              semantic relatedness needs to be measured.
-# RETURN VALUES : $distance .. the semantic relatedness of the two word senses.
-#              or undef     .. in case of an error.
-sub getRelatedness
-{
-    my $self = shift;
-    my $wps1 = shift;
-    my $wps2 = shift;
-    my $wn = $self->{'wn'};
-    my $pos1;
-    my $pos2;
-    my $offset1;
-    my $offset2;
-    my $score;
-
-    # Check the existence of the WordNet::QueryData object.
-    if(!$wn)
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::random->getRelatedness()) - ";
-	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
-	$self->{'error'} = 2;
-	return undef;
-    }
-
-    # Initialize traces.
-    $self->{'traceString'} = "" if($self->{'trace'});
-
-    # Undefined input cannot go unpunished.
-    if(!$wps1 || !$wps2)
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::random->getRelatedness()) - Undefined input values.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
-
-    # Security check -- are the input strings in the correct format (word#pos#sense).
-    if($wps1 =~ /^\S+\#([nvar])\#\d+$/)
-    {
-	$pos1 = $1;
-    }
-    else
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::random->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
-    if($wps2 =~ /^\S+\#([nvar])\#\d+$/)
-    {
-	$pos2 = $1;
-    }
-    else
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::random->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
-
-    # Now check if the similarity value for these two synsets is in
-    # fact in the cache... if so return the cached value.
-    if($self->{'doCache'} && defined $self->{'simCache'}->{"${wps1}::$wps2"})
-    {
-	if(defined $self->{'traceCache'}->{"${wps1}::$wps2"})
-	{
-	    $self->{'traceString'} = $self->{'traceCache'}->{"${wps1}::$wps2"} if($self->{'trace'});
-	}
-	return $self->{'simCache'}->{"${wps1}::$wps2"};
-    }
-
-    # Now get down to really finding the relatedness of these two.
-    $offset1 = $wn->offset($wps1);
-    $offset2 = $wn->offset($wps2);
-    $self->{'traceString'} = "" if($self->{'trace'});
-
-    if(!$offset1 || !$offset2)
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::random->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input senses not found in WordNet.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
-
-    $score = sprintf("%.3f", ((defined $self->{'maxrand'})?(rand($self->{'maxrand'})):(rand)));
-    $self->{'simCache'}->{"${wps1}::$wps2"} = $score if($self->{'doCache'});
-    $self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'doCache'} &&  $self->{'trace'});
-
-    return $score;
-}
-
-
-# Function to return the current trace string
-sub getTraceString
-{
-    my $self = shift;
-    my $returnString = $self->{'traceString'};
-    $self->{'traceString'} = "" if($self->{'trace'});
-    $returnString =~ s/\n+$/\n/;
-    return $returnString;
-}
-
-
-# Method to return recent error/warning condition
-sub getError
-{
-    my $self = shift;
-    my $error = $self->{'error'};
-    my $errorString = $self->{'errorString'};
-    $self->{'error'} = 0;
-    $self->{'errorString'} = "";
-    $errorString =~ s/^\n//;
-    return ($error, $errorString);
-}
-
-
-1;
-__END__
 
 =head1 NAME
 
@@ -340,14 +32,113 @@ of word senses using a random measure.
 
 This module generates random numbers as a measure of semantic relatedness
 of word senses. It is possible to assign a random value for a word sense
-pair and return the same value if the same word sense pair is passed as 
+pair and return the same value if the same word sense pair is passed as
 input. It is also possible to generate a new random value for the same
 word sense pair every time.
 
-=head1 USAGE
+=head2 Methods
+
+=over
+
+=cut
+
+use strict;
+
+use WordNet::Similarity;
+
+use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+
+@ISA = qw(WordNet::Similarity);
+
+%EXPORT_TAGS = ();
+
+@EXPORT_OK = ();
+
+@EXPORT = ();
+
+$VERSION = '0.07';
+
+WordNet::Similarity::addConfigOption ('maxrand', '=', 'f', 1.0);
+
+sub setPosList
+{
+  my $self = shift;
+  $self->{n} = 1;
+  $self->{v} = 1;
+  $self->{a} = 1;
+  $self->{r} = 1;
+}
+
+# Initialization of the WordNet::Similarity::random object... parses the config file and sets up
+# global variables, or sets them to default values.
+# INPUT PARAMS  : $paramFile .. File containing the module specific params.
+# RETURN VALUES : (none)
+sub initialize
+{
+  my $self = shift;
+  $self->SUPER::initialize (@_);
+  $self->{maxCacheSize} = WordNet::Similarity::UNLIMITED_CACHE;
+}
+
+=item $random->getRelatedness ($synset1, $synset2)
+
+Returns a value for the relatedness of the two synsets.  This value is
+a random number greater-than or equal-to zero and less-than 'maxrand'.
+
+If the synsets are not properly formed word#pos#sense strings, or if they
+are not found in WordNet, then the error level will be set to non-zero and
+an error string will be generated.
+
+=cut
+
+sub getRelatedness
+{
+  my $self = shift;
+  my $wps1 = shift;
+  my $wps2 = shift;
+  my $wn = $self->{wn};
+  my $class = ref $self || $self;
+
+  # check if the synsets are well-formed and are found in WordNet
+  my $ref = $self->parseWps ($wps1, $wps2);
+  ref $ref or return $ref;
+
+  # Initialize traces.
+  $self->{traceString} = "";
+
+  # Now check if the similarity value for these two synsets is in
+  # fact in the cache... if so return the cached value.
+  my $relatedness =
+    $self->{doCache} ? $self->fetchFromCache ($wps1, $wps2) : undef;
+  defined $relatedness and return $relatedness;
+
+  # Now get down to really finding the relatedness of these two.
+
+  my $score = rand ($self->{maxrand});
+  $score = sprintf ("%.3f", $score);
+
+  $self->{doCache} and $self->storeToCache ($wps1, $wps2, $score);
+  return $score;
+}
+
+# 12/5/03 JM (#1)
+# show all config options specific to this module
+sub traceOptions {
+  my $self = shift;
+  $self->{traceString} .= "maxrand :: $self->{maxrand}\n";
+  $self->SUPER::traceOptions();
+}
+
+1;
+__END__
+
+=back
+
+=head2 Usage
 
 The semantic relatedness modules in this distribution are built as classes
-that expose the following methods:
+that define the following methods:
+
   new()
   getRelatedness()
   getError()
@@ -355,10 +146,10 @@ that expose the following methods:
 
 See the WordNet::Similarity(3) documentation for details of these methods.
 
-=head1 TYPICAL USAGE EXAMPLES
+=head3 Typical Usage Examples
 
 To create an object of the random measure, we would have the following
-lines of code in the Perl program. 
+lines of code in the Perl program.
 
    use WordNet::Similarity::random;
    $measure = WordNet::Similarity::random->new($wn, '/home/sid/random.conf');
@@ -367,7 +158,7 @@ The reference of the initialized object is stored in the scalar variable
 '$measure'. '$wn' contains a WordNet::QueryData object that should have been
 created earlier in the program. The second parameter to the 'new' method is
 the path of the configuration file for the random measure. If the 'new'
-method is unable to create the object, '$measure' would be undefined. This, 
+method is unable to create the object, '$measure' would be undefined. This,
 as well as any other error/warning may be tested.
 
    die "Unable to create object.\n" if(!defined $measure);
@@ -379,7 +170,7 @@ the second sense of the noun 'bus' using the measure, we would write
 the following piece of code:
 
    $relatedness = $measure->getRelatedness('car#n#1', 'bus#n#2');
-  
+
 To get traces for the above computation:
 
    print $measure->getTraceString();
@@ -404,25 +195,48 @@ parameters, each on a new line and having the form 'name::value'. The
 supported in the configuration file. Anything following a '#' is ignored till
 the end of the line.
 
-The module parses the configuration file and recognizes the following 
+The module parses the configuration file and recognizes the following
 parameters:
-  
-(a) 'trace::' -- can take values 0, 1 or 2 or the value can be omitted,
-in which case it sets the trace level to 1. Trace level 0 implies
-no traces. Trace level 1 and 2 imply tracing is 'on' the only 
-difference being in the way in which the synsets are displayed in the 
-output. For trace level 1, the synsets are represented as word#pos#sense
-strings, while for level 2, the synsets are represented as 
-word#pos#offset strings.
-  
-(b) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
-which case it takes the value 1, i.e. switches 'on' caching. A value of 
-0 switches caching 'off'. By default caching is enabled. For module 
-enabling caching implies that a previously generated random value will
-be reused if the same word sense pair occurs again. If caching is disabled
-for every word sense pair a new random number will be generated.
-  
-(c) 'maxrand::' -- specifies the maximum random number that can be generated.
+
+=over
+
+=item trace
+
+The value of this parameter specifies the level of tracing that should
+be employed for generating the traces. This value
+is an integer equal to 0, 1, or 2. If the value is omitted, then the
+default value, 0, is used. A value of 0 switches tracing off. A value
+of 1 or 2 switches tracing on, but the random measure is so simple, that
+generating traces makes little senses, so this option has no effect.
+
+=item cache
+
+The value of this parameter specifies whether or not caching of the
+relatedness values should be performed.  This value is an
+integer equal to  0 or 1.  If the value is omitted, then the default
+value, 1, is used. A value of 0 switches caching 'off', and
+a value of 1 switches caching 'on'.
+
+=item maxCacheSize
+
+The value of this parameter indicates the size of the cache, used for
+storing the computed relatedness value. The specified value must be
+a non-negative integer.  If the value is omitted, then the default
+value, 5,000, is used. Setting maxCacheSize to zero has
+the same effect as setting cache to zero, but setting cache to zero is
+likely to be more efficient.  Caching and tracing at the same time can result
+in excessive memory usage because the trace strings are also cached.  If
+you intend to perform a large number of relatedness queries, then you
+might want to turn tracing off.
+
+=item maxrand
+
+The value of this option is the maximum random number that will be generated.
+The value of this option must be a positive floating-point number.  The
+default value is 1.0.  All random numbers generated will be in the range
+[0, maxrand).
+
+=back
 
 =head1 SEE ALSO
 
@@ -438,14 +252,42 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Siddharth Patwardhan, <sidd@cs.utah.edu>
-  Ted Pedersen, <tpederse@d.umn.edu>
+  Siddharth Patwardhan, University of Utah, Salt Lake City
+  sidd at cs.utah.edu
+
+  Ted Pedersen, University of Minnesota Duluth
+  tpederse at d.umn.edu
+
+=head1 BUGS
+
+None.
+
+To report a bug, go to http://groups.yahoo.com/group/wn-similarity/
+or e-mail "S<tpederse at d.umn.edu>".
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by Siddharth Patwardhan and Ted Pedersen
+Copyright (C) 2003-2004, Siddharth Patwardhan and Ted Pedersen
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to
+
+    The Free Software Foundation, Inc.,
+    59 Temple Place - Suite 330,
+    Boston, MA  02111-1307, USA.
+
+Note: a copy of the GNU General Public License is available on the web
+at L<http://www.gnu.org/licenses/gpl.txt> and is included in this
+distribution as GPL.txt.
 
 =cut

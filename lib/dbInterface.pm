@@ -1,4 +1,4 @@
-# dbInterface.pm version 0.05
+# dbInterface.pm version 0.07
 # (Updated 06/09/2003 -- Sid)
 #
 # Package used by WordNet::Similarity::vector module that
@@ -9,10 +9,10 @@
 # Copyright (c) 2003,
 #
 # Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd@cs.utah.edu
+# sidd at cs.utah.edu
 #
 # Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
+# tpederse at d.umn.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# wordVectors.pl version 0.06
-# (Last updated 10/13/2003 -- Sid)
+# wordVectors.pl version 0.07
+# (Last updated 11/26/2003 -- Jason)
 #
 # Program to create word vectors (co-occurrence vectors) for all
 # words in WordNet glosses.
@@ -9,10 +9,10 @@
 # Copyright (c) 2002-2003
 #
 # Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
+# tpederse at d.umn.edu
 #
 # Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd@cs.utah.edu
+# sidd at cs.utah.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -514,6 +514,85 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "wordVectors.pl version 0.06\n";
+    print "wordVectors.pl version 0.07\n";
     print "Copyright (c) 2003 Siddharth Patwardhan & Ted Pedersen.\n";
 }
+
+__END__
+
+=head1 NAME
+
+wordVectors.pl - write word vectors from WordNet glosses to a BerkeleyDB file
+
+=head1 SYNOPSIS
+
+wordVectors.pl [[--compfile COMPOUNDS] [--stopfile STOPLIST] [--wnpath WNPATH] [--noexamples] [--cutoff VALUE] [--rhigh RHIGH] [--rlow RLOW] [--chigh CHIGH] [--clow CLOW] DBFILE | --help | --version]
+
+=head1 DESCRIPTION
+
+This program writes out word vectors computed from WordNet glosses in a
+BerkeleyDB database (Hash) specified by filename DBFILE.  The database
+file is intended for use by the WordNet::Similarity::vector Perl module,
+but if you can think of something else to do with it, then go ahead.
+
+=head1 OPTIONS
+
+B<--compfile>=I<file>
+
+    Option specifying the the list of compounds present
+    in WordNet in the file COMPOUNDS. This list is used
+    for compound detection.
+
+B<--stopfile>=I<file>
+
+    Option specifying a list of stopwords to not be
+    considered while counting.
+
+B<--wnpath>=I<path>
+
+    Specifies the path to the WordNet data files.
+    Ordinarily, this path is determined from the $WNHOME
+    environment variable. But this option overides this
+    behavior.
+
+B<--noexamples>
+
+    Removes examples from the glosses before processing.
+
+B<--cutoff>=I<number>
+
+    Option used to restrict the dimensions of the word
+    vectors with an tf/idf cutoff. VALUE is the cutoff
+    above which is an acceptable tf/idf value of a word.
+
+B<--rhigh>=I<number>
+
+    the upper frequency cutoff of the words
+    selected to have a word-vector entry in the database.
+
+B<--rlow>=I<number>
+
+    the lower frequency cutoff of the words
+    selected to have a word-vector entry in the database.
+
+B<--chigh>=I<number>
+
+    the upper frequency cutoff of words that form
+    the dimensions of the word-vectors.
+
+B<--clow>=I<number>
+
+    the lower frequency cutoff of words that form
+    the dimensions of the word-vectors.
+
+B<--help>
+
+    Displays a detailed usage message
+
+B<--version>
+
+    Displays version information.
+
+
+
+=cut

@@ -1,6 +1,9 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
-# Sample Perl program, showing how to use the 
+use strict;
+use warnings;
+
+# Sample Perl program, showing how to use the
 # WordNet::Similarity measures.
 
 # WordNet::QueryData is required by all the
@@ -13,17 +16,26 @@ use WordNet::Similarity::res;
 use WordNet::Similarity::lin;
 use WordNet::Similarity::lch;
 use WordNet::Similarity::hso;
-use WordNet::Similarity::edge;
+use WordNet::Similarity::path;
+use WordNet::Similarity::wup;
 use WordNet::Similarity::random;
 use WordNet::Similarity::lesk;
+use WordNet::Similarity::vector;
 
 # Get the concepts.
-$wps1 = shift;
-$wps2 = shift;
+my $wps1 = shift;
+my $wps2 = shift;
+
+unless (defined $wps1 and defined $wps2) {
+    print STDERR "Undefined input\n";
+    print STDERR "Usage: sample.pl synset1 synset2\n";
+    print STDERR "\tSynsets must be in word#pos#sense format (ex., dog#n#1)\n";
+    exit 1;
+}
 
 # Load WordNet::QueryData
 print STDERR "Loading WordNet... ";
-$wn = WordNet::QueryData->new;
+my $wn = WordNet::QueryData->new;
 die "Unable to create WordNet object.\n" if(!$wn);
 print STDERR "done.\n";
 
@@ -31,56 +43,56 @@ print STDERR "done.\n";
 # Create an object for each of the measures of
 # semantic relatedness.
 print STDERR "Creating jcn object... ";
-$jcn = WordNet::Similarity::jcn->new($wn);
+my $jcn = WordNet::Similarity::jcn->new($wn);
 die "Unable to create jcn object.\n" if(!defined $jcn);
-($error, $errString) = $jcn->getError();
+my ($error, $errString) = $jcn->getError();
 die $errString if($error > 1);
 print STDERR "done.\n";
 
 print STDERR "Creating res object... ";
-$res = WordNet::Similarity::res->new($wn);
+my $res = WordNet::Similarity::res->new($wn);
 die "Unable to create res object.\n" if(!defined $res);
 ($error, $errString) = $res->getError();
 die $errString if($error > 1);
 print STDERR "done.\n";
 
 print STDERR "Creating lin object... ";
-$lin = WordNet::Similarity::lin->new($wn);
+my $lin = WordNet::Similarity::lin->new($wn);
 die "Unable to create lin object.\n" if(!defined $lin);
 ($error, $errString) = $lin->getError();
 die $errString if($error > 1);
 print STDERR "done.\n";
 
 print STDERR "Creating lch object... ";
-$lch = WordNet::Similarity::lch->new($wn);
+my $lch = WordNet::Similarity::lch->new($wn);
 die "Unable to create lch object.\n" if(!defined $lch);
 ($error, $errString) = $lch->getError();
 die $errString if($error > 1);
 print STDERR "done.\n";
 
 print STDERR "Creating hso object... ";
-$hso = WordNet::Similarity::hso->new($wn, "hso.conf");
+my $hso = WordNet::Similarity::hso->new($wn, "config-files/config-hso.conf");
 die "Unable to create hso object.\n" if(!defined $hso);
 ($error, $errString) = $hso->getError();
 die $errString if($error > 1);
 print STDERR "done.\n";
 
-print STDERR "Creating edge object... ";
-$edge = WordNet::Similarity::edge->new($wn);
-die "Unable to create edge object.\n" if(!defined $edge);
-($error, $errString) = $edge->getError();
+print STDERR "Creating path object... ";
+my $path = WordNet::Similarity::path->new($wn);
+die "Unable to create path object.\n" if(!defined $path);
+($error, $errString) = $path->getError();
 die $errString if($error > 1);
 print STDERR "done.\n";
 
 print STDERR "Creating random object... ";
-$random = WordNet::Similarity::random->new($wn);
+my $random = WordNet::Similarity::random->new($wn);
 die "Unable to create random object.\n" if(!defined $random);
 ($error, $errString) = $random->getError();
 die $errString if($error > 1);
 print STDERR "done.\n";
 
 print STDERR "Creating lesk object... ";
-$lesk = WordNet::Similarity::lesk->new($wn);
+my $lesk = WordNet::Similarity::lesk->new($wn);
 die "Unable to create lesk object.\n" if(!defined $lesk);
 ($error, $errString) = $lesk->getError();
 die $errString if($error > 1);
@@ -88,63 +100,65 @@ print STDERR "done.\n";
 
 
 
-# Find the relatedness of the concepts using each of 
+# Find the relatedness of the concepts using each of
 # the measures.
-$value = $jcn->getRelatedness($wps1, $wps2);
+my $value = $jcn->getRelatedness($wps1, $wps2);
 ($error, $errString) = $jcn->getError();
 die $errString if($error > 1);
 
 print "Similarity = $value\n";
-print "ErrorString = $errString\n";
+print "ErrorString = $errString\n" if $error;
 
 $value = $res->getRelatedness($wps1, $wps2);
 ($error, $errString) = $res->getError();
 die $errString if($error > 1);
 
 print "Similarity = $value\n";
-print "ErrorString = $errString\n";
+print "ErrorString = $errString\n" if $error;
 
 $value = $lin->getRelatedness($wps1, $wps2);
 ($error, $errString) = $lin->getError();
 die $errString if($error > 1);
 
 print "Similarity = $value\n";
-print "ErrorString = $errString\n";
+print "ErrorString = $errString\n" if $error;
 
 $value = $lch->getRelatedness($wps1, $wps2);
 ($error, $errString) = $lch->getError();
 die $errString if($error > 1);
 
 print "Similarity = $value\n";
-print "ErrorString = $errString\n";
+print "ErrorString = $errString\n" if $error;
 
 $value = $hso->getRelatedness($wps1, $wps2);
 ($error, $errString) = $hso->getError();
 die $errString if($error > 1);
-$trace = $hso->getTraceString();
+my $trace = $hso->getTraceString();
 
 print "Similarity = $value\n";
-print "ErrorString = $errString\n";
+print "ErrorString = $errString\n" if $error;
 print "TRACE\n\n$trace\n";
 
-$value = $edge->getRelatedness($wps1, $wps2);
-($error, $errString) = $edge->getError();
+$value = $path->getRelatedness($wps1, $wps2);
+($error, $errString) = $path->getError();
 die $errString if($error > 1);
 
 print "Similarity = $value\n";
-print "ErrorString = $errString\n";
+print "ErrorString = $errString\n" if $error;
 
 $value = $random->getRelatedness($wps1, $wps2);
 ($error, $errString) = $random->getError();
 die $errString if($error > 1);
 
 print "Similarity = $value\n";
-print "ErrorString = $errString\n";
+print "ErrorString = $errString\n" if $error;
 
 $value = $lesk->getRelatedness($wps1, $wps2);
 ($error, $errString) = $lesk->getError();
 die $errString if($error > 1);
 
 print "Similarity = $value\n";
-print "ErrorString = $errString\n";
+print "ErrorString = $errString\n" if $error;
+
+__END__
 

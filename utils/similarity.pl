@@ -1,80 +1,54 @@
 #!/usr/local/bin/perl -w
 #
-# similarity.pl Version 0.06
-# (Updated 10/18/2003 -- Sid)
+# similarity.pl Version 0.07
+# (Updated 12/8/2003 -- JM)
 #
-# Implementation of semantic relatedness measures between words as 
-# described in Budanitsky and Hirst (1995) "Semantic distance in 
-# WordNet: An Experimental, application-oriented evaluation of five 
-# measures." The measures described and implemented are 
+# This program is a command line interface to WordNet::Similarity
 #
-# (1) Leacock and Chodorow (1998)
-# (2) Jiang and Conrath (1997)
-# (3) Resnik (1995)
-# (4) Lin (1998)
-# (5) Hirst St. Onge (1998)
-# 
-# This program uses the Wordnet::Similarity perl modules for computing
-# semantic relatedness.
-#
-# Copyright (c) 2003,
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd@cs.utah.edu
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to 
-#
-# The Free Software Foundation, Inc., 
-# 59 Temple Place - Suite 330, 
-# Boston, MA  02111-1307, USA.
-#
-# ------------------------------------------------------------------
+# Complete documentation is available at the end of this file, or
+# via perldoc similarity.pl
+# ---------------------------------------------------------------------
 
-BEGIN
-{
-    # Include the QueryData package.
-    use WordNet::QueryData 1.30;
-    
-    # Include library to get Command-Line options.
-    use Getopt::Long;
-    
-    # If no Command-Line arguments given ... show minimal help screen ... exit.
-    if($#ARGV < 0)
-    {
-	print "Usage: similarity.pl [{--type TYPE [--config CONFIGFILE] [--allsenses] [--offsets]";
-	print " [--trace] [--wnpath PATH] [--simpath SIMPATH] {--interact | --file FILENAME | WORD1 WORD2}\n";
-	print "                     |--help \n";
-	print "                     |--version }]\n";
-	print "Type similarity.pl --help for detailed help.\n";
-	exit;
-    }
-    
-    # Get Command-Line options.
-    &GetOptions("help", "version", "wnpath=s", "simpath=s", "type=s", 
-		"config=s", "file=s", "trace", "allsenses", "offsets",  "interact");
-    
-    # To be able to use a local install of similarity modules.
-    if(defined $opt_simpath)
-    {
-      my @tmpINC = @INC;
-      @INC = ($opt_simpath);
-      push(@INC, @tmpINC); 
-    }
-}
+use strict;
+
+# 12/8/2003 JM
+# There doesn't seem to be any advantage to wrapping this in a BEGIN block
+
+#BEGIN
+#  {
+
+# Include the QueryData package.
+use WordNet::QueryData 1.30;
+
+# Include library to get Command-Line options.
+use Getopt::Long;
+	
+# If no Command-Line arguments given ... show minimal help screen ... exit.
+if($#ARGV < 0)
+  {
+    # usage info moved to showUsage()
+    showUsage ();
+    exit (0);
+  }
+
+our ($opt_help, $opt_version, $opt_wnpath, $opt_simpath, $opt_type);
+our ($opt_config, $opt_file, $opt_trace, $opt_allsenses, $opt_offsets);
+our ($opt_interact);
+# Get Command-Line options.
+&GetOptions("help", "version", "wnpath=s", "simpath=s", "type=s",
+	    "config=s", "file=s", "trace", "allsenses", "offsets",
+	    "interact");
+
+# To be able to use a local install of similarity modules.
+if(defined $opt_simpath)
+  {
+    my @tmpINC = @INC;
+    @INC = ($opt_simpath);
+    push(@INC, @tmpINC);
+  }
+
+
+#  } # end of BEGIN block
 
 # Declarations:
 my $wn;       # WordNet::QueryData object.
@@ -83,26 +57,26 @@ my $type;     # WordNet::Similarity module name.
 
 # Check if help has been requested ... If so ... display help.
 if(defined $opt_help)
-{
+  {
     $opt_help = 1;
     &showHelp;
-    exit;
-}
+    exit 0;
+  }
 
 # Check if version number has been requested ... If so ... display version.
 if(defined $opt_version)
-{
+  {
     $opt_version = 1;
     &showVersion;
-    exit;
-}
+    exit 0;
+  }
 
-# Which similarity measure must be used ... 
+# Which similarity measure must be used ...
 if(!defined $opt_type)
 {
     print STDERR "Required switch '--type' missing.\n";
     &showUsage;
-    exit;
+    exit 1;
 }
 
 # If the file option has not been provided, then 
@@ -112,7 +86,7 @@ if(!(defined $opt_file) && !(defined $opt_interact) && $#ARGV < 1)
 {
     print STDERR "Required parameter(s) missing.\n";
     &showUsage;
-    exit;
+    exit 1;
 }
 
 # Initialize the WordNet::QueryData module.
@@ -121,7 +95,7 @@ $wn = (defined $opt_wnpath) ? WordNet::QueryData->new($opt_wnpath) : WordNet::Qu
 if(!$wn)
 {
     print STDERR "Unable to create WordNet object.\n";
-    exit;
+    exit 1;
 }
 print STDERR "done.\n";
 
@@ -144,29 +118,40 @@ else
 if(!$measure)
 {
     print STDERR "Unable to create WordNet::Similarity object.\n";
-    exit;
+    exit 1;
 }
 
 # If serious error... stop.
-($error, $errorString) = $measure->getError();
+my ($error, $errorString) = $measure->getError();
 if($error > 1)
 {
     print STDERR $errorString."\n";
-    exit;
+    exit 1;
 }
 
 # Set the appropriate trace params.
 if(defined $opt_trace)
 {
+  if ($measure->{trace} >= 2) {
+    $opt_offsets = 1;
+  }
+  else {
     $measure->{'trace'} = ((defined $opt_offsets) ? 2 : 1);
+  }
 }
 else
 {
-    if($measure->{'trace'})
-    {
-	$opt_trace = 1;
-	$measure->{'trace'} = ((defined $opt_offsets) ? 2 : 1);
-    }
+  # JM 1-28-04
+  # The following code was causing problems if a user specifies a trace
+  # level of 2 in a config file but not the --offsets option, then the user
+  # still only sees level 1 traces.
+  #if($measure->{'trace'})
+  #  {
+  #      $opt_trace = 1;
+  #	$measure->{'trace'} = ((defined $opt_offsets) ? 2 : 1);
+  #  }
+  $opt_offsets = 1 if $measure->{trace} >= 2;
+  $opt_trace = $measure->{trace};
 }
 print STDERR "done.\n";
 
@@ -184,7 +169,7 @@ if(defined $opt_interact)
     my ($con1, $con2);
 
     print "Starting interactive mode (Enter blank fields to end session)...\n";
-    $con1 = $con2 = "x";               # Hack to start the interactive while loop.
+    $con1 = $con2 = "x";           # Hack to start the interactive while loop.
     while($con1 ne "" && $con2 ne "")
     {
 	print "Concept \#1: ";
@@ -209,17 +194,27 @@ elsif(defined $opt_file)
     open(DATA, $opt_file) || die "Unable to open file: $opt_file\n";
     while(<DATA>)
     {
+      # 12/9/03 JM (#2)
+      # modified below to remove comments and ensure that each
+      # line contains exactly two words
 	s/[\r\f\n]//g;
 	s/^\s+//;
+	s/^\#.*//; # remove lines beginning with # (i.e., comments)
+	s|//.*||; # remove anything following // (i.e., more comments)
 	s/\s+$//;
-	@words = split /\s+/;
-	if(scalar(@words) && defined $words[0] && defined $words[1])
+	next if 0 == length;
+
+	my @words = split /\s+/;
+	unless (scalar (@words) == 2) {
+	  print STDERR "Warning: line $. of $opt_file does not contain exactly two words: skipping line.\n";
+	}
+	else #(scalar(@words) && defined $words[0] && defined $words[1])
 	{
 	    print "$words[0]  $words[1]\n" if(defined $opt_trace);
 	    &process($words[0], $words[1]);
 	    print "\n" if(defined $opt_trace);
 	}
-    }      
+    }
     close(DATA);
 }
 else
@@ -400,26 +395,55 @@ sub getDistances
 
     return {} if(!defined $list1 || !defined $list2);
 
+    my %errcache;
+
   LEVEL2:
     foreach $synset1 (@{$list1})
     {
-	foreach $synset2 (@{$list2})
+      foreach $synset2 (@{$list2})
 	{
-	    $retHash{"$synset1 $synset2"} = $measure->getRelatedness($synset1, $synset2);
-	    ($err, $errString) = $measure->getError();
-	    if($err)
+	  # modified 12/8/03 by JM
+	  # it is possible for getRelatedness to return a non-numeric value,
+	  # and this can cause problems in ::process() when the relatedness
+	  # values are sorted
+	  #$retHash{"$synset1 $synset2"} = $measure->getRelatedness($synset1, $synset2);
+
+	  my $score = $measure->getRelatedness ($synset1, $synset2);
+
+	  $retHash{"$synset1 $synset2"} = $score;
+	
+	  my ($err, $errString) = $measure->getError();
+	  #end modifications
+
+	  if($err) {
+	    # 12/9/03 JM (#1)
+	    # cache error strings indicating that two words belong
+	    # to different parts of speech
+
+	    $errString =~ m/(\S+\#[nvar])(?:\#\d+)? and (\S+\#[nvar])(?:\#\d+)?/;
+
+	    my $keystr = "$1 $2";
+	    print STDERR "$errString\n" unless $errcache{$keystr};
+	    $errcache{$keystr} = 1;
+
+	    # JM 12/8/2003
+	    # getRelatedness() can return a warning if the two concepts
+	    # are from different taxonomies, but we need to keep
+	    # comparing relatedness values anyways
+	    #
+	    # last LEVEL2;
+
+	    last LEVEL2 if ($err > 1);
+	  }
+
+	  if(defined $opt_trace)
 	    {
-		print STDERR "$errString\n";
-		last LEVEL2;
-	    }
-	    if(defined $opt_trace)
-	    {
-		my $loctr = $measure->getTraceString();
-		if($loctr !~ /^\s*$/)
+	      my $loctr = $measure->getTraceString();
+	      if($loctr !~ /^\s*$/)
 		{
-		    print "$synset1 $synset2:\n";
-		    print "$loctr\n";
-		    $tracePrinted = 1;
+		  print "$synset1 $synset2:\n";
+		  print "$loctr\n";
+		  $tracePrinted = 1;
 		}
 	    }
 	}
@@ -435,7 +459,7 @@ sub printSet
     my $synset = shift;
     my $offset;
     my $printString = "";
-    
+
     if($synset =~ /(.*)\#([nvar])\#(.*)/)
     {
 	if(defined $opt_offsets)
@@ -481,16 +505,16 @@ sub showHelp
     print "--type        Switch to select the type of similarity measure\n";
     print "              to be used while calculating the semantic\n";
     print "              relatedness. The following strings are defined.\n";
-    print "               'WordNet::Similarity::lch'    The Leacock Chodorow measure.\n";
-    print "               'WordNet::Similarity::jcn'    The Jiang Conrath measure.\n";
-    print "               'WordNet::Similarity::res'    The Resnik measure.\n";
-    print "               'WordNet::Similarity::lin'    The Lin measure.\n";
-    print "               'WordNet::Similarity::hso'    The Hirst St. Onge measure.\n";
-    print "               'WordNet::Similarity::lesk'   Adapted Lesk measure.\n";
-    print "               'WordNet::Similarity::vector' Gloss Vector overlap measure.\n";
     print "               'WordNet::Similarity::edge'   Simple edge-counts (inverted).\n";
-    print "               'WordNet::Similarity::wup'    Wu Palmer measure.\n";
+    print "               'WordNet::Similarity::hso'    The Hirst St. Onge measure.\n";
+    print "               'WordNet::Similarity::lch'    The Leacock Chodorow measure.\n";
+    print "               'WordNet::Similarity::lesk'   Adapted Lesk measure.\n";
+    print "               'WordNet::Similarity::lin'    The Lin measure.\n";
+    print "               'WordNet::Similarity::jcn'    The Jiang Conrath measure.\n";
     print "               'WordNet::Similarity::random' A random measure.\n";
+    print "               'WordNet::Similarity::res'    The Resnik measure.\n";
+    print "               'WordNet::Similarity::vector' Gloss Vector overlap measure.\n";
+    print "               'WordNet::Similarity::wup'    Wu Palmer measure.\n";
     print "--config      Module-specific configuration file CONFIGFILE. This file\n";
     print "              contains the configuration that is used by the\n";
     print "              WordNet::Similarity modules during initialization. The format\n";
@@ -516,8 +540,8 @@ sub showHelp
     print "              file with pairs of words separated by newlines, and the\n";
     print "              words of each pair separated by a space.\n";
     print "--wnpath      Option to specify the path of the WordNet data files\n";
-    print "              as PATH. (Defaults to /usr/local/WordNet-1.7.1/dict on Unix\n";
-    print "              systems and C:\\WordNet\\1.7.1\\dict on Windows systems)\n";
+    print "              as PATH. (Defaults to /usr/local/WordNet-2.0/dict on Unix\n";
+    print "              systems and C:\\WordNet\\2.0\\dict on Windows systems)\n";
     print "--simpath     If the relatedness module to be used, is locally installed,\n";
     print "              then SIMPATH can be used to indicate the location of the local\n";
     print "              install of the measure.\n";
@@ -539,7 +563,144 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "similarity.pl  version 0.06\n";
+    print "similarity.pl  version 0.07\n";
+
+    # 12/8/2003 JM (#3)
+    # Print version of module if the --type option was given.
+    if ($opt_type) {
+      my $module = $opt_type;
+      $module =~ s/::/\//g;
+      $module .= '.pm';
+      require $module;
+      print "$opt_type  version ".$opt_type->VERSION()."\n";
+    }
+
     print "Copyright (c) 2003, Siddharth Patwardhan & Ted Pedersen\n";
 }
+
+__END__
+
+=head1 NAME
+
+similarity.pl - command line interface to WordNet::Similarity
+
+=head1 SYNOPSIS
+
+similarity.pl [--type=TYPE [--config=CONFIGFILE] [--allsense] [--offsets] [--trace] [--wnpath=PATH] [--simpath=SIMPATH] {--interact | --file=FILENAME | WORD1 WORD2}
+               | --help
+               | --version]
+
+=head1 DESCRIPTION
+
+This program is a command line interface to the WordNet::Similarity
+package, which is an implementation of semantic relatedness measures   
+between words. This project began in an effort to replicate the measures 
+described in Budanitsky and Hirst (1995) "Semantic distance in WordNet:  
+An Experimental, application-oriented evaluation of five measures", and
+has since grown to include additional measures.  The measures described 
+and implemented are as follows (those included in Budanitksy and Hirst's
+work are denoted with a *):
+
+   (1) Leacock and Chodorow (1998) *
+   (2) Jiang and Conrath (1997) *
+   (3) Resnik (1995) *
+   (4) Lin (1998) *
+   (5) Hirst St-Onge (1998) *
+   (6) Wu and Palmer (1994)
+   (7) Adapted Lesk (Banerjee & Pedersen, 2003)
+   (8) Edge Counting 
+   (9) Vector (Patwardhan, 2003)
+   (10) Random
+
+=head1 OPTIONS
+
+B<--type>=I<type>
+    the type of similarity measure.  Valid values are
+
+    WordNet::Similarity::edge - simple edge counting
+    WordNet::Similarity::hso - Hirst & St-Onge (1998)
+    WordNet::Similarity::lch - Leacock & Chodorow (1998)
+    WordNet::Similarity::lesk - Adapted Lesk (Pedersen & Banerjee 2003)
+    WordNet::Similarity::lin - Lin (1998)
+    WordNet::Similarity::jcn - Jiang & Conrath (1997)
+    WordNet::Similarity::random - returns random numbers
+    WordNet::Similarity::res - Resnik (1995)
+    WordNet::Similarity::vector - context vector (Patwardhan 2003)
+    WordNet::Similarity::wup - Wu & Palmer (1994)
+
+B<--config>=I<configfile>
+    the path to a module-specific configuration file
+
+B<--allsenses>
+    Show the relatedness between every sense of the two input words
+
+B<--offsets>
+    show all synsets as offsets and a part-of-speech letter
+
+B<--trace>
+    switches on "Trace" mode.  Output goes to stdout.
+
+B<--interace>
+    starts the interactive mode (experimental)
+
+B<--file>=I<filename>
+    input words are read from I<filename>.  This file must contain a pair
+    of words on each line.  Comments are allowed: anything following //
+    on a line is ignored.
+
+B<--wnpath>=I<path>
+    looks for WordNet in I<path>. Usual values are
+    /usr/local/WordNet/2.0/dict and C:\WordNet\2.0\dict.
+
+B<--simpath>=I<path>
+    look the relatedness module in I<path>.  This is useful if
+    the module is locally installed.
+
+B<--help>
+    show a detailed help message
+
+B<--version>
+    show version information
+
+=head1 AUTHORS
+
+ Siddharth Patwardhan <sidd at cs.utah.edu>
+ Ted Pedersen <tpederse at d.umn.edu>
+ Satanjeev Banerjee <satanjeev at cmu.edu>
+ Jason Michelizzi <mich0212 at d.umn.edu>
+
+=head1 BUGS
+
+=head1 SEE ALSO
+
+perl(1)
+
+WordNet::Similarity(3)
+
+http://www.cogsci.princeton.edu/~wn/
+
+http://wn-similarity.sourceforge.net
+
+http://groups.yahoo.com/group/wn-similarity/
+
+=head1 COPYRIGHT
+
+Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, Satanjeev
+Banerjee, and Jason Michelizzi
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+=cut
 

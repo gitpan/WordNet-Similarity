@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
-# brownFreq.pl version 0.06
-# (Updated 10/13/2003 -- Sid)
+# brownFreq.pl version 0.07
+# (Updated 11/25/2003 -- Jason)
 #
 # This program reads the Brown Corpus and computes the frequency counts
 # for each synset in WordNet. These frequency counts are used by 
@@ -13,13 +13,13 @@
 # Copyright (c) 2002-2003
 #
 # Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
+# tpederse at d.umn.edu
 #
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-# banerjee+@cs.cmu.edu
+# banerjee+ at cs.cmu.edu
 #
 # Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd@cs.utah.edu
+# sidd at cs.utah.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -510,6 +510,63 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "brownFreq.pl version 0.06\n";
+    print "brownFreq.pl version 0.07\n";
     print "Copyright (c) 2002-2003 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
+
+__END__
+
+=head1 NAME
+
+rawtextFreq.pl
+
+=head1 SYNOPSIS
+
+brownFreq.pl [--compfile=COMPFILE --outfile=OUTFILE [--stopfile=STOPFILE] [--
+wnpath=WNPATH] [--resnik] [--smooth=SCHEME] FILES | --help -- version]
+
+=head1 OPTIONS
+
+B<--compfile>=I<filename>
+
+    The name of a file containing the compound words (collocations) in
+    WordNet
+
+B<--outfile>=I<filename>
+
+    The name of a file to which output should be written
+
+B<--stopfile>=I<filename>
+
+    A file containing a list of stop listed words that will not be
+    considered in the frequency counts.  A sample file can be down-
+    loaded from
+    http://www.d.umn.edu/~tpederse/Group01/WordNet/words.txt
+
+B<--wnpath>=I<path>
+
+    Location of the WordNet data files (e.g.,
+    /usr/local/WordNet-2.0/dict)
+
+B<--resnik>
+
+    Use Resnik (1995) frequency counting
+
+B<--smooth>=I<SCHEME>
+
+    Smoothing should used on the probabilities computed.  SCHEME can
+    only be ADD1 at this time
+
+B<--help>
+
+    Show a help message
+
+B<--version>
+
+    Display version information
+
+B<FILES>
+
+    Files for the Brown Corpus (e.g., /home/sid/Brown/BROWN1/*.TXT).
+
+=cut

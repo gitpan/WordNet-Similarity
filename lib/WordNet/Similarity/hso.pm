@@ -1,44 +1,56 @@
-# WordNet::Similarity::hso.pm version 0.06
-# (Updated 10/10/2003 -- Sid)
+# WordNet::Similarity::hso.pm version 0.07
+# (Updated 2/19/2004 -- Jason)
 #
-# Semantic Similarity Measure package implementing the measure 
-# described by Hirst and St.Onge (1998).
-#
-# Copyright (c) 2003,
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd@cs.utah.edu
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to 
-#
-# The Free Software Foundation, Inc.,
-# 59 Temple Place - Suite 330,
-# Boston, MA  02111-1307, USA.
-
+# Semantic Similarity Measure package implementing the measure
+# described by Hirst and St-Onge (1998).
 
 package WordNet::Similarity::hso;
+
+=head1 NAME
+
+WordNet::Similarity::hso - Perl module for computing semantic relatedness
+of word senses using the method described by Hirst and St-Onge (1998).
+
+=head1 SYNOPSIS
+
+  use WordNet::Similarity::hso;
+
+  use WordNet::QueryData;
+
+  my $wn = WordNet::QueryData->new();
+
+  my $object = WordNet::Similarity::hso->new($wn);
+
+  my $value = $object->getRelatedness("car#n#1", "bus#n#2");
+
+  ($error, $errorString) = $object->getError();
+
+  die "$errorString\n" if($error);
+
+  print "car (sense 1) <-> bus (sense 2) = $value\n";
+
+=head1 DESCRIPTION
+
+This module computes the semantic relatedness of word senses according to
+the method described by Hirst and St-Onge (1998). In their paper they
+describe a method to identify 'lexical chains' in text. They measure the
+semantic relatedness of words in text to identify the links of the lexical
+chains. This measure of relatedness has been implemented in this module.
+
+=head2 Methods
+
+=over
+
+=cut
 
 use strict;
 
 use Exporter;
+use WordNet::Similarity;
 
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-@ISA = qw(Exporter);
+@ISA = qw/WordNet::Similarity/;
 
 %EXPORT_TAGS = ();
 
@@ -46,484 +58,274 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.06';
+our $VERSION = '0.07';
 
-
-# 'new' method for the hso class... creates and returns a WordNet::Similarity::hso object.
-# INPUT PARAMS  : $className  .. (WordNet::Similarity::hso) (required)
-#                 $wn         .. The WordNet::QueryData object (required).
-#                 $configFile .. Name of the config file for getting the parameters (optional).
-# RETURN VALUE  : $hso        .. The newly created hso object.
-sub new
+sub setPosList
 {
-    my $className;
-    my $self = {};
-    my $wn;
-
-    # The name of my class.
-    $className = shift;
-
-    # Initialize the error string and the error level.
-    $self->{'errorString'} = "";
-    $self->{'error'} = 0;
-    
-    # The WordNet::QueryData object.
-    $wn = shift;
-    $self->{'wn'} = $wn;
-    if(!$wn)
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::hso->new()) - ";
-	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
-	$self->{'error'} = 2;
-    }
-
-    # queryWord was broken in older versions of WordNet::QueryData
-    $wn->VERSION(1.30) if $wn;
-
-    # Bless object, initialize it and return it.
-    bless($self, $className);
-    $self->_initialize(shift) if($self->{'error'} < 2);
-
-    # [trace]
-    $self->{'traceString'} = "";
-    $self->{'traceString'} .= "WordNet::Similarity::hso object created:\n";
-    $self->{'traceString'} .= "trace :: ".($self->{'trace'})."\n" if(defined $self->{'trace'});
-    $self->{'traceString'} .= "cache :: ".($self->{'doCache'})."\n" if(defined $self->{'doCache'});
-    $self->{'traceString'} .= "Cache Size :: ".($self->{'maxCacheSize'})."\n" if(defined $self->{'maxCacheSize'});
-    # [/trace]
-
-    return $self;
+  my $self = shift;
+  $self->{n} = 1;
+  $self->{v} = 1;
+  $self->{a} = 1;
+  $self->{r} = 1;
 }
 
+# How medium strong relations work (from an e-mail by Sid):
+# Basically, for the
+# medium strong relations, I had to start from the given node and explore
+# all "legal" paths starting from that node and ending on $offset2.
 
-# Initialization of the WordNet::Similarity::hso object... parses the config file and sets up 
-# global variables, or sets them to default values.
-# INPUT PARAMS  : $paramFile .. File containing the module specific params.
-# RETURN VALUES : (none)
-sub _initialize
-{
-    my $self;
-    my $paramFile;
-    my $infoContentFile;
-    my $wn;
+# To do this I created a recursive function _medStrong, that is called like
+# so in line 247:
 
-    # Reference to the object.
-    $self = shift;
-    
-    # Get reference to WordNet.
-    $wn = $self->{'wn'};
+#  my $score = $self->_medStrong(0, 0, 0, $offset1, $offset1, $offset2);
 
-    # Name of the parameter file.
-    $paramFile = shift;
-    
-    # Initialize the $posList... Parts of Speech that this module can handle.
-    $self->{"n"} = 1;
-    $self->{"v"} = 1;
-    $self->{"a"} = 1;
-    $self->{"r"} = 1;
-    
-    # Initialize the cache stuff.
-    $self->{'doCache'} = 1;
-    $self->{'simCache'} = ();
-    $self->{'traceCache'} = ();
-    $self->{'cacheQ'} = ();
-    $self->{'maxCacheSize'} = 1000;
-    
-    # Initialize tracing.
-    $self->{'trace'} = 0;
+# The first parameter is the "state" (=0 initially). This parameter keeps
+# track of what part of the path we are on. For example, one of the legal
+# paths goes upwards, then horizontally, and then downwards. So along the
+# upwards section of the path, "state" would be 0. Along the horizontal
+# section of the path, the "state" becomes 1. Along the downwards section
+# the "state" is 2. Similarly, the state recognizes different legal paths.
 
-    # Parse the config file and
-    # read parameters from the file.
-    # Looking for params --> 
-    # trace, infocontent file, cache
-    if(defined $paramFile)
-    {
-	my $modname;
-	
-	if(open(PARAM, $paramFile))
-	{
-	    $modname = <PARAM>;
-	    $modname =~ s/[\r\f\n]//g;
-	    $modname =~ s/\s+//g;
-	    if($modname =~ /^WordNet::Similarity::hso/)
-	    {
-		while(<PARAM>)
-		{
-		    s/[\r\f\n]//g;
-		    s/\#.*//;
-		    s/\s+//g;
-		    if(/^trace::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'trace'} = 1;
-			$self->{'trace'} = $tmp if($tmp =~ /^[012]$/);
-		    }
-		    elsif(/^cache::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'doCache'} = 1;
-			$self->{'doCache'} = $tmp if($tmp =~ /^[01]$/);
-		    }
-		    elsif(m/^(?:max)?CacheSize::(.*)/i) 
-		    {
-			my $mcs = $1;
-			$self->{'maxCacheSize'} = 1000;
-			$self->{'maxCacheSize'} = $mcs
-			    if(defined ($mcs) && $mcs =~ m/^\d+$/);
-			$self->{'maxCacheSize'} = 0 if($self->{'maxCacheSize'} < 0);
-		    }
-		    elsif($_ ne "")
-		    {
-			s/::.*//;
-			$self->{'errorString'} .= "\nWarning (WordNet::Similarity::hso->_initialize()) - ";
-			$self->{'errorString'} .= "Unrecognized parameter '$_'. Ignoring.";
-			$self->{'error'} = 1;
-		    }
-		}
-	    }
-	    else
-	    {
-		$self->{'errorString'} .= "\nError (WordNet::Similarity::hso->_initialize()) - ";
-		$self->{'errorString'} .= "$paramFile does not appear to be a config file.";
-		$self->{'error'} = 2;
-		return;
-	    }
-	    close(PARAM);
-	}
-	else
-	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::hso->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open config file $paramFile.";
-	    $self->{'error'} = 2;
-	    return;
-	}
-    }
-}
+# The second parameter is "distance" (=0 initially). This parameter keeps
+# track of the length of the path that we are at. Since the maximum length
+# possible is 5, we stop the recursive function when the path length reaches
+# 5.
+
+# The third parameter is "chdir" (=0 initally) counts the number of changes
+# in direction. This value is required in the formula for the medium-strong
+# relation, so is updated everytime there is a change in path direction.
+
+# The fourth parameter is "from node" (=offset1 initally). The recursive
+# function uses the from node to decide which are the next possible nodes in
+# a given path. Each of these are then explored creating n recursive copies.
+
+# The fifth parameter is "path". It is  a string of the form
+
+#  "$offset [DUH] $offset [DUH] $offset..."
+
+# that stores a string representation of the path. This string is used in
+# the traces (if the path turns out to be a legal path). A path would turn
+# out to be a legal path if it is generated by our recursive function and
+# the first and last nodes in the path are $offset1 and $offset2 of the
+# relatedness measure.
+
+# The sixth parameter to the function is "endOffset". This is basically
+# "$offset2" throughout and is used by the recursive function to determine
+# if the current node in the path is the last node of that path.
+
+# The basic idea of the recursive function is at each stage, to determine
+# the next possible nodes in the path, from the current node and state. Then
+# _medStrong is called on each of these. The recursive function does a
+# search through a tree of "partially" legal paths, until a completely legal
+# path is found. Multiple such paths may be found. The highest of the scores
+# of these is returned.
+
+# _medStrong returns the maximum length of a legal path that was found in a
+# given subtree of the recursive search. These return values are used by
+# _medStrong and the highest of these is returned.
 
 
-# The Hirst-St.Onge relatedness measure subroutine ...
-# INPUT PARAMS  : $wps1     .. one of the two wordsenses.
-#                 $wps2     .. the second wordsense of the two whose 
-#                              semantic relatedness needs to be measured.
-# RETURN VALUES : $distance .. the semantic relatedness of the two word senses.
-#              or undef     .. in case of an error.
+=item $hso->getRelatedness ($synset1, $synset2)
+
+Computes the relatedness of two word senses using the method of Hirst &
+St-Onge.
+
+Parameters: two word senses in "word#pos#sense" format.
+
+Returns: Unless a problem occurs, the return value is the relatedness
+score, which is greater-than or equal-to 0 and less-than or equal-to 16.
+If an error occurs, then the error level is set to non-zero and an error
+string is created (see the description of getError()).
+
+=cut
+
 sub getRelatedness
 {
-    my $self = shift;
-    my $wps1 = shift;
-    my $wps2 = shift;
-    my $wn = $self->{'wn'};
-    my $word1;
-    my $word2;
-    my $pos1;
-    my $pos2;
-    my $pos;
-    my $offset1;
-    my $offset2;
-    my $score;
-    my @horiz1;
-    my @horiz2;
-    my @upward1;
-    my @upward2;
-    my @downward1;
-    my @downward2;
-    
-    # Check the existence of the WordNet::QueryData object.
-    if(!$wn)
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::hso->getRelatedness()) - ";
-	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
-	$self->{'error'} = 2;
-	return undef;
-    }
+  my $self = shift;
+  my $class = ref $self || $self;
+  my $wps1 = shift;
+  my $wps2 = shift;
+  my $wn = $self->{wn};
 
-    # Initialize traces.
-    $self->{'traceString'} = "" if($self->{'trace'});
+  # Check the existence of the WordNet::QueryData object.
+  if(!$wn) {
+    $self->{errorString} .= "\nError (${class}::getRelatedness()) - ";
+    $self->{errorString} .= "A WordNet::QueryData object is required.";
+    $self->{error} = 2;
+    return undef;
+  }
 
-    # Undefined input cannot go unpunished.
-    if(!$wps1 || !$wps2)
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::hso->getRelatedness()) - ";
-	$self->{'errorString'} .= "Undefined input values.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
+  # Initialize traces.
+  $self->{traceString} = "";
 
-    # Security check -- are the input strings in the correct format (word#pos#sense).
-    if($wps1 =~ /^(\S+)\#([nvar])\#\d+$/)
-    {
-	$word1 = $1;
-	$pos1 = $2;
-    }
-    else
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::hso->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
-    if($wps2 =~ /^(\S+)\#([nvar])\#\d+$/)
-    {
-	$word2 = $1;
-	$pos2 = $2;
-    }
-    else
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::hso->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
+  # Undefined input cannot go unpunished.
+  if(!$wps1 || !$wps2) {
+    $self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
+    $self->{errorString} .= "Undefined input values.";
+    $self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
+    return undef;
+  }
 
-    # Which parts of speech do we have.
-    if($pos1 !~ /[nvar]/ || $pos2 !~ /[nvar]/)
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::hso->getRelatedness()) - ";
-	$self->{'errorString'} .= "Unknown part(s) of speech.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return 0;
-    }
+  # Security check -- are the input strings in the correct format (word#pos#sense).
+  my ($pos1, $pos2);
+  my ($word1, $word2);
+  if($wps1 =~ /^(\S+)\#([nvar])\#\d+$/) {
+    $word1 = $1;
+    $pos1 = $2;
+  }
+  else {
+    $self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
+    $self->{errorString} .= "Input not in word\#pos\#sense format.";
+    $self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
+    return undef;
+  }
+  if($wps2 =~ /^(\S+)\#([nvar])\#\d+$/) {
+    $word2 = $1;
+    $pos2 = $2;
+  }
+  else {
+    $self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
+    $self->{errorString} .= "Input not in word\#pos\#sense format.";
+    $self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
+    return undef;
+  }
 
-    # Now check if the similarity value for these two synsets is in
-    # fact in the cache... if so return the cached value.
-    if($self->{'doCache'} && defined $self->{'simCache'}->{"${wps1}::$wps2"})
-    {
-	if(defined $self->{'traceCache'}->{"${wps1}::$wps2"})
-	{
-	    $self->{'traceString'} = $self->{'traceCache'}->{"${wps1}::$wps2"} if($self->{'trace'});
-	}
-	return $self->{'simCache'}->{"${wps1}::$wps2"};
-    }
+  # Which parts of speech do we have.
+  if($pos1 !~ /[nvar]/ || $pos2 !~ /[nvar]/) {
+    $self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
+    $self->{errorString} .= "Unknown part(s) of speech.";
+    $self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
+    return 0;
+  }
 
-    # Now get down to really finding the relatedness of these two.
-    $offset1 = $wn->offset($wps1).$pos1;
-    $offset2 = $wn->offset($wps2).$pos2;
-    $self->{'traceString'} = "" if($self->{'trace'});
+  # Now check if the similarity value for these two synsets is in
+  # fact in the cache... if so return the cached value.
+  my $relatedness =
+    $self->{doCache} ? $self->fetchFromCache ($wps1, $wps2) : undef;
+  defined $relatedness and return $relatedness;
 
-    if(!$offset1 || !$offset2)
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::hso->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input senses not found in WordNet.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
+  # Now get down to really finding the relatedness of these two.
+  my $offset1 = $wn->offset($wps1).$pos1;
+  my $offset2 = $wn->offset($wps2).$pos2;
 
-    if($offset1 eq $offset2)
-    {
-	# [trace]
-	if($self->{'trace'})
-	{
-	    $self->{'traceString'} .= "Strong Rel (Synset Match) : ";
-	    $self->_printSet($pos1, $offset1);
-	    $self->{'traceString'} .= "\n\n";
-	}
-	# [/trace]
-	
-	if($self->{'doCache'})
-	{
-	    $self->{'simCache'}->{"${wps1}::$wps2"} = 16;
-	    $self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
-	    push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
-	    if($self->{'maxCacheSize'} >= 0)
-	    {
-		while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
-		{
-		    my $delItem = shift(@{$self->{'cacheQ'}});
-		    delete $self->{'simCache'}->{$delItem};
-		    delete $self->{'traceCache'}->{$delItem};
-		}
-	    }
-	}
-	return 16;
-    }
+  if(!$offset1 || !$offset2) {
+    $self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
+    $self->{errorString} .= "Input senses not found in WordNet.";
+    $self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
+    return undef;
+  }
 
-    @horiz1 = &getHorizontalOffsetsPOS($self->{'wn'}, $offset1);
-    @upward1 = &getUpwardOffsetsPOS($self->{'wn'}, $offset1);
-    @downward1 = &getDownwardOffsetsPOS($self->{'wn'}, $offset1);
-    @horiz2 = &getHorizontalOffsetsPOS($self->{'wn'}, $offset2);
-    @upward2 = &getUpwardOffsetsPOS($self->{'wn'}, $offset2);
-    @downward2 = &getDownwardOffsetsPOS($self->{'wn'}, $offset2);
-
+  if($offset1 eq $offset2) {
     # [trace]
-    if($self->{'trace'})
-    {
-	$self->{'traceString'} .= "Horizontal Links of ";
-	$self->_printSet($pos1, $offset1);
-	$self->{'traceString'} .= ": ";
-	$self->_printSet($pos1, @horiz1);
-	$self->{'traceString'} .= "\nUpward Links of ";
-	$self->_printSet($pos1, $offset1);
-	$self->{'traceString'} .= ": ";
-	$self->_printSet($pos1, @upward1);
-	$self->{'traceString'} .= "\nDownward Links of ";
-	$self->_printSet($pos1, $offset1);
-	$self->{'traceString'} .= ": ";
-	$self->_printSet($pos1, @downward1);
-	$self->{'traceString'} .= "\nHorizontal Links of ";
-	$self->_printSet($pos2, $offset2);
-	$self->{'traceString'} .= ": ";
-	$self->_printSet($pos2, @horiz2);
-	$self->{'traceString'} .= "\nUpward Links of ";
-	$self->_printSet($pos2, $offset2);
-	$self->{'traceString'} .= ": ";
-	$self->_printSet($pos2, @upward2);
-	$self->{'traceString'} .= "\nDownward Links of ";
-	$self->_printSet($pos2, $offset2);
-	$self->{'traceString'} .= ": ";
-	$self->_printSet($pos2, @downward2);
-	$self->{'traceString'} .= "\n\n";
+    if($self->{trace}) {
+      $self->{'traceString'} .= "Strong Rel (Synset Match) : ";
+      $self->printSet($pos1, 'offset', $offset1);
+      $self->{'traceString'} .= "\n\n";
     }
     # [/trace]
-    
-    if(&isIn($offset1, @horiz2) || &isIn($offset2, @horiz1))
-    {
-	# [trace]
-	if($self->{'trace'})
-	{
-	    $self->{'traceString'} .= "Strong Rel (Horizontal Match) : \n";
-	    $self->{'traceString'} .= "Horizontal Links of ";
-	    $self->_printSet($pos1, $offset1);
-	    $self->{'traceString'} .= ": ";
-	    $self->_printSet($pos1, @horiz1);
-	    $self->{'traceString'} .= "\nHorizontal Links of ";
-	    $self->_printSet($pos2, $offset2);
-	    $self->{'traceString'} .= ": ";
-	    $self->_printSet($pos2, @horiz2);
-	    $self->{'traceString'} .= "\n\n";
-	}
-	# [/trace]
-	
-	if($self->{'doCache'})
-	{
-	    $self->{'simCache'}->{"${wps1}::$wps2"} = 16;
-	    $self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
-	    push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
-	    if($self->{'maxCacheSize'} >= 0)
-	    {
-		while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
-		{
-		    my $delItem = shift(@{$self->{'cacheQ'}});
-		    delete $self->{'simCache'}->{$delItem};
-		    delete $self->{'traceCache'}->{$delItem};
-		}
-	    }
-	}
-	return 16;
+
+    $self->{doCache} and $self->storeToCache ($wps1, $wps2, 16);
+    return 16;
+  }
+
+  my @horiz1 = &getHorizontalOffsetsPOS($self->{wn}, $offset1);
+  my @upward1 = &getUpwardOffsetsPOS($self->{wn}, $offset1);
+  my @downward1 = &getDownwardOffsetsPOS($self->{wn}, $offset1);
+  my @horiz2 = &getHorizontalOffsetsPOS($self->{wn}, $offset2);
+  my @upward2 = &getUpwardOffsetsPOS($self->{wn}, $offset2);
+  my @downward2 = &getDownwardOffsetsPOS($self->{wn}, $offset2);
+
+  # [trace]
+  if($self->{trace}) {
+    $self->{traceString} .= "Horizontal Links of ";
+    $self->printSet($pos1, 'offset', $offset1);
+    $self->{traceString} .= ": ";
+    $self->printSet($pos1, 'offset', @horiz1);
+    $self->{traceString} .= "\nUpward Links of ";
+    $self->printSet($pos1, 'offset', $offset1);
+    $self->{traceString} .= ": ";
+    $self->printSet($pos1, 'offset', @upward1);
+    $self->{traceString} .= "\nDownward Links of ";
+    $self->printSet($pos1, 'offset', $offset1);
+    $self->{traceString} .= ": ";
+    $self->printSet($pos1, 'offset', @downward1);
+    $self->{traceString} .= "\nHorizontal Links of ";
+    $self->printSet($pos2, 'offset', $offset2);
+    $self->{traceString} .= ": ";
+    $self->printSet($pos2, 'offset', @horiz2);
+    $self->{traceString} .= "\nUpward Links of ";
+    $self->printSet($pos2, 'offset', $offset2);
+    $self->{traceString} .= ": ";
+    $self->printSet($pos2, 'offset', @upward2);
+    $self->{traceString} .= "\nDownward Links of ";
+    $self->printSet($pos2, 'offset', $offset2);
+    $self->{traceString} .= ": ";
+    $self->printSet($pos2, 'offset', @downward2);
+    $self->{traceString} .= "\n\n";
+  }
+  # [/trace]
+
+  if(&isIn($offset1, @horiz2) || &isIn($offset2, @horiz1)) {
+    # [trace]
+    if($self->{trace}) {
+      $self->{traceString} .= "Strong Rel (Horizontal Match) : \n";
+      $self->{traceString} .= "Horizontal Links of ";
+      $self->printSet($pos1, 'offset', $offset1);
+      $self->{traceString} .= ": ";
+      $self->printSet($pos1, 'offset', @horiz1);
+      $self->{traceString} .= "\nHorizontal Links of ";
+      $self->printSet($pos2, 'offset', $offset2);
+      $self->{traceString} .= ": ";
+      $self->printSet($pos2, 'offset', @horiz2);
+      $self->{traceString} .= "\n\n";
+    }
+    # [/trace]
+
+    $self->{doCache} and $self->storeToCache ($wps1, $wps2, 16);
+    return 16;
+  }
+
+  if($word1 =~ /$word2/ || $word2 =~ /$word1/) {
+    if(&isIn($offset1, @upward2) || &isIn($offset1, @downward2)) {
+      # [trace]
+      if($self->{trace}) {
+	$self->{traceString} .= "Strong Rel (Compound Word Match) : \n";
+	$self->{traceString} .= "All Links of $word1: ";
+	$self->printSet($pos1, 'offset', @horiz1, @upward1, @downward1);
+	$self->{traceString} .= "\nAll Links of $word2: ";
+	$self->printSet($pos2, 'offset', @horiz2, @upward2, @downward2);
+	$self->{traceString} .= "\n\n";
+      }
+      # [/trace]		
+
+      $self->{doCache} and $self->storeToCache ($wps1, $wps2, 16);
+      return 16;
     }
 
-    if($word1 =~ /$word2/ || $word2 =~ /$word1/)
-    {
-	if(&isIn($offset1, @upward2) || &isIn($offset1, @downward2))
-	{
-	    # [trace]
-	    if($self->{'trace'})
-	    {
-		$self->{'traceString'} .= "Strong Rel (Compound Word Match) : \n";
-		$self->{'traceString'} .= "All Links of $word1: ";
-		$self->_printSet($pos1, @horiz1, @upward1, @downward1);
-		$self->{'traceString'} .= "\nAll Links of $word2: ";
-		$self->_printSet($pos2, @horiz2, @upward2, @downward2);
-		$self->{'traceString'} .= "\n\n";
-	    }
-	    # [/trace]		
+    if(&isIn($offset2, @upward1) || &isIn($offset2, @downward1)) {
+      # [trace]
+      if($self->{trace}) {
+	$self->{traceString} .= "Strong Rel (Compound Word Match) : \n";
+	$self->{traceString} .= "All Links of $word1: ";
+	$self->printSet($pos1, 'offset', @horiz1, @upward1, @downward1);
+	$self->{traceString} .= "\nAll Links of $word2: ";
+	$self->printSet($pos2, 'offset', @horiz2, @upward2, @downward2);
+	$self->{traceString} .= "\n\n";
+      }
+      # [/trace]		
 
-	    if($self->{'doCache'})
-	    {
-		$self->{'simCache'}->{"${wps1}::$wps2"} = 16;
-		$self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
-		push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
-		if($self->{'maxCacheSize'} >= 0)
-		{
-		    while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
-		    {
-			my $delItem = shift(@{$self->{'cacheQ'}});
-			delete $self->{'simCache'}->{$delItem};
-			delete $self->{'traceCache'}->{$delItem};
-		    }
-		}
-	    }
-	    return 16;
-	}
-	if(&isIn($offset2, @upward1) || &isIn($offset2, @downward1))
-	{
-	    # [trace]
-	    if($self->{'trace'})
-	    {
-		$self->{'traceString'} .= "Strong Rel (Compound Word Match) : \n";
-		$self->{'traceString'} .= "All Links of $word1: ";
-		$self->_printSet($pos1, @horiz1, @upward1, @downward1);
-		$self->{'traceString'} .= "\nAll Links of $word2: ";
-		$self->_printSet($pos2, @horiz2, @upward2, @downward2);
-		$self->{'traceString'} .= "\n\n";
-	    }
-	    # [/trace]		
-
-	    if($self->{'doCache'})
-	    {
-		$self->{'simCache'}->{"${wps1}::$wps2"} = 16;
-		$self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
-		push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
-		if($self->{'maxCacheSize'} >= 0)
-		{
-		    while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
-		    {
-			my $delItem = shift(@{$self->{'cacheQ'}});
-			delete $self->{'simCache'}->{$delItem};
-			delete $self->{'traceCache'}->{$delItem};
-		    }
-		}
-	    }
-	    return 16;
-	}
+      $self->{doCache} and $self->storeToCache ($wps1, $wps2, 16);
     }
-    
-    # Conditions for Medium-Strong relations ...
-    $score = $self->_medStrong(0, 0, 0, $offset1, $offset1, $offset2);
-    
-    if($self->{'doCache'})
-    {
-	$self->{'simCache'}->{"${wps1}::$wps2"} = $score;
-	$self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
-	push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
-	if($self->{'maxCacheSize'} >= 0)
-	{
-	    while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
-	    {
-		my $delItem = shift(@{$self->{'cacheQ'}});
-		delete $self->{'simCache'}->{$delItem};
-		delete $self->{'traceCache'}->{$delItem};
-	    }
-	}
-    }
-    return $score;
+  }
+
+  # Conditions for Medium-Strong relations ...
+  my $score = $self->_medStrong(0, 0, 0, $offset1, $offset1, $offset2);
+
+  $self->{doCache} and $self->storeToCache ($wps1, $wps2, $score);
+  return $score;
 }
 
-
-# Function to return the current trace string
-sub getTraceString
-{
-    my $self = shift;
-    my $returnString = $self->{'traceString'};
-    $self->{'traceString'} = "" if($self->{'trace'});
-    $returnString =~ s/\n+$/\n/;
-    return $returnString;
-}
-
-
-# Method to return recent error/warning condition
-sub getError
-{
-    my $self = shift;
-    my $error = $self->{'error'};
-    my $errorString = $self->{'errorString'};
-    $self->{'error'} = 0;
-    $self->{'errorString'} = "";
-    $errorString =~ s/^\n//;
-    return ($error, $errorString);
-}
-
-
-# Subroutine to get offsets(POS) of all horizontal links from a given 
+# Subroutine to get offsets(POS) of all horizontal links from a given
 # word (offset(POS)). All horizontal links specified  are --
 # Also See, Antonymy, Attribute, Pertinence, Similarity.
 # INPUT PARAMS  : $wn      .. WordNet::QueryData object.
@@ -663,26 +465,25 @@ sub getDownwardOffsetsPOS
 }
 
 
-# Subroutine that checks if an offset is in a given 
+# Subroutine that checks if an offset is in a given
 # set of offsets.
 # INPUT PARAMS  : $offset, @offsets .. The offset and the set of
 #                                      offsets.
 # RETURN VALUES : 0 or 1.
 sub isIn
 {
-    my $op1;
-    my @op2;
-    my $line;
+  my $op1;
+  my @op2;
+  my $line;
 
 
-    $op1 = shift;
-    @op2 = @_;
-    $line = " ".join(" ", @op2)." ";
-    if($line =~ / $op1 /)
-    {
-	return 1;
-    }
-    return 0;
+  $op1 = shift;
+  @op2 = @_;
+  $line = " ".join(" ", @op2)." ";
+  if($line =~ / $op1 /) {
+    return 1;
+  }
+  return 0;
 }
 
 
@@ -730,10 +531,10 @@ sub _medStrong
 	    $self->{'traceString'} .= "MedStrong relation path... \n";
 	    while($path =~ /([0-9]+)([nvar]?)\s*(\[[DUH]\])?\s*/g)
 	    {
-		$self->_printSet($2, $1);
-		$self->{'traceString'} .= " $3 " if($3);
+		$self->printSet($2, 'offset', $1);
+		$self->{traceString} .= " $3 " if($3);
 	    }
-	    $self->{'traceString'} .= "\n";
+	    $self->{traceString} .= "\n";
 	}
 	# [/trace]
 	return 8 - $distance - $chdir;
@@ -886,101 +687,15 @@ sub _medStrong
     return 0;
 }
 
-
-# Subroutine that takes as input an array of offsets
-# or offsets(POS) and for each prints to traceString the WORD#POS#(SENSE/OFFSET)
-# INPUT PARAMS  : $pos                             .. Part of speech
-#               : ($offestpos1, $offsetpos2, ...)  .. Array of offsetPOS's
-#                                                     or offests
-# RETURN VALUES : none.
-sub _printSet
-{
-    my $self;
-    my $wn;
-    my $offset;
-    my $pos;
-    my $p;
-    my $wps;
-    my $opstr;
-    my @offsets;
-    
-    $self = shift;
-    $p = shift;
-    @offsets = @_;
-    $wn = $self->{'wn'};
-    $opstr = "";
-    foreach $offset (@offsets)
-    {
-	if($offset =~ /^([0-9]+)([nvar])$/)
-	{
-	    $offset = $1;
-	    $pos = $2;
-	}
-	elsif($offset =~ /^[0-9]+$/)
-	{
-	    $pos = $p;
-	}
-	else
-	{
-	    return;
-	}
-	if(defined $offset && $offset != 0)
-	{
-	    $wps = $wn->getSense($offset, $pos);
-	}
-	else
-	{
-	    $wps = "*Root*\#$pos\#1";
-	}
-	$wps =~ s/ +/_/g;
-	if($self->{'trace'} == 2 && defined $offset && $offset != 0)
-	{
-	    $wps =~ s/\#[0-9]*$/\#$offset/;
-	}
-	$opstr .= "$wps ";
-    }
-    $opstr =~ s/\s+$//;
-    $self->{'traceString'} .= $opstr if($self->{'trace'});
-}
-
 1;
 __END__
 
-=head1 NAME
+=back
 
-WordNet::Similarity::hso - Perl module for computing semantic relatedness
-of word senses using the method described by Hirst and St.Onge (1998).
-
-=head1 SYNOPSIS
-
-  use WordNet::Similarity::hso;
-
-  use WordNet::QueryData;
- 
-  my $wn = WordNet::QueryData->new();
-
-  my $object = WordNet::Similarity::hso->new($wn);
-
-  my $value = $object->getRelatedness("car#n#1", "bus#n#2");
-
-  ($error, $errorString) = $object->getError();
-
-  die "$errorString\n" if($error);
-
-  print "car (sense 1) <-> bus (sense 2) = $value\n";
-
-=head1 DESCRIPTION
-
-This module computes the semantic relatedness of word senses according to
-the method described by Hirst and St.Onge (1998). In their paper they
-describe a method to identify 'lexical chains' in text. They measure the
-semantic relatedness of words in text to identify the links of the lexical
-chains. This measure of relatedness has been implemented in this module.
-
-=head1 USAGE
+=head2 Usage
 
 The semantic relatedness modules in this distribution are built as classes
-that expose the following methods:
+that define the following methods:
 
   new()
   getRelatedness()
@@ -989,10 +704,10 @@ that expose the following methods:
 
 See the WordNet::Similarity(3) documentation for details of these methods.
 
-=head1 TYPICAL USAGE EXAMPLES
+=head3 Typical Usage Examples
 
 To create an object of the hso measure, we would have the following
-lines of code in the Perl program. 
+lines of code in the Perl program.
 
    use WordNet::Similarity::hso;
    $measure = WordNet::Similarity::hso->new($wn, '/home/sid/hso.conf');
@@ -1001,7 +716,7 @@ The reference of the initialized object is stored in the scalar variable
 '$measure'. '$wn' contains a WordNet::QueryData object that should have been
 created earlier in the program. The second parameter to the 'new' method is
 the path of the configuration file for the hso measure. If the 'new'
-method is unable to create the object, '$measure' would be undefined. This, 
+method is unable to create the object, '$measure' would be undefined. This,
 as well as any other error/warning may be tested.
 
    die "Unable to create object.\n" if(!defined $measure);
@@ -1013,7 +728,7 @@ the second sense of the noun 'bus' using the measure, we would write
 the following piece of code:
 
    $relatedness = $measure->getRelatedness('car#n#1', 'bus#n#2');
-  
+
 To get traces for the above computation:
 
    print $measure->getTraceString();
@@ -1029,8 +744,8 @@ parameters are initialized within the object. A configuration file may be
 specififed as a parameter during the creation of an object using the new
 method. The configuration files must follow a fixed format.
 
-Every configuration file starts with the name of the module ON THE FIRST LINE of
-the file. For example, a configuration file for the hso module will have
+Every configuration file starts with the name of the module ON THE FIRST LINE
+of the file. For example, a configuration file for the hso module will have
 on the first line 'WordNet::Similarity::hso'. This is followed by the various
 parameters, each on a new line and having the form 'name::value'. The
 'value' of a parameter is optional (in case of boolean parameters). In case
@@ -1038,23 +753,42 @@ parameters, each on a new line and having the form 'name::value'. The
 supported in the configuration file. Anything following a '#' is ignored till
 the end of the line.
 
-The module parses the configuration file and recognizes the following 
+The module parses the configuration file and recognizes the following
 parameters:
-  
-(a) 'trace::' -- can take values 0, 1 or 2 or the value can be omitted,
-in which case it sets the trace level to 1. Trace level 0 implies
-no traces. Trace level 1 and 2 imply tracing is 'on', the only 
-difference being the way in which the synsets are displayed in the 
-traces. For trace level 1, the synsets are represented as word#pos#sense
-strings, while for level 2, the synsets are represented as 
-word#pos#offset strings.
-  
-(b) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
-which case it takes the value 1, i.e. switches 'on' caching. A value of 
-0 switches caching 'off'. By default caching is enabled.
 
-(c) 'maxCacheSize::' -- takes a non-negative integer value. The value indicates
-the size of the cache, used for storing the computed relatedness value.
+=over
+
+=item trace
+
+The value of this parameter specifies the level of tracing that should
+be employed for generating the traces. This value
+is an integer equal to 0, 1, or 2. If the value is omitted, then the
+default value, 0, is used. A value of 0 switches tracing off. A value
+of 1 or 2 switches tracing on. A trace of level 1 means the synsets are
+represented as word#pos#sense strings, while for level 2, the synsets
+are represented as word#pos#offset strings.
+
+=item cache
+
+The value of this parameter specifies whether or not caching of the
+relatedness values should be performed.  This value is an
+integer equal to  0 or 1.  If the value is omitted, then the default
+value, 1, is used. A value of 0 switches caching 'off', and
+a value of 1 switches caching 'on'.
+
+=item maxCacheSize
+
+The value of this parameter indicates the size of the cache, used for
+storing the computed relatedness value. The specified value must be
+a non-negative integer.  If the value is omitted, then the default
+value, 5,000, is used. Setting maxCacheSize to zero has
+the same effect as setting cache to zero, but setting cache to zero is
+likely to be more efficient.  Caching and tracing at the same time can result
+in excessive memory usage because the trace strings are also cached.  If
+you intend to perform a large number of relatedness queries, then you
+might want to turn tracing off.
+
+=back
 
 =head1 SEE ALSO
 
@@ -1070,14 +804,39 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Siddharth Patwardhan, <sidd@cs.utah.edu>
-  Ted Pedersen, <tpederse@d.umn.edu>
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
+
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse at d.umn.edu
+
+=head1 BUGS
+
+None.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by Siddharth Patwardhan and Ted Pedersen
+Copyright (C) 2003-2004 by Siddharth Patwardhan and Ted Pedersen
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to
+
+    The Free Software Foundation, Inc.,
+    59 Temple Place - Suite 330,
+    Boston, MA  02111-1307, USA.
+
+Note: a copy of the GNU General Public License is available on the web
+at L<http://www.gnu.org/licenses/gpl.txt> and is included in this
+distribution as GPL.txt.
 
 =cut

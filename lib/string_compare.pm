@@ -7,9 +7,9 @@
 #
 # Copyright (c) 2003,
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-# banerjee+@cs.cmu.edu
+# banerjee+ at cs.cmu.edu
 # Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
+# tpederse at d.umn.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

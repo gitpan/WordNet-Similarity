@@ -1,4 +1,4 @@
-# get_wn_info.pm version 0.06
+# get_wn_info.pm version 0.07
 # (Updated 10/11/2003 -- Jason)
 #
 # Package used by WordNet::Similarity::lesk module that
@@ -7,9 +7,9 @@
 #
 # Copyright (c) 2003,
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-# banerjee+@cs.cmu.edu
+# banerjee+ at cs.cmu.edu
 # Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
+# tpederse at d.umn.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -43,7 +43,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 # function to set up the wordnet object and the various boundary indices
 sub new

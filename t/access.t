@@ -15,9 +15,14 @@ use WordNet::Similarity::lin;
 use WordNet::Similarity::lch;
 use WordNet::Similarity::hso;
 use WordNet::Similarity::lesk;
-use WordNet::Similarity::edge;
+use WordNet::Similarity::path;
 use WordNet::Similarity::random;
 use WordNet::Similarity::vector;
+use WordNet::Similarity::wup;
+use WordNet::Similarity::ICFinder;
+use WordNet::Similarity::PathFinder;
+use WordNet::Similarity::DepthFinder;
+use WordNet::Similarity::LCSFinder;
 $loaded = 1;
 print "ok 1\n";
 
@@ -161,10 +166,10 @@ else
 
 ############ Load edge
 
-$edge = WordNet::Similarity::edge->new($wn);
-if($edge)
+$path = WordNet::Similarity::path->new($wn);
+if($path)
 {
-    ($err, $errString) = $edge->getError();
+    ($err, $errString) = $path->getError();
     if($err)
     {
         print "not ok 9\n";

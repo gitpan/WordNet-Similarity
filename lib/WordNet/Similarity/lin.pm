@@ -1,838 +1,10 @@
-# WordNet::Similarity::lin.pm version 0.06
-# (Updated 10/10/2003 -- Sid)
+# WordNet::Similarity::lin.pm version 0.07
+# (Updated 1/6/2004 -- Jason)
 #
-# Semantic Similarity Measure package implementing the measure 
+# Semantic Similarity Measure package implementing the measure
 # described by Lin (1998).
-#
-# Copyright (c) 2003,
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd@cs.utah.edu
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to 
-#
-# The Free Software Foundation, Inc., 
-# 59 Temple Place - Suite 330, 
-# Boston, MA  02111-1307, USA.
-
 
 package WordNet::Similarity::lin;
-
-use strict;
-
-use Exporter;
-
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
-
-@ISA = qw(Exporter);
-
-%EXPORT_TAGS = ();
-
-@EXPORT_OK = ();
-
-@EXPORT = ();
-
-$VERSION = '0.06';
-
-
-# 'new' method for the lin class... creates and returns a WordNet::Similarity::lin object.
-# INPUT PARAMS  : $className  .. (WordNet::Similarity::lin) (required)
-#                 $wn         .. The WordNet::QueryData object (required).
-#                 $configFile .. Name of the config file for getting the parameters (optional).
-# RETURN VALUE  : $lin        .. The newly created lin object.
-sub new
-{
-    my $className;
-    my $self = {};
-    my $wn;
-
-    # The name of my class.
-    $className = shift;
-    
-    # Initialize the error string and the error level.
-    $self->{'errorString'} = "";
-    $self->{'error'} = 0;
-    
-    # The WordNet::QueryData object.
-    $wn = shift;
-    $self->{'wn'} = $wn;
-    if(!$wn)
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lin->new()) - ";
-	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
-	$self->{'error'} = 2;
-    }
-
-    # Bless object, initialize it and return it.
-    bless($self, $className);
-    $self->_initialize(shift) if($self->{'error'} < 2);
-
-    return $self;
-}
-
-
-# Initialization of the WordNet::Similarity::lin object... parses the config file and sets up 
-# global variables, or sets them to default values.
-# INPUT PARAMS  : $paramFile .. File containing the module specific params.
-# RETURN VALUES : (none)
-sub _initialize
-{
-    my $self;
-    my $paramFile;
-    my $infoContentFile;
-    my $wn;
-
-    # Reference to the object.
-    $self = shift;
-    
-    # Get reference to WordNet.
-    $wn = $self->{'wn'};
-
-    # Name of the parameter file.
-    $paramFile = shift;
-    
-    # Initialize the $posList... Parts of Speech that this module can handle.
-    $self->{"n"} = 1;
-    $self->{"v"} = 1;
-    
-    # Initialize the cache stuff.
-    $self->{'doCache'} = 1;
-    $self->{'simCache'} = ();
-    $self->{'traceCache'} = ();
-    $self->{'cacheQ'} = ();
-    $self->{'maxCacheSize'} = 1000;
-    
-    # Initialize tracing.
-    $self->{'trace'} = 0;
-
-    # Parse the config file and
-    # read parameters from the file.
-    # Looking for params --> 
-    # trace, infocontent file, cache
-    if(defined $paramFile)
-    {
-	my $modname;
-	
-	if(open(PARAM, $paramFile))
-	{
-	    $modname = <PARAM>;
-	    $modname =~ s/[\r\f\n]//g;
-	    $modname =~ s/\s+//g;
-	    if($modname =~ /^WordNet::Similarity::lin/)
-	    {
-		while(<PARAM>)
-		{
-		    s/[\r\f\n]//g;
-		    s/\#.*//;
-		    s/\s+//g;
-		    if(/^trace::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'trace'} = 1;
-			$self->{'trace'} = $tmp if($tmp =~ /^[012]$/);
-		    }
-		    elsif(/^infocontent::(.*)/)
-		    {
-			$infoContentFile = $1;
-		    }
-		    elsif(/^cache::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'doCache'} = 1;
-			$self->{'doCache'} = $tmp if($tmp =~ /^[01]$/);
-		    }
-		    elsif(m/^(?:max)?CacheSize::(.*)/i) 
-		    {
-			my $mcs = $1;
-			$self->{'maxCacheSize'} = 1000;
-			$self->{'maxCacheSize'} = $mcs
-			    if(defined ($mcs) && $mcs =~ m/^\d+$/);
-			$self->{'maxCacheSize'} = 0 if($self->{'maxCacheSize'} < 0);
-		    }
-		    elsif($_ ne "")
-		    {
-			s/::.*//;
-			$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lin->_initialize()) - ";
-			$self->{'errorString'} .= "Unrecognized parameter '$_'. Ignoring.";
-			$self->{'error'} = 1;
-		    }
-		}
-	    }
-	    else
-	    {
-		$self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_initialize()) - ";
-		$self->{'errorString'} .= "$paramFile does not appear to be a config file.";
-		$self->{'error'} = 2;
-		return;
-	    }
-	    close(PARAM);
-	}
-	else
-	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open config file $paramFile.";
-	    $self->{'error'} = 2;
-	    return;
-	}
-    }
-    
-    # Look for the default infocontent file if not specified by the user.
-    # Search the @INC path in WordNet/Similarity.
-    if(!(defined $infoContentFile))
-    {
-	my $path;
-	my @possiblePaths = ();
-
-	# Look for all possible default data files installed.
-	foreach $path (@INC)
-	{
-	    if(-e $path."/WordNet/infocontent.dat")
-	    {
-		push @possiblePaths, $path."/WordNet/infocontent.dat";
-	    }
-	    elsif(-e $path."\\WordNet\\infocontent.dat")
-	    {
-		push @possiblePaths, $path."\\WordNet\\infocontent.dat";
-	    }
-	}
-	
-	# If there are multiple possibilities, get the one that matches the
-	# the installed version of WordNet.
-	foreach $path (@possiblePaths)
-	{
-	    if($self->_isValidInfoContentFile($path))
-	    {
-		$infoContentFile = $path;
-		last;
-	    }
-	}
-    }
-
-    # Load the information content data.
-    if(defined $infoContentFile)
-    {
-	my $retVal = $self->_loadInfoContentFile($infoContentFile);
-	if($retVal ne "")
-	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_initialize()) - ";
-	    $self->{'errorString'} .= $retVal;
-	    $self->{'error'} = 2;
-	    return;
-	}
-    }
-    else
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_initialize()) - ";
-	$self->{'errorString'} .= "No default information content file found.";
-	$self->{'error'} = 2;
-	return;
-    }
-
-    # [trace]
-    $self->{'traceString'} = "";
-    $self->{'traceString'} .= "WordNet::Similarity::lin object created:\n";
-    $self->{'traceString'} .= "trace :: ".($self->{'trace'})."\n" if(defined $self->{'trace'});
-    $self->{'traceString'} .= "cache :: ".($self->{'doCache'})."\n" if(defined $self->{'doCache'});
-    $self->{'traceString'} .= "information content file :: $infoContentFile\n" if(defined $infoContentFile);
-    $self->{'traceString'} .= "Cache Size :: ".($self->{'maxCacheSize'})."\n" if(defined $self->{'maxCacheSize'});
-    # [/trace]
-
-    # Check for a strange Root_Node_Frequency=0 condition. Normally, not possible.
-    if(!($self->{'offsetFreq'}->{"n"}->{0}))
-    {
-	$self->{'offsetFreq'}->{"n"}->{0} = 1;	
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_initialize()) - ";
-	$self->{'errorString'} .= "Noun root node freqeuncy 0. Something's amiss. (No 'ROOT' tags in infocontent file?)";
-	$self->{'error'} = 2;
-    }
-    if(!($self->{'offsetFreq'}->{"v"}->{0}))
-    {
-	$self->{'offsetFreq'}->{"v"}->{0} = 1;
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_initialize()) - ";
-	$self->{'errorString'} .= "Verb root node freqeuncy 0. Something's amiss. (No 'ROOT' tags in infocontent file?)";
-	$self->{'error'} = 2;
-    }
-}
-
-# Subroutine that checks the validity of an information content file.
-sub _isValidInfoContentFile
-{
-    my $self = shift;
-    my $path = shift;
-    my $wn = $self->{'wn'};
-    my $wnver;
-
-    if(open(INFOCONTENT, $path))
-    {
-	$wnver = <INFOCONTENT>;
-	$wnver =~ s/[\r\f\n]//g;
-	$wnver =~ s/\s+//g;
-	if($wnver =~ /wnver::(.*)/)
-	{
-	    $wnver = $1;
-	    if(defined $wnver && $wnver eq $wn->version())
-	    {
-		close(INFOCONTENT);
-		return 1;
-	    }
-	}
-	close(INFOCONTENT);
-    }
-
-    return 0;
-}
-
-# Subroutine to load frequency counts from an information content file.
-sub _loadInfoContentFile
-{
-    my $self = shift;
-    my $infoContentFile = shift;
-    my $wn = $self->{'wn'};
-    my $wnver;
-    my $offsetPOS;
-    my $frequency;
-    my $topmost;
-    my $localFreq = {};
-    
-    if(open(INFOCONTENT, $infoContentFile))
-    {
-	$wnver = <INFOCONTENT>;
-	$wnver =~ s/[\r\f\n]//g;
-	$wnver =~ s/\s+//g;
-	if($wnver =~ /wnver::(.*)/)
-	{
-	    $wnver = $1;
-	    if(defined $wnver && $wnver eq $wn->version())
-	    {
-		$localFreq->{"n"}->{0} = 0;
-		$localFreq->{"v"}->{0} = 0;
-		while(<INFOCONTENT>)
-		{
-		    s/[\r\f\n]//g;
-		    s/^\s+//;
-		    s/\s+$//;
-		    ($offsetPOS, $frequency, $topmost) = split /\s+/, $_, 3;
-		    if($offsetPOS =~ /([0-9]+)([nvar])/)
-		    {
-			my $curOffset;
-			my $curPOS;
-			
-			$curOffset = $1;
-			$curPOS = $2;
-			$localFreq->{$curPOS}->{$curOffset} = $frequency;
-			if(defined $topmost && $topmost =~ /ROOT/)
-			{
-			    $localFreq->{$curPOS}->{0} += $localFreq->{$curPOS}->{$curOffset};
-			}
-		    }
-		    else
-		    {
-			return "Bad file format ($infoContentFile).";
-		    }
-		}
-	    }
-	    else
-	    {
-		return "WordNet version does not match data file.";
-	    }
-	}
-	else
-	{
-	    return "Bad file format ($infoContentFile).";
-	}
-	close(INFOCONTENT);   
-    }
-    else
-    {
-	return "Unable to open '$infoContentFile'.";
-    }
-
-    $self->{'offsetFreq'} = $localFreq;
-
-    return "";
-}
-
-# The Lin relatedness measure subroutine ...
-# INPUT PARAMS  : $wps1     .. one of the two wordsenses.
-#                 $wps2     .. the second wordsense of the two whose 
-#                              semantic relatedness needs to be measured.
-# RETURN VALUES : $distance .. the semantic relatedness between the two wordsenses.
-#              or undef     .. in case of an error.
-sub getRelatedness
-{
-    my $self = shift;
-    my $wps1 = shift;
-    my $wps2 = shift;
-    my $wn = $self->{'wn'};
-    my $pos;
-    my $pos1;
-    my $pos2;
-    my $offset;
-    my $offset1;
-    my $offset2;
-    my $root;
-    my $dist;
-    my $minDist;
-    my $score;
-    my @retArray;
-
-    # Check the existence of the WordNet::QueryData object.
-    if(!$wn)
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lin->getRelatedness()) - ";
-	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
-	$self->{'error'} = 2;
-	return undef;
-    }
-
-    # Initialize traces.
-    $self->{'traceString'} = "" if($self->{'trace'});
-
-    # Undefined input cannot go unpunished.
-    if(!$wps1 || !$wps2)
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lin->getRelatedness()) - Undefined input values.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
-
-    # Security check -- are the input strings in the correct format (word#pos#sense)?
-    if($wps1 =~ /^\S+\#([nvar])\#\d+$/)
-    {
-	$pos1 = $1;
-    }
-    else
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lin->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
-    if($wps2 =~ /^\S+\#([nvar])\#\d+$/)
-    {
-	$pos2 = $1;
-    }
-    else
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lin->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input not in word\#pos\#sense format.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
-
-    # Relatedness is 0 across parts of speech.
-    if($pos1 ne $pos2)
-    {
-	$self->{'traceString'} = "Relatedness 0 across parts of speech ($wps1, $wps2).\n" if($self->{'trace'});
-	return 0;
-    }
-    $pos = $pos1;
-
-    # Relatedness is defined only for nouns and verbs.
-    if($pos !~ /[nv]/)
-    {
-	$self->{'traceString'} = "Only verbs and nouns have hypernym trees ($wps1, $wps2).\n" if($self->{'trace'});
-	return 0;
-    }
-
-    # Now check if the similarity value for these two synsets is in
-    # fact in the cache... if so return the cached value.
-    if($self->{'doCache'} && defined $self->{'simCache'}->{"${wps1}::$wps2"})
-    {
-	if(defined $self->{'traceCache'}->{"${wps1}::$wps2"})
-	{
-	    $self->{'traceString'} = $self->{'traceCache'}->{"${wps1}::$wps2"} if($self->{'trace'});
-	}
-	return $self->{'simCache'}->{"${wps1}::$wps2"};
-    }
-
-    # Now get down to really finding the relatedness of these two.
-    $offset1 = $wn->offset($wps1);
-    $offset2 = $wn->offset($wps2);
-    $self->{'traceString'} = "" if($self->{'trace'});
-
-    if(!$offset1 || !$offset2)
-    {
-	$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lin->getRelatedness()) - ";
-	$self->{'errorString'} .= "Input senses not found in WordNet.";
-	$self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	return undef;
-    }
-    @retArray = $self->_getLeastCommonSubsumers($offset1, $offset2, $pos);
-
-    # [trace]
-    if($self->{'trace'})
-    {
-	$self->{'traceString'} .= "Lowest Common Subsumer(s): ";
-	foreach $offset (@retArray)
-	{
-	    if($offset)
-	    {
-		$self->{'traceString'} .= $wn->getSense($offset, $pos);
-		$self->{'traceString'} .= " (Freq=";
-		if($self->{'offsetFreq'}->{$pos}->{$offset})
-		{
-		    $self->{'traceString'} .= $self->{'offsetFreq'}->{$pos}->{$offset};
-		}
-		else
-		{
-		    $self->{'traceString'} .= "0";
-		}
-		$self->{'traceString'} .= ")  ";
-	    }
-	    else
-	    {
-		$self->{'traceString'} .= "*Root* (Freq=";
-		if($self->{'offsetFreq'}->{$pos}->{0})
-		{
-		    $self->{'traceString'} .= $self->{'offsetFreq'}->{$pos}->{0};
-		}
-		else
-		{
-		    $self->{'traceString'} .= "0";
-		}
-		$self->{'traceString'} .= ")  ";
-	    }
-	}
-	$self->{'traceString'} .= "\nConcept1: $wps1 (Freq=";
-	if($self->{'offsetFreq'}->{$pos}->{$offset1})
-	{
-	    $self->{'traceString'} .= $self->{'offsetFreq'}->{$pos}->{$offset1};
-	}
-	else
-	{
-	    $self->{'traceString'} .= "0";
-	}
-	$self->{'traceString'} .= ")\n";
-	$self->{'traceString'} .= "Concept2: $wps2 (Freq=";
-	if($self->{'offsetFreq'}->{$pos}->{$offset2})
-	{
-	    $self->{'traceString'} .= $self->{'offsetFreq'}->{$pos}->{$offset2};
-	}
-	else
-	{
-	    $self->{'traceString'} .= "0";
-	}
-	$self->{'traceString'} .= ")\n\n";
-    }
-    # [/trace]
-
-    $minDist = -1;
-    foreach $root (@retArray)
-    {
-	my $ic1;
-	my $ic2;
-	my $ic3;
-	
-	$ic1 = $self->IC($offset1, $pos);
-	$ic2 = $self->IC($offset2, $pos);
-	$ic3 = $self->IC($root, $pos);
-	$dist = ($ic1 && $ic2) ? ((2 * $ic3)/($ic1 + $ic2)) : 0;
-
-	$minDist = $dist if($dist > $minDist);
-    }
-    
-    $score = ($minDist ne "-0") ? $minDist : 0;
-    $score = ($score == -1) ? 0 : $score;
-
-    if($self->{'doCache'})
-    {
-	$self->{'simCache'}->{"${wps1}::$wps2"} = $score;
-	$self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
-	push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
-	if($self->{'maxCacheSize'} >= 0)
-	{
-	    while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
-	    {
-		my $delItem = shift(@{$self->{'cacheQ'}});
-		delete $self->{'simCache'}->{$delItem};
-		delete $self->{'traceCache'}->{$delItem};
-	    }
-	}
-    }
-
-    return $score;
-}
-
-
-# Function to return the current trace string
-sub getTraceString
-{
-    my $self = shift;
-    my $returnString = $self->{'traceString'};
-    $self->{'traceString'} = "" if($self->{'trace'});
-    $returnString =~ s/\n+$/\n/;
-    return $returnString;
-}
-
-
-# Method to return recent error/warning condition
-sub getError
-{
-    my $self = shift;
-    my $error = $self->{'error'};
-    my $errorString = $self->{'errorString'};
-    $self->{'error'} = 0;
-    $self->{'errorString'} = "";
-    $errorString =~ s/^\n//;
-    return ($error, $errorString);
-}
-
-
-# Subroutine that returns the probability of occurrence of a concept
-# in a large corpus (using frequency values from information content file)...
-# INPUT PARAMS  : $con   .. the concept -- synset offet.
-#               : $pos   .. the part of speech.
-# RETURN VALUES : $prob  .. floating point value (freq/rootFreq... from corpus)
-sub _probability
-{
-    my $self = shift;
-    my $con = shift;
-    my $pos = shift;
-    
-    if($self->{'offsetFreq'}->{$pos}->{0} && defined $self->{'offsetFreq'}->{$pos}->{$con})
-    {
-	if($self->{'offsetFreq'}->{$pos}->{$con} <= $self->{'offsetFreq'}->{$pos}->{0})
-	{
-	    return ($self->{'offsetFreq'}->{$pos}->{$con})/($self->{'offsetFreq'}->{$pos}->{0});
-	}
-	else
-	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::lin->_probability()) - ";
-	    $self->{'errorString'} .= "Probability greater than 1? (Check information content file)";
-	    $self->{'error'} = 2;
-	    return 0;
-	}
-    }
-    else
-    {
-	return 0;
-    }
-}
-
-
-# Subroutine that returns the Information Content of a concept (synset offset)
-# INPUT PARAMS  : $offset  .. the synset offset.
-#               : $pos     .. part of speech.
-# RETURN VALUES : $ic      .. information content.
-sub IC
-{
-    my $self = shift;
-    my $offset = shift;
-    my $pos = shift;
-    if($pos =~ /[nv]/)
-    {
-	my $prob = $self->_probability($offset, $pos);
-	return ($prob > 0)?-log($prob):0;
-    }
-    return 0;
-}
-
-
-# Subroutine to get the Least Common Subsumers (one for each pair of 
-# hypernym trees) of two synset offsets in the Noun/Verb Taxonomies.
-# INPUT PARAMS  : $lOffset .. first offset
-#                 $rOffset .. second offset
-#                 $pos     .. part of speech
-# RETRUN VALUES : @lCSOffsets .. array of Offsets of the Least Common 
-#                                Subsumers.
-sub _getLeastCommonSubsumers
-{
-    my $self;
-    my $lOffset;
-    my $rOffset;
-    my $pos;
-    my $lTree;
-    my $rTree;
-    my $offset;
-    my @retArray;
-    my @lTrees;
-    my @rTrees;
-    my %retHash;
-
-    $self = shift;
-    $lOffset = shift;
-    $rOffset = shift;
-    $pos = shift;
-    @lTrees = &getHypernymTrees($self->{'wn'}, $lOffset, $pos);
-    foreach $lTree (@lTrees)
-    {
-	push @{$lTree}, $lOffset;
-    }
-    @rTrees = &getHypernymTrees($self->{'wn'}, $rOffset, $pos);
-    foreach $rTree (@rTrees)
-    {
-	push @{$rTree}, $rOffset;
-    }
-
-    # [trace]
-    if($self->{'trace'})
-    {
-	foreach $lTree (@lTrees)
-	{
-	    $self->{'traceString'} .= "HyperTree: ";
-	    $self->_printSet($pos, @{$lTree});
-	    $self->{'traceString'} .= "\n";
-	}
-	foreach $rTree (@rTrees)
-	{
-	    $self->{'traceString'} .= "HyperTree: ";
-	    $self->_printSet($pos, @{$rTree});
-	    $self->{'traceString'} .= "\n";
-	}
-    }
-    # [/trace]
-
-    %retHash = ();
-    foreach $lTree (@lTrees)
-    {
-	foreach $rTree (@rTrees)
-	{
-	    $offset = &getLCSfromTrees($lTree, $rTree);
-	    $retHash{$offset} = 1;
-	}
-    }
-    @retArray = keys %retHash;
-
-    return @retArray;
-}
-
-
-# Suroutine that returns an array of hypernym trees, given the offset of 
-# the synset. Each hypernym tree is an array of offsets.
-# INPUT PARAMS  : $wn     .. The WordNet::QueryData object.
-#               : $offset .. Offset of the synset.
-#               : $pos    .. Part of speech.
-# RETURN VALUES : (@tree1, @tree2, ... ) .. an array of Hypernym trees (offsets).
-sub getHypernymTrees
-{
-    my $wn;
-    my $offset;
-    my $pos;
-    my $wordForm;
-    my $element;
-    my $hypernym;
-    my @hypernyms;
-    my @returnArray;
-    my @tmpArray;
-
-    $wn = shift;
-    $offset = shift;
-    $pos = shift;
-    $wordForm = $wn->getSense($offset, $pos);
-    @hypernyms = $wn->querySense($wordForm, "hype");
-    @returnArray = ();
-    if($#hypernyms < 0)
-    {
-	@tmpArray = (0);
-	push @returnArray, [@tmpArray];
-    }
-    else
-    {
-	foreach $hypernym (@hypernyms)
-	{
-	    @tmpArray = &getHypernymTrees($wn, $wn->offset($hypernym), $pos);
-	    foreach $element (@tmpArray)
-	    {
-		push @{$element}, $wn->offset($hypernym);
-		push @returnArray, [@{$element}];
-	    }
-	}
-    }
-    return @returnArray;
-}
-
-
-# Subroutine to get the Least Common Subsumer of two
-# hypernym trees (paths in the Noun/Verb Taxonomies). i.e. the lowest
-# common point of intersection of two trees.
-# INPUT PARAMS  : @lOffsets .. array of offsets in the first hypernym tree.
-#                 @rOffsets .. array of offsets in the second hypernym tree.
-# RETRUN VALUES : $lCSOffset .. Offset of the Least Common Subsumer.
-sub getLCSfromTrees
-{
-    my $array1;
-    my $array2;
-    my $element;
-    my $tmpString;
-    my @tree1;
-    my @tree2;
-    
-    $array1 = shift;
-    $array2 = shift;
-    @tree1 = reverse @{$array1};
-    @tree2 = reverse @{$array2};
-    $tmpString = " ".join(" ", @tree2)." ";
-    foreach $element (@tree1)
-    {
-	if($tmpString =~ / $element /)
-	{
-	    return $element;
-	}
-    }
-    return 0;
-}
-
-
-# Subroutine that takes as input an array of offsets
-# or offsets(POS) and for each prints to traceString the 
-# WORD#POS#(<SENSE>/<OFFSET>).
-# INPUT PARAMS  : $pos                             .. Part of speech
-#               : ($offestpos1, $offsetpos2, ...)  .. Array of offsetPOS's
-#                                                     or offests
-# RETURN VALUES : none.
-sub _printSet
-{
-    my $self;
-    my $wn;
-    my $offset;
-    my $pos;
-    my $wps;
-    my $opstr;
-    my @offsets;
-    
-    $self = shift;
-    $pos = shift;
-    @offsets = @_;
-    $wn = $self->{'wn'};
-    $opstr = "";
-    foreach $offset (@offsets)
-    {
-	if(defined $offset && $offset != 0)
-	{
-	    $wps = $wn->getSense($offset, $pos);
-	}
-	else
-	{
-	    $wps = "*Root*\#$pos\#1";
-	}
-	$wps =~ s/ +/_/g;
-	if($self->{'trace'} == 2 && defined $offset && $offset != 0)
-	{
-	    $wps =~ s/\#[0-9]*$/\#$offset/;
-	}
-	$opstr .= "$wps ";
-    }
-    $opstr =~ s/\s+$//;
-    $self->{'traceString'} .= $opstr if($self->{'trace'});
-}
-
-1;
-__END__
 
 =head1 NAME
 
@@ -861,11 +33,129 @@ Lin (1998).
 =head1 DESCRIPTION
 
 Lin (1998) describes a method to compute the semantic relatedness of word
-senses using the information content of the concepts in WordNet and the 
+senses using the information content of the concepts in WordNet and the
 'Similarity Theorem' (also described in the paper). This module implements
 this measure of semantic relatedness of concepts.
 
-=head1 USAGE
+=over
+
+=cut
+
+use strict;
+use WordNet::Similarity::LCSFinder;
+
+our @ISA = qw(WordNet::Similarity::LCSFinder);
+
+our $VERSION = '0.07';
+
+=item $lin->getRelatedness ($synset1, $synset1)
+
+Computes the relatedness of two word senses using an information content
+scheme.  The relatedness is equal to twice the information content of the
+LCS divided by the sum of the information content of each input synset.
+
+Parameters: two word senses in "word#pos#sense" format.
+
+Returns: Unless a problem occurs, the return value is the relatedness
+score.  If no path exists between
+the two word senses, then a large negative number is returned.  If an
+error occurs, then the error level is set to non-zero and an error string
+is created (see the description of getError()).  Note: the error level
+will also be set to 1 and an error string will be created if no path
+exists between the words.
+
+=cut
+
+sub getRelatedness
+{
+  my $self = shift;
+  my $wps1 = shift;
+  my $wps2 = shift;
+  my $wn = $self->{'wn'};
+  my $class = ref $self || $self;
+
+  # Check the existence of the WordNet::QueryData object.
+  unless ($wn) {
+    $self->{errorString} .= "\nError (${class}::getRelatedness()) - ";
+    $self->{errorString} .= "A WordNet::QueryData object is required.";
+    $self->{error} = 2;
+    return undef;
+  }
+
+  # Initialize traces.
+  $self->{traceString} = "";
+
+  # JM 1-21-04
+  # moved input validation code to WordNet::Similarity::parseInput()
+  my $ret = $self->parseWps ($wps1, $wps2);
+  ref $ret or return $ret;
+  my ($word1, $pos1, $sense1, $offset1, $word2, $pos2, $sense2, $offset2)
+    = @{$ret};
+
+  my $synset1 = "$word1#$pos1#$sense1";
+  my $synset2 = "$word2#$pos2#$sense2";
+
+  # Now check if the similarity value for these two synsets is in
+  # fact in the cache... if so return the cached value.
+  my $relatedness =
+    $self->{doCache} ? $self->fetchFromCache ($synset1, $synset2) : undef;
+  defined $relatedness and return $relatedness;
+
+  # Now get down to really finding the relatedness of these two.
+  my @LCSs = $self->getLCSbyIC ($synset1, $synset2, $pos1, 'wps');
+
+  my $ref = shift @LCSs;
+
+  unless (defined $ref) {
+    return $self->UNRELATED;
+  }
+
+  my ($lcs, $lcsic) = @{$ref};
+
+  my $ic1 = $self->IC ($offset1, $pos1);
+  my $ic2 = $self->IC ($offset2, $pos2);
+  my $score = ($ic1 && $ic2) ? ((2 * $lcsic) / ($ic1 + $ic2)) : 0;
+
+  # what does this do?
+  $score = ($score == -1) ? 0 : $score;
+
+  if ($self->{trace}) {
+    $self->{traceString} .= "Concept1: $synset1 (IC=";
+    $self->{traceString} .= sprintf ("%.6f", $ic1);
+    $self->{traceString} .= ")\n";
+    $self->{traceString} .= "Concept2: $synset2 (IC=";
+    $self->{traceString} .= sprintf ("%.6f", $ic2);
+    $self->{traceString} .= ")\n";
+  }
+
+  $self->{doCache} and $self->storeToCache ($wps1, $wps2, $score);
+  return $score;
+}
+
+# JM 1-16-04
+# moved subroutine _getLeastCommonSubsumers to ICFinder.pm
+
+1;
+
+__END__
+
+=back
+
+=head2 Discussion
+
+The relatedness value returned by the lin measure is a number equal to
+S<2 * IC(lcs) / (IC(synset1) + IC(synset2))>.  Where IC(x) is the information
+content of x.  One can observe, then, that the relatedness value will be
+greater-than or equal-to zero and less-than or equal-to one.
+
+If the information content of any of either synset1 or synset2 is zero,
+then zero is returned as the relatedness score, due to lack of data.
+Ideally, the information content of a synset would be zero only if that
+synset were the root node, but when the frequency of a synset is zero,
+we use the value of zero as the information content because of a lack
+of better alternatives.
+
+=head2 Usage
 
 The semantic relatedness modules in this distribution are built as classes
 that expose the following methods:
@@ -876,10 +166,10 @@ that expose the following methods:
 
 See the WordNet::Similarity(3) documentation for details of these methods.
 
-=head1 TYPICAL USAGE EXAMPLES
+=head3 Typical Usage Examples
 
 To create an object of the lin measure, we would have the following
-lines of code in the Perl program. 
+lines of code in the Perl program.
 
    use WordNet::Similarity::lin;
    $measure = WordNet::Similarity::lin->new($wn, '/home/sid/lin.conf');
@@ -888,7 +178,7 @@ The reference of the initialized object is stored in the scalar variable
 '$measure'. '$wn' contains a WordNet::QueryData object that should have been
 created earlier in the program. The second parameter to the 'new' method is
 the path of the configuration file for the lin measure. If the 'new'
-method is unable to create the object, '$measure' would be undefined. This, 
+method is unable to create the object, '$measure' would be undefined. This,
 as well as any other error/warning may be tested.
 
    die "Unable to create object.\n" if(!defined $measure);
@@ -900,7 +190,7 @@ the second sense of the noun 'bus' using the measure, we would write
 the following piece of code:
 
    $relatedness = $measure->getRelatedness('car#n#1', 'bus#n#2');
-  
+
 To get traces for the above computation:
 
    print $measure->getTraceString();
@@ -925,78 +215,60 @@ parameters, each on a new line and having the form 'name::value'. The
 supported in the configuration file. Anything following a '#' is ignored till
 the end of the line.
 
-The module parses the configuration file and recognizes the following 
+The module parses the configuration file and recognizes the following
 parameters:
 
-(a) 'trace::' -- can take values 0, 1 or 2 or the value can be omitted,
-in which case it sets the trace level to 1. Trace level 0 implies
-no traces. Trace level 1 and 2 imply tracing is 'on', the only 
-difference being the way in which the synsets are displayed in the 
-traces. For trace level 1, the synsets are represented as word#pos#sense
-strings, while for level 2, the synsets are represented as 
-word#pos#offset strings.
-  
-(b) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
-which case it takes the value 1, i.e. switches 'on' caching. A value of 
-0 switches caching 'off'. By default caching is enabled.
-  
-(c) 'infocontent::' -- The value for this parameter should be a string that
-specifies the path of an information content file containing the 
-frequency of occurrence of every WordNet concept in a large corpus. The
-format of this file is specified in a later section.
+=over
 
-(d) 'maxCacheSize::' -- takes a non-negative integer value. The value indicates
-the size of the cache, used for storing the computed relatedness value.
+=item trace
 
-=head1 INFORMATION CONTENT
+The value of this parameter specifies the level of tracing that should
+be employed for generating the traces. This value
+is an integer equal to 0, 1, or 2. If the value is omitted, then the
+default value, 0, is used. A value of 0 switches tracing off. A value
+of 1 or 2 switches tracing on.  A trace level of 1 means the synsets are
+represented as word#pos#sense strings, while for level 2, the synsets
+are represented as word#pos#offset strings.
 
-Three of the measures provided within the package require information
-content values of concepts (WordNet synsets) for computing the semantic
-relatedness of concepts. Resnik (1995) describes a method for computing the
-information content of concepts from large corpora of text. In order to
-compute information content of concepts, according to the method described
-in the paper, we require the frequency of occurrence of every concept in a
-large corpus of text. We provide these frequency counts to the three
-measures (Resnik, Jiang-Conrath and Lin measures) in files that we call
-information content files. These files contain a list of WordNet synset
-offsets along with their part of speech and frequency count. The files are 
-also used to determine the topmost nodes of the noun and verb 'is-a' 
-hierarchies in WordNet. The information content file to be used is specified 
-in the configuration file for the measure. If no information content file is 
-specified, then the default information content file, generated at the time 
-of the installation of the WordNet::Similarity modules, is used. A description 
-of the format of these files follows. The FIRST LINE of this file MUST contain 
-the version of WordNet that the file was created with. This should be present 
-as a string of the form 
+=item cache
 
-  wnver::<version>
+The value of this parameter specifies whether or not caching of the
+relatedness values should be performed.  This value is an
+integer equal to  0 or 1.  If the value is omitted, then the default
+value, 1, is used. A value of 0 switches caching 'off', and
+a value of 1 switches caching 'on'.
 
-For example, if WordNet version 1.7.1 was used for creation of the
-information content file, the following line would be present at the start
-of the information content file.
+=item maxCacheSize
 
-  wnver::1.7.1
+The value of this parameter indicates the size of the cache, used for
+storing the computed relatedness value. The specified value must be
+a non-negative integer.  If the value is omitted, then the default
+value, 5,000, is used. Setting maxCacheSize to zero has
+the same effect as setting cache to zero, but setting cache to zero is
+likely to be more efficient.  Caching and tracing at the same time can result
+in excessive memory usage because the trace strings are also cached.  If
+you intend to perform a large number of relatedness queries, then you
+might want to turn tracing off.
 
-The rest of the file contains on each line, a WordNet synset offset, 
-part-of-speech and a frequency count, of the form
+=item rootNode
 
-  <offset><part-of-speech> <frequency> [ROOT]
+The value of this parameter indicates whether or not a unique root node
+should be used. In WordNet, there is no unique root node for the noun and
+verb taxonomies. If this parameter is set to 1 (or if the value is omitted),
+then certain measures (wup, path, lch, res, lin, and jcn) will "fake" a
+unique root node. If the value is set to 0, then no unique root node will
+be used.  If the value is omitted, then the default value, 1, is used.
 
-without any leading or trailing spaces. For example, one of the lines of an
-information content file may be as follows.
+=item infocontent
 
-  63723n 667
+The value for this parameter should be a string that specifies the path of
+an information content file containing the frequency of occurrence of every
+WordNet concept in a large corpus. A number of utility programs are
+included in this distribution that can be used to generate an infocontent
+file (see utils.pod).  If no path is specified, then the default infocontent
+file is used, which was generated from SemCor using the sense-tags.
 
-where '63723' is a noun synset offset and 667 is its frequency
-count. Suppose the noun synset with offset 1740 is the root node of one of 
-the noun taxonomies and has a frequency count of 17625. Then this synset would 
-appear in an information content file as follows:
-
-  1740n 17625 ROOT
-
-The ROOT tags are extremely significant in determining the top of the 
-hierarchies and must not be omitted. Typically, frequency counts for the noun
-and verb hierarchies are present in each information content file.
+=back
 
 =head1 SEE ALSO
 
@@ -1012,14 +284,38 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Siddharth Patwardhan, <sidd@cs.utah.edu>
-  Ted Pedersen, <tpederse@d.umn.edu>
+  Siddharth Patwardhan, University of Utah, Salt Lake City
+  sidd at cs.utah.edu
+
+  Jason Michelizzi, University of Minnesota Duluth
+  mich0212 at d.umn.edu
+
+  Ted Pedersen, University of Minnesota Duluth
+  tpederse at d.umn.edu
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by Siddharth Patwardhan and Ted Pedersen
+Copyright (C) 2003-2004 by Siddharth Patwardhan and Ted Pedersen
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to
+
+    The Free Software Foundation, Inc.,
+    59 Temple Place - Suite 330,
+    Boston, MA  02111-1307, USA.
+
+Note: a copy of the GNU General Public License is available on the web
+at L<http://www.gnu.org/licenses/gpl.txt> and is included in this
+distribution as GPL.txt.
 
 =cut

@@ -1,21 +1,21 @@
 #!/usr/local/bin/perl -w
 #
-# compounds.pl ver 0.6
-# (Updated 08/29/2003 -- Sid)
+# compounds.pl ver 0.07
+# (Updated 11/25/2003 -- Sid)
 #
-# Program to generate a list of all compound words 
+# Program to generate a list of all compound words
 # present in WordNet.
 #
 # Copyright (c) 2002-2003
 #
 # Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
+# tpederse at d.umn.edu
 #
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-# banerjee+@cs.cmu.edu
+# banerjee+ at cs.cmu.edu
 #
 # Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd@cs.utah.edu
+# sidd at cs.utah.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -163,6 +163,29 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "compounds.pl version 0.6\n";
+    print "compounds.pl version 0.07\n";
     print "Copyright (c) 2002-2003 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
+
+__END__
+
+=head1 NAME
+
+compounds.pl - extract compound words (collocations) from WordNet
+
+=head1 SYNOPSIS
+
+compounds.pl [--wnpath=PATH | --help | --version]
+
+=head1 DESCRIPTION
+
+B<compounds.pl> extracts compound words (collocations) from WordNet
+and writes the resultant list to the standard output.
+
+=head1 OPTIONS
+
+B<--wnpath>=I<path>
+
+    Location of the WordNet data files (e.g.,
+    /usr/local/WordNet-2.0/dict)
+

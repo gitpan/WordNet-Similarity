@@ -1,462 +1,201 @@
-# WordNet::Similarity::wup.pm version 0.06
-# (updated 10/06/2003 -- Jason)
+# WordNet::Similarity::wup.pm version 0.07
+# (updated 3/8/2004 -- Jason)
 #
 # Semantic Similarity Measure package implementing the semantic
 # relatedness measure described by Wu & Palmer (1994) as revised
 # by Resnik (1999).
-#
-# Copyright (C) 2003
-#
-# Jason Michelizzi, University of Minnesota Duluth
-# mich0212@d.umn.edu
-#
-# Ted Pedersen, University of Minnesota Duluth
-# tpederse@d.umn.edu
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd@cs.utah.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to
-#
-# The Free Software Foundation, Inc.,
-# 59 Temple Place - Suite 330,
-# Boston, MA  02111-1307, USA.
 
 package WordNet::Similarity::wup;
-
-use strict;
-use warnings;
-
-use Exporter;
-use vars qw/$VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS/;
-@ISA = qw/Exporter/;
-
-%EXPORT_TAGS = ();
-@EXPORT = ();
-@EXPORT_OK = ();
-$VERSION = '0.06';
-
-# constructor for the wup class
-sub new {
-  my ($class, $wn, $config) = @_;
-  my $self = {};
-  $self->{errorString} = '';
-  $self->{error} = 0;
-
-  $self->{wn} = $wn;
-  unless ($wn) {
-    $self->{errorString} .= "\nError (WordNet::Similarity::wup->new()) - ";
-    $self->{errorString} .= "A WordNet::QueryData object is required.";
-    $self->{error} = 2;
-  }
-
-  bless ($self, $class);
-  $self->_initialize($config) if $self->{error} < 2;
-
-  #tracing...
-  $self->{traceString} = "";
-  $self->{traceString} .= "WordNet::Similarity::wup object created:\n";
-  $self->{traceString} .= "trace :: ".($self->{trace})."\n" if $self->{trace};
-  $self->{traceString} .= "cache :: ".($self->{doCache})."\n" if $self->{doCache};
-
-  return $self;
-}
-
-# initializes the this object, parses config file
-sub _initialize {
-  my ($self, $configFile) = @_;
-
-  # parts of speech that this module can handle
-  $self->{n} = 1;
-  $self->{v} = 1; # at least I hope so
-
-  # setup cache
-  $self->{doCache} = 1;
-  $self->{simCache} = ();
-  $self->{traceCache} = ();
-  $self->{cacheQ} = ();
-  $self->{maxCacheSize} = 1000;
-
-  # initialize tracing
-  $self->{trace} = 0;
-
-  # enable the imaginary unique root node
-  $self->{rootNode} = 1;
-
-  if (defined $configFile) {
-    unless (open CF, $configFile) {
-      $self->{errorString} .= "\nError (WordNet::Similarity::wup->_initialize()) - ";
-      $self->{errorString} .= "Unable to open config file $configFile.";
-      $self->{error} = 2;
-      return;
-    }
-    my $line = <CF>;
-    unless ($line =~ m/^WordNet::Similarity::wup/) {
-      close CF;
-      $self->{errorString} .= "\nError (WordNet::Similarity::wup->_initialize()) - ";
-      $self->{errorString} .= "$configFile does not appear to be a config file.";
-      $self->{error} = 2;
-      return;
-    }
-    while (<CF>) {
-      s/\s+|(?:\#.*)//g; # ignore comments
-      if (m/^trace::(.*)/) {
-	my $trace = $1;
-	$self->{trace} = 1;
-	$self->{trace} = $trace if $trace =~ m/^[012]$/;
-      }
-      elsif (m/^cache::(.*)/) {
-	my $cache = $1;
-	$self->{doCache} = 1;
-	$self->{doCache} = $cache if $cache =~ m/^[01]$/;
-      }
-      elsif (m/^(?:max)?CacheSize::(.*)/i) {
-	my $mcs = $1;
-	$self->{maxCacheSize} = 1000;
-	$self->{maxCacheSize} = $mcs
-	  if defined ($mcs) and $mcs =~ m/^\d+$/;
-      }
-      elsif (m/^rootNode::(.*)/i) {
-	my $t = $1;
-	$self->{rootNode} = 1;
-	next unless defined $t;
-	$t = 0 if $t =~ m/^no(?:ne)$/i;
-	$self->{rootNode} = $t;
-      }
-      elsif ($_ ne "") {
-	s/::.*//;
-	$self->{errorString} .= "\nWarning (WordNet::Similarity::wup->_initialize()) - ";
-	$self->{errorString} .= "Unrecognized parameter '$_'.  Ignoring.";
-	$self->{error} = 1;
-      }
-    }
-    close CF;
-  }
-}
-
-# computes relatedness by the Wu & Palmer (1994) measure
-#
-# sim(c1, c2) = 2*d(c3)/(d(c1) + d(c2))
-# c3 is lowest common subsumer (maximally specific
-#  superclass) of c1 and c2
-# d(c) is dist from root node to c
-# parameters: wps1, wps2 in word#part_of_speech#sense format
-# return: $score which belongs to the interval [0,1], or undef on error
-sub getRelatedness {
-  my $self = shift;
-  my $wps1 = shift;
-  my $wps2 = shift;
-  my $score;
-
-  unless ($wps1 and $wps2) {
-    $self->{errorString} .= "\nWarning (WordNet::Similarity::wup->getRelatedness ()) - Undefined input values.";
-    $self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
-    return undef;
-  }
-
-  if ($wps1 eq $wps2) {
-    $score = 1;
-    return $score;
-  }
-
-  #check parts of speech
-  my ($pos1, $pos2);
-  my $failed = 0;
-  $failed = 1 unless ($wps1 =~ m/^\S+\#([nvar])\#\d+$/);
-  $pos1 = $1;
-  $failed = 1 unless ($wps2 =~ m/^\S+\#([nvar])\#\d+$/);
-  $pos2 = $1;
-
-  if ($failed) {
-    $self->{errorString} .= "\nWarning (WordNet::Similarity::wup->getRelatedness()) - ";
-    $self->{errorString} .= "Input not in word#pos#sense format.";
-    $self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
-    return undef;
-  }
-
-  unless ($pos1 eq $pos2) {
-    if ($self->{trace}) {
-      $self->{traceString} .= "Relatedness 0 across parts of speech.";
-    }
-    return 0;
-  }
-
-  # check the cache
-  if ($self->{doCache} && defined $self->{simCache}->{"${wps1}::$wps2"}) {
-    if ($self->{traceCache}->{"${wps1}::$wps2"}) {
-      $self->{traceString} .= $self->{traceCache}->{"${wps1}::$wps2"};
-    }
-    return $self->{simCache}->{"${wps1}::$wps2"};
-  }
-
-  my $lcs = $self->getLCS ($wps1, $wps2);
-  unless ($lcs) {
-    $self->{errorString} .= "\nWarning (WordNet::Similarity::wup->getRelatedness ()) - ";
-    $self->{errorString} .= "Unable to find a lowest common subsumer of $wps1 and $wps2.";
-    $self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
-    undef $score;
-    return $score;
-  }
-  if ($self->{trace}) {
-    $self->{traceString} .= "HyperTree: ".$self->getHypertree($wps1)."\n";
-    $self->{traceString} .= "HyperTree: ".$self->getHypertree($wps2)."\n";
-    $self->{traceString} .= "LCS: ";
-    $self->{traceString} .= "$lcs\n";
-  }
-
-  my $d1 = $self->getDepth ($wps1);
-  my $d2 = $self->getDepth ($wps2);
-  my $d3 = $self->getDepth ($lcs);
-
-  unless ($self->{rootNode}) {
-    $d1--;
-    $d2--;
-    $d3-- if $d3 > 0;
-  }
-
-  if ($self->{trace}) {
-    $self->{traceString} .= "depth($wps1) = $d1\n";
-    $self->{traceString} .= "depth($wps2) = $d2\n";
-    $self->{traceString} .= "depth($lcs) = $d3\n";
-  }
-
-  # avoid 0/0, assign 1
-  if ($d1 == 0 and $d2 == 0) {
-    $score = 1;
-  }
-  else {
-    $score = (2 * $d3) / ($d1 + $d2);
-  }
-
-  if ($score >= 0) {
-    if ($self->{doCache}) {
-      $self->{simCache}->{"${wps1}::$wps2"} = $score;
-      if ($self->{trace}) {
-	$self->{traceCache}->{"${wps1}::$wps2"} = $self->{traceString}
-      }
-      push (@{$self->{cacheQ}}, "${wps1}::$wps2");
-      if ($self->{maxCacheSize} >= 0) {
-	while (scalar (@{$self->{cacheQ}}) > $self->{maxCacheSize}) {
-	  my $delItem = shift(@{$self->{'cacheQ'}});
-	  delete $self->{'simCache'}->{$delItem};
-	  delete $self->{'traceCache'}->{$delItem};
-	}
-      }
-    }
-  }
-  else {
-    $self->{errorString} .= "Warning (WordNet::Similarity::wup->getRelatedness()) - ";
-    $self->{errorString} .= "Similarity score is less than 0.";
-    $self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
-    return undef;
-  }
-  return $score;
-}
-
-sub getTraceString () {
-  my $self = shift;
-  my $str = $self->{traceString};
-  $self->{traceString} = "" if $self->{trace};
-  $str =~ s/\n{2,}$/\n/;
-  return $str;
-}
-
-sub getError () {
-  my $self = shift;
-  my $error = $self->{error};
-  my $errorString = $self->{errorString};
-  $self->{error} = 0;
-  $self->{errorString} = "";
-  $errorString =~ s/^\n*//;
-  return ($error, $errorString);
-}
-
-#parameters: 2 concepts, $wps1 and $wps2, in word#pos#sense format
-#returns: the lowest common subsumer of $wps1 and $wps2 or "*ROOT*" or undef
-sub getLCS {
-  my $self = shift;
-  my ($wps1, $wps2) = @_;
-  $wps1 =~ m/^\S+\#([nv])\#\d+$/;
-  my $pos1 = $1;
-  $wps2 =~ m/^\S+\#([nv])\#\d+$/;
-  my $pos2 = $1;
-  if ($pos1 ne $pos2) {
-    $self->{errorString} .= "\nError (WordNet::Similarity::wup->getLCS()) - ";
-    $self->{errorString} .= "Cannot find a common subsumer across parts of speech.";
-    $self->{error} = 2;
-    return undef;
-  }
-
-  # $wps1 could be a hypernym of $wps2 or vice-versa
-  my @subsumers1 = $self->getAllSubsumers($wps1);
-  my @subsumers2 = $self->getAllSubsumers($wps2);
-
-  # first, check if $wps1 subsumes $wps2
-  foreach my $level_ref (@subsumers2) {
-    foreach my $concept (@$level_ref) {
-      return $wps1 if $wps1 eq $concept;
-    }
-  }
-  # now check if $wps2 subsumes $wps1
-  foreach my $level_ref (@subsumers1) {
-    foreach my $concept (@$level_ref) {
-      return $wps2 if $wps2 eq $concept;
-    }
-  }
-
-  # at least it runs in polynomial time!
-  foreach my $level_ref1 (@subsumers1) {
-    foreach my $concept1 (@$level_ref1) {
-      foreach my $level_ref2 (@subsumers2) {
-	foreach my $concept2 (@$level_ref2) {
-	  return $concept1 if $concept1 eq $concept2;
-	}
-      }
-    }
-  }
-
-  return ($pos1 eq 'n') ? "*Root*#n#1" : "*Root*#v#1";
-}
-
-sub getAllSubsumers {
-  my $self = shift;
-  my $wps = shift;
-  my $wn = $self->{wn};
-  my @rtn;
-
-  # what if there's more than one path to the root?  what if the paths
-  # are not of the same length?
-  my @subsumers = $wn->querySense($wps, "hype");
-  if (scalar @subsumers) {
-    push @rtn, [@subsumers];
-
-    do {
-      my @new_subsumers;
-      foreach my $subsumer (@subsumers) {
-	push @new_subsumers, $wn->querySense($subsumer, "hype");
-      }
-      push @rtn, [@new_subsumers] if scalar @new_subsumers;
-      @subsumers = @new_subsumers;
-      @new_subsumers = ();
-    } while (scalar @subsumers);
-  }
-  return @rtn;
-}
-
-sub getHypertree {
-  my $self = shift;
-  my $wps = shift;
-  my $wn = $self->{wn};
-
-  my @hypernyms = $wps;
-  my @t = $wps;
-  do {
-    my @r = ();
-    foreach my $t (@t) {
-      push @r, $wn->querySense ($t, "hype");
-    }
-    unshift @hypernyms, @r if scalar @r;
-    @t = @r;
-  } while (scalar @t);
-
-
-  $wps =~ m/^\S\#([nvar])\#\d+$/;
-  unshift @hypernyms, "*Root*#$1#1";
-  my $rtn = join ' ', @hypernyms;
-  return $rtn;
-}
-
-#parameter: a concept, $wps, in word#pos#sense format
-#returns: the length of the shortest path from $wps to the root
-sub getDepth {
-  my $self = shift;
-  my $wps = shift;
-  my $wn = $self->{wn};
-
-  $wps =~ m/\S+\#(\w+)\#\d+/;
-  my $pos = $1;
-  if (($pos eq 'n') or ($pos eq 'v')) {
-    return 0 if $wps =~ m/\*Root\*/i;
-
-    my @hypernyms = $wn->querySense ($wps, "hype");
-    if (!scalar @hypernyms) {
-      return 1; # return 1 to simulate a unique root node
-    }
-
-    my $min_depth = -1;
-    foreach my $hypernym (@hypernyms) {
-      my $depth = $self->getDepth ($hypernym);
-      if (($min_depth < 0) or ($depth < $min_depth)) {
-	$min_depth = $depth;
-      }
-    }
-    return $min_depth + 1;
-  }
-  else {
-    $self->{errorString} .= "\nError (WordNet::Similarity::wup->getDepth()) - ";
-    $self->{errorString} .= "Unsupported part of speech: $pos";
-    $self->{error} = 2;
-    return undef;
-  }
-}
-
-
-1;
-
-__END__
 
 =head1 NAME
 
 WordNet::Similarity::wup - Perl module for computing semantic
 relatedness of word senses using the edge counting method of the
-Resnik (1999) revision of Wu & Palmer (1994)
+of Wu & Palmer (1994)
 
 =head1 SYNOPSIS
 
-use WordNet::Similarity::wup;
+ use WordNet::Similarity::wup;
 
-use WordNet::QueryData;
+ use WordNet::QueryData;
 
-my $wn = WordNet::QueryData->new();
+ my $wn = WordNet::QueryData->new();
 
-my $object = WordNet::Similarity::wup->new($wn);
+ my $wup = WordNet::Similarity::wup->new($wn);
 
-my $value = $object->getRelatedness('dog#n#1', 'cat#n#1');
+ my $value = $wup->getRelatedness('dog#n#1', 'cat#n#1');
 
-my ($error, $errorString) = $object->getError();
+ my ($error, $errorString) = $wup->getError();
 
-die "$errorString" if $error;
+ die $errorString if $error;
 
-print "dog (sense 1) <-> cat (sense 1) = $value\n";
+ print "dog (sense 1) <-> cat (sense 1) = $value\n";
 
 =head1 DESCRIPTION
 
 Resnik (1999) revises the Wu & Palmer (1994) method of measuring semantic
 relatedness.  Resnik uses use an edge distance method by taking into
-account the most specific node subsuming the two concepts.
+account the most specific node subsuming the two concepts.  Here we have
+implemented the original Wu & Palmer method, which uses node-counting.
+
+=head2 Methods
+
+This module defines the following methods:
+
+=over
+
+=cut
+
+use strict;
+use warnings;
+
+use WordNet::Similarity::LCSFinder;
+
+our @ISA = qw/WordNet::Similarity::LCSFinder/;
+
+our $VERSION = '0.07';
+
+=item $wup->getRelatedness ($synset1, $synset2)
+
+Computes the relatedness of two word senses using a node counting scheme.
+For details on how relatedness is computed, see the discussion section
+below.
+
+Parameters: two word senses in "word#pos#sense" format.
+
+Returns: Unless a problem occurs, the return value is the relatedness
+score.  If no path exists between the two word senses, then a large
+negative number is returned.  If an error occurs, then the error level is
+set to non-zero and an error string is created (see the description
+of getError()).  Note: the error level will also be set to 1 and an error
+string will be created if no path exists between the words.
+
+=cut
+
+sub getRelatedness
+{
+  my $self = shift;
+  my $in1 = shift;
+  my $in2 = shift;
+
+  my $class = ref $self || $self;
+
+  # initialize trace string
+  $self->{traceString} = "";
+
+  # JM 1-21-04
+  # moved input validation code to WordNet::Similarity::parseWps()
+  my $ret = $self->parseWps ($in1, $in2);
+  ref $ret or return $ret;
+  my ($word1, $pos1, $sense1, $offset1, $word2, $pos2, $sense2, $offset2)
+    = @{$ret};
+
+  defined $word1 or return undef;
+
+  my $wps1 = "$word1#$pos1#$sense1";
+  my $wps2 = "$word2#$pos2#$sense2";
+
+  my $score = $self->fetchFromCache ($wps1, $wps2);
+  return $score if defined $score;
+
+  my @LCSs = $self->getLCSbyDepth ($wps1, $wps2, $pos1, 'wps');
+  my $temp = shift @LCSs;
+  unless (ref $temp) {
+    return $temp;
+  }
+  my ($lcs, $depth, $root) = @{$temp};
+
+  unless (defined $lcs) {
+    # no lcs found, return unrelated (errors already generated)
+    return $self->UNRELATED;
+  }
+
+  my @depths1 = $self->getSynsetDepth ($offset1, $pos1);
+  my @depths2 = $self->getSynsetDepth ($offset2, $pos2);
+
+  # find the depth of the synset, checking that the depth value is from
+  # the same taxonomy as the lcs (since synsets can belong to more than
+  # one taxonomy if the root node is off)
+  my $depth1 = 1_000_000;
+  foreach (@depths1) {
+    my ($d1, $root1) = @{$_};
+    if ($root1 eq $root) {
+      $depth1 = $d1 if $d1 < $depth1;
+    }
+  }
+
+  # This test should only fail if synset1 doesn't belong to the same taxonomy
+  # as one of its subsumers.  Obviously this should never happen.  It might
+  # be a sign of some other mysterious internal error, but I can't think of
+  # why that would ever happen.
+  if ($depth1 > 10_000) {
+    $self->{error} = $self->{error} < 1 ? 1 : $self->{error};
+    $self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
+    $self->{errorString} .= "$wps1(1) does not belong to the same taxonomy as its subsumer $lcs.";
+    return undef;
+  }
+
+  # see comment above
+  my $depth2 = 1_000_000;
+  foreach (@depths2) {
+    my ($d2, $root2) = @{$_};
+    if ($root2 eq $root) {
+      $depth2 = $d2 if $d2 < $depth2;
+    }
+  }
+
+  # see comment above for an explantion of why this test might fail
+  if ($depth2 > 10_000) {
+    $self->{error} = $self->{error} < 1 ? 1 : $self->{error};
+    $self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
+    $self->{errorString} .= "$wps2(2) does not belong to the same taxonomy as its subsumer $lcs.";
+    return undef;
+  }
+
+  $score = 2 * $depth / ($depth1 + $depth2);
+
+  $self->storeToCache ($wps1, $wps2, $score) if $self->{doCache};
+
+  if ($self->{trace}) {
+    $self->{traceString} .= "\nDepth(";
+    $self->printSet ($pos1, 'wps', $in1);
+    $self->{traceString} .= ") = $depth1\nDepth(";
+    $self->printSet ($pos1, 'wps', $in2);
+    $self->{traceString} .= ") = $depth2\n";
+  }
+  return $score;
+}
+
+###
+# JM 1-16-04
+# All of the code that used to follow here has been replaced by code in
+# PathFinder.
+###
+
+1;
+
+__END__
+
+=back
+
+=head2 Discussion
+
+The Wu & Palmer measure calculates relatedness by considering the depths
+of the two synsets in the WordNet taxonomies, along with the depth
+of the LCS.  The formula is S<score = 2*depth(lcs) / (depth(s1) + depth(s2))>.
+This means that S<0 < score <= 1>.  The score can never be zero because the
+depth of the LCS is never zero (the depth of the root of a taxonomy is one).
+The score is one if the two input synsets are the same.
 
 =head1 USAGE
 
-The semantic relatedness modules in this distribution are built as classes that expose the following methods:
+The semantic relatedness modules in this distribution are built as classes
+that define the following methods:
 
-new()
-
-getRelatedness()
-
-getError()
-
-getTraceString()
+  new()
+  getRelatedness()
+  getError()
+  getTraceString()
 
 See the WordNet::Similarity(3) documentation for details of these methods.
 
@@ -507,25 +246,55 @@ following a '#' is ignored till the end of the line.
 The module parses the configuration file and recognizes the following
 parameters:
 
-(a) 'trace::' -- can take values 0, 1, or 2 or the value can be omitted, in
-which case it sets the trace level to 1.  Trace level 0 implies no traces.
-Trace level 1 and 2 imply tracing is 'on', the only difference being the
-way in which the synsets are displayed in the traces.  For trace level 1, the
-sysnsets are represented in word#pos#sense strings, while for level 2, the
-sysnets are represented as word#pos#offset strings.
+=over
 
-(b) 'cache::' -- can take values 0 or 1 or the value can be omitted, in
-which case it takes the value 1, i.e., switches 'on' caching.  A value of
-0 switches caching 'off'.  By default caching is enabled.
+=item trace
 
-(c) 'cachesize::' -- can take any non-negative integer value or the value
-can be omitted, in which case it takes the value 1000.  A value, n, such that
-n > 0 means that n relatedness queries will be cached.  If n = 0, then no
-queries will be cached.  Setting cachesize to zero has the same effect as
-setting cache to zero, but setting cache to zero is more efficient.  Caching
-and tracing at the same time can result in excessive memory usage because
-the trace strings are also cached.  If you intend to perform a large number of
-relatedness queries, then you should probably turn tracing off.
+The value of this parameter specifies the level of tracing that should
+be employed for generating the traces. This value
+is an integer equal to 0, 1, or 2. If the value is omitted, then the
+default value, 0, is used. A value of 0 switches tracing off. A value
+of 1 or 2 switches tracing on. A trace of level 1 means the synsets are
+represented as word#pos#sense strings, while for level 2, the synsets
+are represented as word#pos#offset strings.
+
+=item cache
+
+The value of this parameter specifies whether or not caching of the
+relatedness values should be performed.  This value is an
+integer equal to  0 or 1.  If the value is omitted, then the default
+value, 1, is used. A value of 0 switches caching 'off', and
+a value of 1 switches caching 'on'.
+
+=item maxCacheSize
+
+The value of this parameter indicates the size of the cache, used for
+storing the computed relatedness value. The specified value must be
+a non-negative integer.  If the value is omitted, then the default
+value, 5,000, is used. Setting maxCacheSize to zero has
+the same effect as setting cache to zero, but setting cache to zero is
+likely to be more efficient.  Caching and tracing at the same time can result
+in excessive memory usage because the trace strings are also cached.  If
+you intend to perform a large number of relatedness queries, then you
+might want to turn tracing off.
+
+=item rootNode
+
+The value of this parameter indicates whether or not a unique root node
+should be used. In WordNet, there is no unique root node for the noun and
+verb taxonomies. If this parameter is set to 1 (or if the value is omitted),
+then certain measures (wup, path, lch, res, lin, and jcn) will "fake" a
+unique root node. If the value is set to 0, then no unique root node will
+be used.  If the value is omitted, then the default value, 1, is used.
+
+=item synsetDepthsFile
+
+The value for this parameter should be a string that specifies the location
+of a synset depths file (as generated by wnDepths.pl.  If no path is
+specified, then the default file is used, which was generated when the
+Similarity package was installed.
+
+=back
 
 =head1 SEE ALSO
 
@@ -541,15 +310,39 @@ http://www.ai.mit.edu/people/jrennie/WordNet/
 
 =head1 AUTHORS
 
-  Jason Michelizzi, <mich0212@d.umn.edu>
-  Ted Pedersen, <tpederse@d.umn.edu>
-  Siddharth Patwardhan <sidd@cs.utah.edu>
+  Jason Michelizzi, University of Minnesota Duluth
+  mich0212 at d.umn.edu
+
+  Ted Pedersen, University of Minnesota Duluth
+  tpederse at d.umn.edu
+
+  Siddharth Patwardhan, University of Utah, Salt Lake City
+  sidd at cs.utah.edu
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by Jason Michelizzi, Ted Pedersen, and Siddharth Patwardhan
+Copyright (C) 2003-2004 by Jason Michelizzi, Ted Pedersen, and Siddharth
+Patwardhan
 
-This library is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to
+
+    The Free Software Foundation, Inc.,
+    59 Temple Place - Suite 330,
+    Boston, MA  02111-1307, USA.
+
+Note: a copy of the GNU General Public License is available on the web
+at <http://www.gnu.org/licenses/gpl.txt> and is included in this
+distribution as GPL.txt.
 
 =cut

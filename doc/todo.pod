@@ -1,0 +1,937 @@
+=head1 NAME 
+
+TODO LIST FOR WORDNET::SIMILARITY
+
+=head1 SYNOPSIS
+
+A list of things to do for WordNet Similarity. 
+
+=head1 DESCRIPTION
+
+As these items are completed, move them down into Recently
+Completed Items, make sure to date and initial. When we have
+a version release, all of the recently completed items 
+should be moved into changelog.pod. 
+
+=head2 FOR VERSION 0.08:
+
+=over 4
+
+=item * 
+
+Standardize "path to wordnet" handling. utilities should have an option
+to specify the path, and then if it is not go through the same looking
+procedure. wnDepths.pl and *Freq.pl, for example, do this somewhat
+differently. Let's standardize, maybe even putting into a module. 
+
+=item *
+
+re-write *Freq.pl programs to reduce redundancy and make faster. At 
+present there are bugs in all of these programs. Create test cases that 
+are manually verified and included in testing directory. 
+
+=item *
+
+The leather_carp mystery: leather_carp occurs 3 times in the BNC. It has
+only one sense, and it is a leaf node. By all rights both standard and
+resnik counting should agree. They do not, standard counting seems to
+overcount by a factor of 2. 
+
+=item *
+
+6412325 is the synset for i in wordnet.
+
+ ic-brown-add1.dat:6412325n 10497
+ ic-brown.dat:6412325n 10496
+ ic-brown-resnik-add1.dat:6412325n 1750.33333333357
+
+there are three senses of 'i' in wordnet. Why isn't the count in the last
+line 3498.6. The count shown suggests that i has 6 senses, which it 
+doesn't...[TDP 12/28/03 - the overcounting shown in the leather_carp
+problem suggests that the resnik count above *might* be correct. 
+1750.3 * 3 = 5251 - if that is the number of occurrences of i in the
+brown corpus, then the resnik count is fine. The overcounting still
+exists in the standard method however.
+
+=item * 
+
+run test case for rawtextFreq.pl. Use a single word in a file (like I), 
+and make sure that default and resnik counting work as expected. Ted ran a 
+test case where the only word in the file was "I" (with no stop list)
+and the counts were all 2 (both at leaf and up to ROOT). The same occurred 
+with brownFreq.pl and will presumably affect all the Freq.pl programs.
+
+=item * 
+
+improve error handling in ***Freq.pl programs, such that  if they do not  
+get the input they require they issue an error  message and  do not run  
+endlessly. 
+
+=item * 
+
+support --trace option on info content programs to allow for wps format to 
+be displayed in addition to (or instead of?) offset. 
+
+=item * 
+
+run profiles of rawtextFreq.pl and BNCFreq.pl to determine where time is 
+being spent. Brown, SemCor and Treebank all seem to run reasonably 
+quickly (20 minutes, 5 minutes, and 40 minutes, respectively). Run 1 
+million words worth of BNC in order to compare with Brown and Treebank.
+
+=item * 
+
+rawtextFreq.pl runs really slowly. It may have to do with the fact that 
+raw text has no markup in the text to identify sentence boundaries or 
+otherwise guide the programs. This might particularly slow down compound 
+identification. 
+
+=item * 
+
+Makefile.PL and semCorFreq.pl seem to be somewhat alike. Can Makefile.PL
+simply call /utils/SemCorFreq.pl, or can this duplication be avoided in
+some other way?
+
+=item *
+
+update documentation to warn users that Freq.pl programs convert text to
+lower case (verify that this is true for rawtextFreq.pl) and that 
+stoplists must also be all lowercase. 
+
+=back
+
+=head2 FOR VERSION 0.09:
+
+=over 4
+
+=item * 
+
+speed up lesk, and make it more generic. string matching is the  big offender with respect to speed, and wordnet specific  stuff is the  
+problem with respect to generality. 
+
+=item * 
+
+update lesk/vector to support new relations in WordNet 2.0
+
+=back
+
+=head2 FOR VERSION 0.10:
+
+=over 4
+
+=item * 
+
+update hso to support new relations in WordNet 2.0
+
+=item *
+
+update hso to support the use of a hypothetical root node. Currently (as 
+of version 0.06 and 0.07) its paths (for hypernyms) are limited to a 
+particular taxonomy. This might be problematic when it comes to nouns, 
+which are split into 9(?) separate taxonomies within wordnet. And of
+course verbs are split into hundreds of taxonomies. Right now when hso
+is on a hypernym path it isn't able to cross "up and over". Seems like it 
+should be able to do so. 
+
+=back
+
+=head2 FOR VERSION 1.00:
+
+=over 4
+
+=item * 
+
+re-write hso to make it faster and more generic. check to see if hso uses  
+hypo root node, and consider adding ability to turn on/off. 
+
+=back
+
+=head2 GOOD IDEAS FOR FUTURE WORK, DO WHEN POSSIBLE
+
+=over 4
+
+=item *
+
+edge/path and jcn are both distance measures. To convert them to 
+similarity measures, we currently use 1/distance. This shifts the scale of 
+the measures and changes the relative distance between pairs. Alternatives
+are to use -dist or maxdist-dist. Computation of maxdist for path is much 
+like computation for lch (with and without hypo root node). for jcn it 
+poses a new issue, in that we would need to find the pair of concepts that 
+had the greatest individual information content, and are subsumed by a 
+root node (either hypo or "real").
+
+=item * 
+
+store WN version in vector DB file and warn when version is different
+
+=item * 
+
+check if warnings are issued when there are version clashes  between info  
+content files and wordnet version. 
+
+=item *
+
+Is it possible to have a default value for vectordb? This is the Berkeley
+DB file used by vector.pm. It is created from the WordNet glosses, and
+is required for vector to run. If vectordb is not specified, or if the
+option is specified without a value, vector will fail. (Sid is pursuing 
+this.)
+
+=back
+
+=head2 RECENTLY COMPLETED ITEMS
+
+=over
+
+=item *
+
+03/23/2004
+
+=over
+
+=item 1
+
+In lch, the max depth of the tree (when the hypo root node is off) should 
+be the root to which the lcs in the shortest path attaches. If the lcs has 
+multiple roots, it should use the depth of the root that is "closest" to 
+the lcs. This suggests that lch should use getLCSDepth rather than 
+getShortestPath. (we handle this slightly differently than is described 
+here, see the "Discussion" section in the lch documentation)
+
+=item 2
+
+In /t, save diff files between 0.06 and 0.07. Make sure to run diff
+tests for path/0.07 and edge/0.06.
+
+=back
+
+=item *
+
+03/16/2004
+
+=over
+
+=item 1
+
+make sure that every .pm and .pl file has the same GNU copyleft language. 
+Use PathFinder.pm as a template. 
+
+=item 2 
+
+make sure that documentation is clear that vector and lesk require 
+different format relation files (ie they are not interchangeable).
+
+=item 3
+
+convert README into a series of pod documents in doc directory. In
+the intro.pod, provide a table of contents like structure (much like
+perldoc perl does). 
+
+Make sure that each pod documents follows the cpan style (name, synopsis,  
+etc.) This should be true of any pod documentation in the package. 
+
+=item 4
+
+Modify INSTALL to describe local install correctly. In particular,
+the description of how to do a 'use lib' or -I may need adjustment.
+
+=back
+
+=item * 
+
+03/13/2004
+
+=over
+
+=item 1
+
+developers.pod should be a tutorial that explains how to create a new 
+measure. It should take the reader through a complete example, such as  
+creating a measure that returns the sum of the information content of  the  
+concpets found in the shortest path between two  concepts. This should  
+include an example of how to use all of the available configuration  
+options, and also adding a new one. 
+
+=back
+
+=item *
+
+03/12/2004
+
+=over
+
+=item 1
+
+Make developers.pod into a self contained document that provides a step by  
+step tutorial on how to write a measure of relatedness. The file  
+NewStats.txt in NSP provides an example of the style of presentation that  
+is expected. 
+
+=back
+
+=item * 
+
+03/11/2004
+
+=over
+
+=item 1
+
+document measure modules (lch.pm, wup.pm, etc.) with information about  
+effect of hypo root node. (Take discussion from email explaining why it  
+has an effect, and why it doesn't have an effect) and make it a part of  
+the .pm perldoc. This will eventually be used in thesis writing, so it  
+should be complete and  detailed. Of particular important is the behavior  
+of lch.pm, but all of the modules should have their expected behaviour  
+with and without the hypo  root node clearly documented. Also, you should  
+note what the behavior was in 0.06 for both nouns and verbs, and if this  
+has changed.
+
+=back
+
+=item *
+
+03/09/2004
+
+=over
+
+=item 1
+
+lch.pm does not yet support not having a hypo root. Remember that
+the lack of hypo root will change (potentially) the max path length found 
+for each taxonomy.
+
+=back
+
+=item *
+
+03/08/2004
+
+=over
+
+=item 1
+
+depth finding code should be contained with DepthFinder.pm. We should
+not do any depth finding on the fly, rather that should all be precomputed
+(like we do info content). That includes the depth of individual concepts,
+and the max depths of taxonomies.
+
+=item 2
+
+When wup.pm encounters two or more paths to the root, the trace output 
+"condenses" those paths into a single path. It would be better to show
+all paths in the trace (as res does, for example). Also, make sure that
+the depth reported in such cases is always the minimum (shortest path
+to root). 
+
+=back
+
+=item *
+
+03/05/2004
+
+=over
+
+=item 1
+
+Modify wnDepths such that it shows both the depths of individual concepts, 
+as well as the max distance from a root node. In the case of multiple
+inheritance, wndepths should show the depth of the concept in each case,
+and also the relevant root node. wnDepths should sort these depths  
+from shortest to longest. The output of wndepths should be formatted like 
+infocontent.dat, anticipating an eventual merger. 
+
+=back
+
+=item * 
+
+03/02/2004
+
+=over 
+
+=item 1
+
+in docs, update/replace current discussion of modules. Include example 
+usage as well. Make sure that path length is clearly defined for  
+lch, edge, and wup. 
+
+=back
+
+=item *
+
+02/25/2004
+
+=over
+
+=item 1
+
+In PathFinder.pm, Infocontent.pm, Similarity.pm, and LCSFinder.pm  
+each function should be documented in perldoc form such that their input, 
+output and basic functionality is described. This should then appear in 
+the DESCRIPTION portion of the perldoc. The SYNOPSIS should contain 
+examples or templates of each function being used. 
+
+=back
+
+=item *
+
+02/23/2004
+
+=over
+
+=item 1
+
+redo random pairs testing such that we have 60 noun-noun pairs, 25 
+verb-verb pairs, and 15 mixed pairs.
+
+=back
+
+=item * 
+
+02/20/2004
+
+=over
+
+=item 1
+
+Revisit the distance versus similarity issue in jcn.pm. It maybe be that  
+simply inverting the distance is too extreme a solution. One possibility 
+is to make it a linear transformation via maxdist - dist instead. (JM -
+we'll stick with inverting the distance, but added a discussion of this
+issue to the documentation)
+
+=back
+
+=item *
+
+02/18/2004
+
+=over
+
+=item 1
+
+document all multiple inheritance issues that are being handled for  
+measures.
+
+=back
+
+=item *
+
+02/16/2004
+
+=over
+
+=item 1
+
+validateSynset should check wps format fairly closely, and issue 
+descriptive errors if the wps is ill formed. Words can apparently be
+about anything (except #) but pos should be lower case nvra, and senses
+should be digits. Error messages should point out which field is the
+problem, or if there are too few or too many fields.
+
+=item 2
+
+place all hypo root handling node code in PathFinder.pm. The measures 
+should not have any hypo root handling code in them.
+
+=item 3
+
+PathFinder.pm should include a function getAllPaths.pm that returns
+all paths between two concepts, their length, and their "tops" (the
+candidate LCSs). This should be used as the main source of input
+for the getLCS* functions, and for getShortestPath. 
+
+=item 4
+
+remove all "input verifcation" code from the measures. That should
+be inherited from Similarity.pm. 
+
+=item 5
+
+There is replicated code in the measure modules that checks validity of 
+input. This should be removed to a common module that can be called by
+all of the measures. Any other replicated code should be removed as well.
+The goal of 0.07 is to largely eliminate replicated code via the use of 
+inheritance, and to make the writing of new measures simpler. 
+
+=back
+
+=item * 
+
+02/13/2004
+
+=over
+
+=item 1
+
+add pod/perldoc to lib/ICFinder.pm. Should also be done for all other 
+files as they are modified for other reasons. In particular, introductory 
+material that appears in source code comments, author information, GPL,
+etc. should be moved into pod and removed from source code comments. See
+similarity.pl for an example. 
+
+=item 2
+
+path should use getShortestPath from PathFinder.pm.	
+
+=back
+
+=item *
+
+02/09/2004
+
+=over
+
+=item 1
+
+getLCSDepth, getLCSInfo, getLCSPath should appear in LCSFinder.pm, which 
+should inherit from both ICFinder and Pathfiner.
+
+=item 	2 
+
+The measures (lch, path, jcn, lin, res, wup) should  default to having  
+the hypo root node turned on (for both nouns and verbs). This will  
+eventually be true of hso, but is not currently. hypo root nodes could 
+also be used for lesk and vector, although they are not currently. 
+
+=back
+
+=item * 
+
+02/04/2004
+
+=over
+
+=item 1
+
+Wps and offsets will be supported internally. The user can request 
+either mode via an option to getRelatedness. offset is our default.
+profiling has shown wps to be somewhat faster, in that it makes fewer
+calls to getSense, although it does make some. For input, we only
+support wps. For trace output we support wps and offset. For output
+we support wps and offset.
+
+=back
+
+=item *
+
+01/29/2004
+
+=over
+
+=item 1
+
+modify option in config files such that an option without a value reverts 
+to the default in all cases (except vectordb). 
+
+=back
+
+=item * 
+
+01/24/2004
+
+=over
+
+=item 1
+
+Provide support for undefined values in the path finding and info content  
+measures (path, wup, lch, res, lin, jcn). If two concepts are not in the  
+same taxonomy then an error should be issued and a large negative 
+integer should be returned. This can occur in two cases, between the same 
+part of speech (noun-noun, verb-verb), or between nouns and verbs. Distinct 
+error messsages should be indicated in both cases.  
+
+=back
+
+=item *
+
+01/20/2004
+
+=over
+
+=item 1
+
+Clean up configuration file examples (in samples). Make them consistent
+by having a master list (all-options.conf) that is what we make changes
+to. Then specific example files can be created via copy and paste. Make
+sure all possible options for a measure are included, and that the 
+explanations describe all possible values as well as default handling. 
+(TDP updated all-options.conf on 12/10/03, use this as source of cut and 
+paste). 
+
+=back
+
+=item *
+
+01/19/2004
+
+=over
+
+=item 1
+
+Create test scripts that can be run to verify the correctness of output  
+- they should include "correct" answers that can be compared to  
+(automatically) and rerun as the system changes. We should use 
+the CPAN module Test::More, and create .t files in a /t directory that
+test specific situations/problems, etc. The .t files themselves should be 
+documented with an explanation of what is being tested. We should have
+lots of smaller, specific .t tests (rather than a few big test files).
+Whenever a bug is found and fixed, a .t file should be created that
+tests the fix, and this should be mentioned in the source code comments
+where the fix is made (this fix is tested by t/xyz.t). 
+
+Make sure that the testing system can be easily extended/modified, and
+that it can support the use of multiple input files and configuration 
+files. We should have multiple *.t files to run our tests, and each module 
+and utility should have at least its own *.t file (maybe more than one
+in some cases). We should also have *.t files that are dedicated to 
+particular situations that affect a number of measures (like what happens
+when info content is zero for one concept, what happens if one of
+the concepts being compared is the lcs of the other, what if the two
+concepts are the same (self similarity), and so forth. 
+
+=item 2
+
+Test cases for configuration file handling should include:
+
+repeated options in configuration file, as in 
+trace::0
+trace::1 
+
+bad values in configuration file, as in
+trace::nothankyou
+
+bad options in configuration file, as in
+tracer::0
+
+=item 3 
+
+Test cases for similarity.pl should include:
+
+ill formed file input for similarity.pl, as in
+cat#dog#1 cat#n#2
+cat#n#n cat#n#2
+cat
+
+=item 4 
+
+Test cases for measures should include:
+
+show that wps and offset methods of path finding are equivalent
+
+check trace output for each of the measures. use wps format, as that
+is subject to fewer changes than offsets. 
+
+a "big" file of word pairs (maybe 100 pairs) that run all the measures 
+and  compare values to what is obtained in 0.6. If there are differences, 
+let's see what they are.
+
+=item 5 
+
+Test cases for information content programs should include:
+
+an information content file based on one of our resident text files
+that is large enough to be interesting (readme, gpl, etc.) as computed in  
+0.6/0.7 (should be the same). This can be used as a reference point when  
+we make changes in future. 
+
+Information content computed with a very small number of concepts, to
+expose the counting problem that ted mentions below. 
+
+=item 6 
+
+Test cases for wnDepth... 
+
+Generate output for 0.07 to use as a point of reference. A few
+specific manual checks would be good too (leather_carp, entity, etc.)
+
+=item 7 
+
+run tests to determine where the system now provides different results 
+from version 0.06 - make sure to document these cases (that are different). 
+
+=back
+
+=item *
+
+01/12/2004
+
+=over
+
+=item 1
+
+document configuration options extensively in a separate pod called
+doc/config.pod. Organize such that you have options that are used
+with all measures, and then those that are used with certain classes
+of measures. Then, use this as a master copy to update .pm files
+with.
+
+=back
+ 
+=item *
+
+01/09/2004
+
+=over
+
+=item 1
+
+modify option handling such that multiple occurrences of an option in 
+a config file cause an error. For example
+
+  trace::
+  trace::1
+
+should cause an error.
+
+=back
+
+=item *
+
+12/17/2003
+
+=over
+
+=item 1
+
+SemCor1.7Freq.pl and SemTagFreq.pl need to be renamed. They are now
+called semCorRawFreq.pl and SemCorFreq.pl. semCorRawFreq.pl counts without  
+sense tags and  SemCorFreq.pl counts the  sense tags. (TDP)
+
+=back
+
+=item *
+
+12/09/2003
+
+=over
+
+=item 1 
+
+In similarity.pl cache error strings that indicate that two input synsets
+are from different parts of speech so that we only print out a warning
+once for each unique word1#pos1 word2#pos2 combination (JM)
+
+=item 2
+
+=over
+
+=item a
+
+Enhance similarity.pl file handling (for input files). Comments should
+be allowed - this will help in creation of test data (we can explain in
+the comment what "case" is being tested by a particular set of pairs.
+Use standard perl commenting style line starting with a # is a comment.
+Note that I don't think we can use the convention of # anywhere in a line
+as being the start of a comment (due to w#p#s) but I think any line
+that starts with a # can be safely treated as a comment. (JM -- we are
+using // to indicated the start of a comment)
+
+=item b
+
+Enhance similarity.pl file handling (for input files). At present if
+a single word (not a pair) appears on a line, no error is issued. It
+silently ignores this case. This should result in an error to the effect
+that the input format is invalid, only one word. Also, I'm not sure
+what happens if you have more than two words on a line. An error of
+some sort would also be necessary in that case. Also, I am not sure if
+similarity.pl checks to see that the words pairs are "well formed", that
+is to say do they adhere to the word, word#pos, or word#pos#number 
+format. It would be good to have a simple check that verifies we have
+alphanumeric words, pos of n, v, a, or r, and numeric numbers.  (JM)
+
+=back
+
+=back
+
+=item *
+
+12/08/2003
+
+=over
+
+=item 1
+
+Clean up configuration file examples (in samples). Make them consistent
+by having a master list (all-options.conf) that is what we make changes
+to. Then specific example files can be created via copy and paste. Make
+sure all possible options for a measure are included, and that the 
+explanations describe all possible values as well as default handling. (JM)
+(TDP updated all-options.conf on 12/10/03, use this as source of cut and 
+paste). 
+
+=item 2
+
+Determine if it is feasible (not too difficult or time consuming) to 
+modify  --version option so it can display both the version of  
+similarity.pl and the version of the module used when --type is specified.
+(JM -- version will show module version as well if a module is specified)
+
+=back
+
+=item *
+
+12/05/2003
+
+=over
+
+=item 1
+
+all configuration options are now printed to traceString after module
+initialization.  (JM)
+
+=item 2
+
+explain the distinction between compounds and collocations raised in
+sample README. (Drop the distinction, and clarify what we mean by
+Wordnet compounds. TDP Dec 3). (JM)
+
+=back
+
+=item *
+
+12/04/2003
+
+=over
+
+=item 1
+
+document caching for random (normally random uses an unlimited cache size)
+(JM -- random now uses the same default as all other measures)
+
+=item 2
+
+determine a reasonable default cache size. Should not be unlimited. 
+Current default is 1000, maybe it can be increased to 5000 or 10000.
+Let lesk with trace be the standard as to what is reasonable. (JM -- default
+is now 5,000).
+
+=item 3
+
+Improve error handling when processing config files.  Make sure the values
+specified are valid and that filenames refer to extant files.  All options
+should allow the value to be omitted, in which case the default is used. (JM)
+
+=back
+
+=item *
+
+12/03/2003
+
+=over
+
+=item 1
+
+Clean up configuration file examples (in samples). Make them consistent
+by having a master list (all-options.conf) that is what we make changes
+to. Then specific example files can be created via copy and paste. Make
+sure all possible options for a measure are included, and that the 
+explanations describe all possible values as well as default handling. (JM)
+(TDP 12/07/03, not quite finished). 
+
+=back
+
+=item *
+
+12/02/2003
+
+=over
+
+=item 1
+
+Make vector complain if it cannot find a relation file.  (JM-this is not
+a problem, vector uses glosexample if there is no relation file)
+
+=back
+
+=item *
+
+12/01/2003
+
+=over
+
+=item 1
+
+Adjust Makefile.PL to account for new contents of samples directory. Added entries to MANIFEST as well. JM 12/1/03
+
+=item 2
+
+update samples/sample.pl to run with the new files (and organization)
+provided in the samples directory. This was also a problem in 0.06,
+where it did not run for hso properly due to a mismatch in the name
+specified in sample.pl and the configuration file. 
+
+=item 3
+
+Rename infocontent.dat in Makefile.PL to use our standard name for
+semcor information content files. Name should reflect options
+used in computing information content values (if any). JM 12/1/03
+
+=item 4
+
+relation.dat is in lib/WordNet. Should be referred to as 
+lesk-relation.dat. Should also have vector-relation.dat I would
+think. (if not, what does vector do?).  JM 12/1/03 (vector doesn't try
+finding a default relation file--it fails silently).
+
+=item 5
+
+/sample/vector-relation.dat is wrong. Calls itself LeskRelationFile. JM 12/1/03
+
+=item 6
+
+In intro.pod, provide instruction on how to convert to html or whatever 
+if  user wishes (just point them to documentation that describes this  
+elsewhere even).  JM 12/1/03
+
+=back
+
+=item *
+
+11/28/2003
+
+=over 
+
+=item 1
+
+remove wordnet 1.7.1 compounds from samples directory. (TDP)
+
+=item 2
+
+change comment in Similarity.pm to explain the pluses and minuses of
+using/not using a unique root node.  (JM)
+
+=back
+
+=back
+
+=head1 AUTHORS
+
+Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, and Jason
+Michelizzi. 
+
+=head1 BUGS
+
+None.
+
+=head1 SEE ALSO
+
+changelog.pod
+
+=head1 COPYRIGHT
+
+Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, and Jason
+Michelizzi. 
+
+Permission is granted to copy, distribute and/or modify this  document  
+under the terms of the GNU Free Documentation License, Version 1.2 or any  
+later version published by the Free Software Foundation; with no  
+Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+
+Note: a copy of the GNU Free Documentation License is available on the web   
+at L<http://www.gnu.org/copyleft/fdl.html> and is included in this    
+distribution as FDL.txt. 
+
+=cut
+

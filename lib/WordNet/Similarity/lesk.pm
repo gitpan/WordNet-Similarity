@@ -1,45 +1,53 @@
-# WordNet::Similarity::lesk.pm version 0.06
-# (Updated 10/10/2003 -- Sid)
+# WordNet::Similarity::lesk.pm version 0.07
+# (Updated 3/15/2004 -- Jason)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using an
 # adaptation of the Lesk method as outlined in <ACL/IJCAI/EMNLP paper,
 # Satanjeev Banerjee, Ted Pedersen>
-#
-# Copyright (c) 2003,
-#
-# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-# banerjee+@cs.cmu.edu
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse@d.umn.edu
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd@cs.utah.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to 
-#
-# The Free Software Foundation, Inc., 
-# 59 Temple Place - Suite 330, 
-# Boston, MA  02111-1307, USA.
-
 
 package WordNet::Similarity::lesk;
 
-use strict;
+=head1 NAME
 
-use Exporter;
+WordNet::Similarity::lesk - Perl module for computing semantic relatedness
+of word senses using gloss overlaps as described by Banerjee and Pedersen
+(2002) -- a method that adapts the Lesk approach to WordNet.
+
+=head1 SYNOPSIS
+
+  use WordNet::Similarity::lesk;
+
+  use WordNet::QueryData;
+
+  my $wn = WordNet::QueryData->new();
+
+  my $lesk = WordNet::Similarity::lesk->new($wn);
+
+  my $value = $lesk->getRelatedness("car#n#1", "bus#n#2");
+
+  ($error, $errorString) = $lesk->getError();
+
+  die "$errorString\n" if($error);
+
+  print "car (sense 1) <-> bus (sense 2) = $value\n";
+
+=head1 DESCRIPTION
+
+Lesk (1985) proposed that the relatedness of two words is proportional to
+to the extent of overlaps of their dictionary definitions. Banerjee and
+Pedersen (2002) extended this notion to use WordNet as the dictionary
+for the word definitions. This notion was further extended to use the rich
+network of relationships between concepts present is WordNet. This adapted
+lesk measure has been implemented in this module.
+
+=head2 Methods
+
+=over
+
+=cut
+
+use strict;
 
 use get_wn_info;
 
@@ -47,445 +55,296 @@ use string_compare;
 
 use stem;
 
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+use WordNet::Similarity;
 
-@ISA = qw(Exporter);
+use File::Spec;
 
-%EXPORT_TAGS = ();
+our @ISA = qw(WordNet::Similarity);
 
-@EXPORT_OK = ();
+our $VERSION = '0.07';
 
-@EXPORT = ();
+WordNet::Similarity::addConfigOption ("relation", 0, "p", undef);
+WordNet::Similarity::addConfigOption ("stop", 0, "p", undef);
+WordNet::Similarity::addConfigOption ("stem", 0, "i", 0);
+WordNet::Similarity::addConfigOption ("normalize", 0, "i", 0);
 
-$VERSION = '0.06';
 
-
-# 'new' method for the lesk class... creates and returns a WordNet::Similarity::lesk object.
-# INPUT PARAMS  : $className  .. (WordNet::Similarity::lesk) (required)
-#                 $wn         .. The WordNet::QueryData object (required).
-#                 $configFile .. Name of the config file for getting the parameters (optional).
-# RETURN VALUE  : $lesk        .. The newly created lesk object.
-sub new
+sub setPosList
 {
-    my $className;
-    my $self = {};
-    my $wn;
-
-    # The name of my class.
-    $className = shift;
-    
-    # Initialize the error string and the error level.
-    $self->{'errorString'} = "";
-    $self->{'error'} = 0;
-    
-    # The WordNet::QueryData object.
-    $wn = shift;
-    $self->{'wn'} = $wn;
-
-    if(!$wn)
-    {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->new()) - ";
-	$self->{'errorString'} .= "A WordNet::QueryData object is required.";
-	$self->{'error'} = 2;
-    }
-    else { 
-        $wn->VERSION(1.30);  # check WordNet::QueryData version
-    }
-
-    # Bless object, initialize it and return it.
-    bless($self, $className);
-    $self->_initialize(shift) if($self->{'error'} < 2);
-
-    return $self;
+  my $self = shift;
+  $self->{n} = 1;
+  $self->{v} = 1;
+  $self->{a} = 1;
+  $self->{r} = 1;
+  return 1;
 }
 
 
-# Initialization of the WordNet::Similarity::lesk object... parses the config file and sets up 
+# Initialization of the WordNet::Similarity::lesk object... parses the config file and sets up
 # global variables, or sets them to default values.
 # INPUT PARAMS  : $paramFile .. File containing the module specific params.
 # RETURN VALUES : (none)
-sub _initialize
+sub initialize
 {
-    my $self;
+    my $self = shift;
     my $paramFile;
-    my $relationFile;
     my $stopFile;
-    my $wn;
-    my $gwi;
+    my $wn = $self->{wn};
     my %stopHash = ();
-
-    # Reference to the object.
-    $self = shift;
-    
-    # Get reference to WordNet.
-    $wn = $self->{'wn'};
-
-    # Name of the parameter file.
-    $paramFile = shift;
-    
-    # Initialize the $posList... Parts of Speech that this module can handle.
-    $self->{"n"} = 1;
-    $self->{"v"} = 1;
-    $self->{"a"} = 1;
-    $self->{"r"} = 1;
-    
-    # Initialize the cache stuff.
-    $self->{'doCache'} = 1;
-    $self->{'simCache'} = ();
-    $self->{'traceCache'} = ();
-    $self->{'cacheQ'} = ();
-    $self->{'maxCacheSize'} = 1000;
-    
-    # Initialize tracing.
-    $self->{'trace'} = 0;
+    my $class = ref $self || $self;
 
     # Stemming? Normalizing?
-    $self->{'doStem'} = 0;
-    $self->{'doNormalize'} = 0;
+    $self->{stem} = 0;
+    $self->{normalize} = 0;
 
-    # Parse the config file and
-    # read parameters from the file.
-    # Looking for params --> 
-    # trace, infocontent file, cache
-    if(defined $paramFile)
-    {
-	my $modname;
-	
-	if(open(PARAM, $paramFile))
-	{
-	    $modname = <PARAM>;
-	    $modname =~ s/[\r\f\n]//g;
-	    $modname =~ s/\s+//g;
-	    if($modname =~ /^WordNet::Similarity::lesk/)
-	    {
-		while(<PARAM>)
-		{
-		    s/[\r\f\n]//g;
-		    s/\#.*//;
-		    s/\s+//g;
-		    if(/^trace::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'trace'} = 2;
-			$self->{'trace'} = $tmp if($tmp =~ /^[012]$/);
-		    }
-		    elsif(/^relation::(.*)/)
-		    {
-			$relationFile = $1;
-		    }
-		    elsif(/^stop::(.*)/)
-		    {
-			$stopFile = $1;
-		    }
-		    elsif(/^stem::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'doStem'} = 1;
-			$self->{'doStem'} = $tmp if($tmp =~ /^[01]$/);
-		    }
-		    elsif(/^normalize::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'doNormalize'} = 1;
-			$self->{'doNormalize'} = $tmp if($tmp =~ /^[01]$/);
-		    }
-		    elsif(/^cache::(.*)/)
-		    {
-			my $tmp = $1;
-			$self->{'doCache'} = 1;
-			$self->{'doCache'} = $tmp if($tmp =~ /^[01]$/);
-		    }
-		    elsif(m/^(?:max)?CacheSize::(.*)/i) 
-		    {
-			my $mcs = $1;
-			$self->{'maxCacheSize'} = 1000;
-			$self->{'maxCacheSize'} = $mcs
-			    if(defined ($mcs) && $mcs =~ m/^\d+$/);
-			$self->{'maxCacheSize'} = 0 if($self->{'maxCacheSize'} < 0);
-		    }
-		    elsif($_ ne "")
-		    {
-			s/::.*//;
-			$self->{'errorString'} .= "\nWarning (WordNet::Similarity::lesk->_initialize()) - ";
-			$self->{'errorString'} .= "Unrecognized parameter '$_'. Ignoring.";
-			$self->{'error'} = 1;
-		    }
-		}
-	    }
-	    else
-	    {
-		$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
-		$self->{'errorString'} .= "$paramFile does not appear to be a config file.";
-		$self->{'error'} = 2;
-		return;
-	    }
-	    close(PARAM);
-	}
-	else
-	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open config file $paramFile.";
-	    $self->{'error'} = 2;
-	    return;
-	}
-    }
+
+    $self->SUPER::initialize (@_);
 
     # Look for the default relation file if not specified by the user.
     # Search the @INC path in WordNet/Similarity.
-    if(!(defined $relationFile))
-    {
-	my $path;
-	my $header;
-	my @possiblePaths = ();
+    #my $relationFile = $self->{relation};
+    unless (defined $self->{relation}) {
+      my $path;
+      my $header;
+      my @possiblePaths = ();
 
-	# Look for all possible default data files installed.
-	foreach $path (@INC)
-	{
-	    if(-e $path."/WordNet/relation.dat")
-	    {
-		push @possiblePaths, $path."/WordNet/relation.dat";
-	    }
-	    elsif(-e $path."\\WordNet\\relation.dat")
-	    {
-		push @possiblePaths, $path."\\WordNet\\relation.dat";
-	    }
+      # Look for all possible default data files installed.
+      foreach $path (@INC) {
+	# JM 1-16-04  -- modified to use File::Spec
+	my $file = File::Spec->catfile ($path, 'WordNet', 'lesk-relation.dat');
+	if(-e $file) {
+	  push @possiblePaths, $file;
 	}
+      }
 
-	# If there are multiple possibilities, get the one in the correct format.
-	foreach $path (@possiblePaths)
-	{
-	    if(open(RELATIONS, $path))
-	    {
-		$header = <RELATIONS>;
-		$header =~ s/[\r\f\n]//g;
-		$header =~ s/\s+//g;
-		if($header =~ /LeskRelationFile/)
-		{
-		    $relationFile = $path;
-		    close(RELATIONS);
-		    last;
-		}
-		close(RELATIONS);
-	    }
+      # If there are multiple possibilities, get the one in the correct format.
+      foreach $path (@possiblePaths) {
+	next unless open (RELATIONS, $path);
+	$header = <RELATIONS>;
+	$header =~ s/\s+//g;
+	if($header =~ /LeskRelationFile/) {
+	  $self->{relation} = $path;
+	  close(RELATIONS);
+	  last;
 	}
+	close(RELATIONS);
+      }
     }
 
     # Load the stop list.
-    if($stopFile)
-    {
-	my $line;
-
-	if(open(STOP, $stopFile))
-	{
-	    while($line = <STOP>)
-	    {
-		$line =~ s/[\r\f\n]//g;
-		$line =~ s/\s//g;
-		$stopHash{$line} = 1;		
-	    }
-	    close(STOP);   
+    if(defined $self->{stop}) {
+      my $line;
+	
+      if(open(STOP, $self->{stop})) {
+	while($line = <STOP>) {
+	  $line =~ s/[\r\f\n]//g;
+	  $line =~ s/\s//g;
+	  $stopHash{$line} = 1;		
 	}
-	else
-	{
-	    $self->{'errorString'} .= "\nWarning (WordNet::Similarity::lesk->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open $stopFile.";
-	    $self->{'error'} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
-	}
+	close(STOP);
+      }
+      else {
+	$self->{errorString} .= "\nWarning (${class}::initialize()) - ";
+	$self->{errorString} .= "Unable to open stop file $stopFile.";
+	$self->{error} = ($self->{'error'} < 1) ? 1 : $self->{'error'};
+      }
     }
 
     # so now we are ready to initialize the get_wn_info package with
     # the wordnet object, 0/1 depending on if stemming is required and
     # the stop hash
-    if($self->{'doStem'}) 
-    { 
-	$gwi = get_wn_info->new($wn, 1, %stopHash); 
-	$self->{'gwi'} = $gwi;
-    }
-    else 
-    { 
-	$gwi = get_wn_info->new($wn, 0, %stopHash); 
-	$self->{'gwi'} = $gwi;
-    }
+    my $dostem = $self->{stem} ? 1 : 0;
+    my $gwi = $self->{gwi} = get_wn_info->new ($wn, $dostem, %stopHash);
 
     # Load the relations data.
-    if($relationFile)
-    {
-	my $header;
-	my $relation;
+    if($self->{relation}){
+      my $header;
+      my $relation;
 
-	if(open(RELATIONS, $relationFile))
-	{
-	    $header = <RELATIONS>;
-	    $header =~ s/[\r\f\n]//g;
-	    $header =~ s/\s+//g;
-	    if($header =~ /LeskRelationFile/)
-	    {
-		my $index = 0;
-		$self->{'functions'} = ();
-		$self->{'weights'} = ();
-		while($relation = <RELATIONS>)
-		{
-		    $relation =~ s/[\r\f\n]//g;
-		    
-		    # now for each line in the <REL> file, extract the
-		    # nested functions if any, check if they are defined,
-		    # if it makes sense to nest them, and then finally put
-		    # them into the @functions triple dimensioned array!
-		    
-		    # remove leading/trailing spaces from the relation
-		    $relation =~ s/^\s*(\S*?)\s*$/$1/;
-		    
-		    # now extract the weight if any. if no weight, assume 1
-		    if($relation =~ /(\S+)\s+(\S+)/)
-		    {
-			$relation = $1;
-			$self->{'weights'}->[$index] = $2;
-		    }
-		    else 
-		    { 
-			$self->{'weights'}->[$index] = 1; 
-		    }
-		    
-		    # check if we have a "proper" relation, that is a relation in
-		    # there are two blocks of functions!
-		    if($relation !~ /(.*)-(.*)/)
-		    {
-			$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
-			$self->{'errorString'} .= "Bad file format ($relationFile).";
+      if(open (RELATIONS, $self->{relation})) {
+	$header = <RELATIONS>;
+	$header =~ s/[\r\f\n]//g;
+	$header =~ s/\s+//g;
+	if($header =~ /LeskRelationFile/) {
+	  my $index = 0;
+	  $self->{'functions'} = ();
+	  $self->{'weights'} = ();
+	  while($relation = <RELATIONS>) {
+	    $relation =~ s/[\r\f\n]//g;
+
+	    # now for each line in the <REL> file, extract the
+	    # nested functions if any, check if they are defined,
+	    # if it makes sense to nest them, and then finally put
+	    # them into the @functions triple dimensioned array!
+
+	    # remove leading/trailing spaces from the relation
+	    $relation =~ s/^\s*(\S*?)\s*$/$1/;
+
+	    # now extract the weight if any. if no weight, assume 1
+	    if($relation =~ /(\S+)\s+(\S+)/)
+	      {
+		$relation = $1;
+		$self->{'weights'}->[$index] = $2;
+	      }
+	    else
+	      {
+		$self->{'weights'}->[$index] = 1;
+	      }
+
+	    # check if we have a "proper" relation, that is a relation in
+	    # there are two blocks of functions!
+	    if($relation !~ /(.*)-(.*)/) {
+	      $self->{'errorString'} .= "\nError (${class}::initialize()) - ";
+	      $self->{'errorString'} .= "Bad file format ($self->{relation}).";
+	      $self->{'error'} = 2;
+	      close(RELATIONS);
+	      return;		
+	      }
+
+	    # get the two parts of the relation pair
+	    my @twoParts;
+	    my $l;
+	    $twoParts[0] = $1;
+	    $twoParts[1] = $2;
+
+	    # process the two parts and put into functions array
+	    for($l = 0; $l < 2; $l++)
+	      {
+		#no strict 'subs';
+		
+		$twoParts[$l] =~ s/[\s\)]//g;
+		my @functionArray = split(/\(/, $twoParts[$l]);
+		
+		my $j = 0;
+		my $fn = $functionArray[$#functionArray];
+		unless ($gwi->can($fn)) {
+		  $self->{'errorString'} .= "\nError (${class}::initialize()) - ";
+		  $self->{'errorString'} .= "Undefined function ($functionArray[$#functionArray]) in relations file.";
+		  $self->{'error'} = 2;
+		  close (RELATIONS);
+		  return;
+		}
+		
+		$self->{'functions'}->[$index]->[$l]->[$j++] = $functionArray[$#functionArray];
+		my $input;
+		my $output;
+		my $dummy;
+		my $k;
+		
+		for ($k = $#functionArray-1; $k >= 0; $k--)
+		  {
+		    my $fn2 = $functionArray[$k];
+		    my $fn3 = $functionArray[$k+1];
+		    if(!($gwi->can($fn2)))
+		      {
+			$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->initialize()) - ";
+			$self->{'errorString'} .= "Undefined function ($functionArray[$k]) in relations file.";
 			$self->{'error'} = 2;
 			close(RELATIONS);
-			return;		
-		    }
-		    
-		    # get the two parts of the relation pair
-		    my @twoParts;
-		    my $l;
-		    $twoParts[0] = $1;
-		    $twoParts[1] = $2;
-		    
-		    # process the two parts and put into functions array
-		    for($l = 0; $l < 2; $l++)
-		    {
-			no strict;
+			return;
+		      }
+		
+		    ($input, $dummy) = $gwi->$fn2(0);
+		    ($dummy, $output) = $gwi->$fn3(0);
+	
+		    if($input != $output)
+		      {
+			$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->initialize()) - ";
+			$self->{'errorString'} .= "Invalid function combination - $functionArray[$k]($functionArray[$k+1]).";
+			$self->{'error'} = 2;
+			close(RELATIONS);
+			return;
+		      }
 
-			$twoParts[$l] =~ s/[\s\)]//g;
-			my @functionArray = split(/\(/, $twoParts[$l]);
-			
-			my $j = 0;
-			my $fn = $functionArray[$#functionArray];
-			if(!($gwi->can($fn)))
-			{
-			    $self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
-			    $self->{'errorString'} .= "Undefined function ($functionArray[$#functionArray]) in relations file.";
-			    $self->{'error'} = 2;
-			    close(RELATIONS);
-			    return;
-			}
-			
-			$self->{'functions'}->[$index]->[$l]->[$j++] = $functionArray[$#functionArray];
-			my $input; 
-			my $output; 
-			my $dummy;
-			my $k;
-			
-			for ($k = $#functionArray-1; $k >= 0; $k--)
-			{
-			    my $fn2 = $functionArray[$k];
-			    my $fn3 = $functionArray[$k+1];
-			    if(!($gwi->can($fn2)))
-			    {
-				$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
-				$self->{'errorString'} .= "Undefined function ($functionArray[$k]) in relations file.";
-				$self->{'error'} = 2;
-				close(RELATIONS);
-				return;
-			    }
-			    
-			    ($input, $dummy) = $gwi->$fn2(0);
-			    ($dummy, $output) = $gwi->$fn3(0);
-			    
-			    if($input != $output)
-			    {
-				$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
-				$self->{'errorString'} .= "Invalid function combination - $functionArray[$k]($functionArray[$k+1]).";
-				$self->{'error'} = 2;
-				close(RELATIONS);
-				return;
-			    }
-			    
-			    $self->{'functions'}->[$index]->[$l]->[$j++] = $functionArray[$k];
-			}
-			
-			# if the output of the outermost function is synset array (1)
-			# wrap a glos around it
-			my $xfn = $functionArray[0];
-			($dummy, $output) = $gwi->$xfn(0);
-			if($output == 1) 
-			{ 
-			    $self->{'functions'}->[$index]->[$l]->[$j++] = "glos"; 
-			}
-		    }
-		    
-		    $index++;
-		}
-	    }
-	    else
-	    {
-		$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
-		$self->{'errorString'} .= "Bad file format ($relationFile).";
-		$self->{'error'} = 2;
-		close(RELATIONS);
-		return;		
-	    }
-	    close(RELATIONS);   
+		    $self->{'functions'}->[$index]->[$l]->[$j++] = $functionArray[$k];
+		  }
+		
+		# if the output of the outermost function is synset array (1)
+		# wrap a glos around it
+		my $xfn = $functionArray[0];
+		($dummy, $output) = $gwi->$xfn(0);
+		if($output == 1)
+		  {
+		    $self->{'functions'}->[$index]->[$l]->[$j++] = "glos";
+		  }
+	      }
+
+	    $index++;
+	  }
 	}
 	else
-	{
-	    $self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
-	    $self->{'errorString'} .= "Unable to open $relationFile.";
+	  {
+	    $self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->initialize()) - ";
+	    $self->{'errorString'} .= "Bad file format ($self->{relation}).";
 	    $self->{'error'} = 2;
-	    return;
+	    close(RELATIONS);
+	    return;		
+	  }
+	close(RELATIONS);
+      }
+      else
+	{
+	  $self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->initialize()) - ";
+	  $self->{'errorString'} .= "Unable to open $self->{relation}.";
+	  $self->{'error'} = 2;
+	  return;
 	}
     }
     else
     {
-	$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->_initialize()) - ";
+	$self->{'errorString'} .= "\nError (WordNet::Similarity::lesk->initialize()) - ";
 	$self->{'errorString'} .= "No default relations file found.";
 	$self->{'error'} = 2;
 	return;
     }
-    
+
     # initialize string compare module. No stemming in string
     # comparison, so put 0.
     &string_compare_initialize(0, %stopHash);
 
-    # [trace]
-    $self->{'traceString'} = "";
-    $self->{'traceString'} .= "WordNet::Similarity::lesk object created:\n";
-    $self->{'traceString'} .= "trace          :: ".($self->{'trace'})."\n" if(defined $self->{'trace'});
-    $self->{'traceString'} .= "cache          :: ".($self->{'doCache'})."\n" if(defined $self->{'doCache'});
-    $self->{'traceString'} .= "maxCacheSize   :: ".($self->{'maxCacheSize'})."\n" if(defined $self->{'maxCacheSize'});
-    $self->{'traceString'} .= "stem           :: ".($self->{'doStem'})."\n" if(defined $self->{'doStem'});
-    $self->{'traceString'} .= "normalize      :: ".($self->{'doNormalize'})."\n" if(defined $self->{'doNormalize'});
-    $self->{'traceString'} .= "relation File  :: $relationFile\n" if($relationFile);
-    $self->{'traceString'} .= "stop File      :: $stopFile\n" if($stopFile);
-    # [/trace]
+# JM 12/5/03 (#1)
+# moved this behavior to traceOptions()
+#    # [trace]
+#    if ($self->{trace}) {
+#      $self->{traceString} .= "normalize      :: ".($self->{normalize})."\n" if(defined $self->{doNormalize});
+#      $self->{traceString} .= "relation File  :: $relationFile\n" if($relationFile);
+#      $self->{traceString} .= "stop File      :: $stopFile\n" if($stopFile);
+#    }
+#    # [/trace]
 }
 
+# 12/5/03 JM (#1)
+# show all config options specific to this module
+sub traceOptions {
+  my $self = shift;
+  $self->{traceString} .= "normalize :: $self->{normalize}\n";
+  $self->{traceString} .= "relation File :: $self->{relation}\n";
+  $self->{traceString} .=
+    "stop :: ".((defined $self->{stop}) ? $self->{stop} : "")."\n";
+  $self->{traceString} .= "stem :: $self->{stem}\n";
+}
 
-# The adapted Lesk relatedness measure subroutine ...
-# INPUT PARAMS  : $wps1     .. one of the two wordsenses.
-#                 $wps2     .. the second wordsense of the two whose 
-#                              semantic relatedness needs to be measured.
-# RETURN VALUES : $distance .. the semantic relatedness of the two word senses.
-#              or undef     .. in case of an error.
+=item $lesk->getRelatedness
+
+Computes the relatedness of two word senses using the Adapted Lesk
+Algorithm.
+
+Parameters: two word senses in "word#pos#sense" format.
+
+Returns: Unless a problem occurs, the return value is the relatedness
+score, which is greater-than or equal-to 0. If an error occurs,
+then the error level is set to non-zero and an error
+string is created (see the description of getError()).
+
+=cut
+
 sub getRelatedness
 {
     my $self = shift;
     my $wps1 = shift;
     my $wps2 = shift;
-    my $wn = $self->{'wn'};
-    my $gwi = $self->{'gwi'};
+    my $wn = $self->{wn};
+    my $gwi = $self->{gwi};
 
     # Check the existence of the WordNet::QueryData object.
     if(!$wn)
@@ -525,36 +384,34 @@ sub getRelatedness
 
     # Now check if the similarity value for these two synsets is in
     # fact in the cache... if so return the cached value.
-    if($self->{'doCache'} && defined $self->{'simCache'}->{"${wps1}::$wps2"})
-    {
-	$self->{'traceString'} = $self->{'traceCache'}->{"${wps1}::$wps2"} if($self->{'trace'});
-	return $self->{'simCache'}->{"${wps1}::$wps2"};
-    }
+    my $relatedness =
+      $self->{doCache} ? $self->fetchFromCache ($wps1, $wps2) : undef;
+    defined $relatedness and return $relatedness;
 
-    # see if any traces reqd. if so, put in the synset arrays. 
+    # see if any traces reqd. if so, put in the synset arrays.
     if($self->{'trace'})
     {
-	# ah so we do need SOME traces! put in the synset names. 
+	# ah so we do need SOME traces! put in the synset names.
 	$self->{'traceString'}  = "Synset 1: $wps1\n";
 	$self->{'traceString'} .= "Synset 2: $wps2\n";
     }
-    
+
     # we shall put the first synset in a "set" of itself, and the
     # second synset in another "set" of itself. These sets may
     # increase in size as the functions are applied (since some
     # relations have a one to many mapping).
-    
+
     # initialize the first set with the first synset
-    my @firstSet = (); 
+    my @firstSet = ();
     push @firstSet, $wps1;
-    
+
     # initialize the second set with the second synset
     my @secondSet = ();
     push @secondSet, $wps2;
-    
+
     # initialize the score
     my $score = 0;
-    
+
     # and now go thru the functions array, get the strings and do the scoring
     my $i = 0;
     my %overlaps;
@@ -576,7 +433,7 @@ sub getRelatedness
 		$functionsString .= ($self->{'functions'}->[$i]->[0]->[$j])." ";
 		$j++;
 	    }
-	    
+
 	    $functionsString .= "- ";
 	    $j = 0;
 	    while(defined $self->{'functions'}->[$i]->[1]->[$j])
@@ -627,14 +484,14 @@ sub getRelatedness
 	my $numWords1 = 0;
 	my $numWords2 = 0;
 	
-	if($self->{'doNormalize'})
+	if($self->{normalize})
 	{
 	    $numWords1 = 0;
 	    my $tempString = $firstString;
 	    $tempString =~ s/^\s+//;
 	    $tempString =~ s/\s+$//;
 	    $tempString =~ s/\s+/ /g;
-	    
+	
 	    foreach (split /\s+/, $tempString)
 	    {
 		next if(/EEE\d{5}EEE/);
@@ -642,13 +499,13 @@ sub getRelatedness
 		next if(/SSS\d{5}SSS/);
 		$numWords1++;
 	    }
-	    
+
 	    $numWords2 = 0;
 	    $tempString = $secondString;
 	    $tempString =~ s/^\s+//;
 	    $tempString =~ s/\s+$//;
 	    $tempString =~ s/\s+/ /g;
-	    
+
 	    foreach (split /\s+/, $tempString)
 	    {
 		next if(/EEE\d{5}EEE/);
@@ -666,11 +523,11 @@ sub getRelatedness
 	    # value and finally with the weight associated with this
 	    # relation pair to get the score for this particular
 	    # overlap.
-	    
+
 	    my @tempArray = split(/\s+/, $key);
 	    my $value = ($#tempArray + 1) * ($#tempArray + 1) * $overlaps{$key};
 	    $functionsScore += $value;
-	    
+
 	    # put this overlap into the trace string, if necessary
 	    if($self->{'trace'} == 1)
 	    {
@@ -679,7 +536,7 @@ sub getRelatedness
 	}
 	
 	# normalize the function score computed above if required
-	if($self->{'doNormalize'} && ($numWords1 * $numWords2))
+	if($self->{normalize} && ($numWords1 * $numWords2))
 	{
 	    $functionsScore /= ($numWords1 * $numWords2);
 	}
@@ -696,7 +553,7 @@ sub getRelatedness
 	{
 	    $self->{'traceString'} .= "$functionsString: $functionsScore\n";
 	    $funcStringPrinted = 1;
-	    
+
 	    $self->{'traceString'} .= "Overlaps: $overlapsTraceString\n";
 	}
 	
@@ -708,100 +565,30 @@ sub getRelatedness
 		$self->{'traceString'} .= "$functionsString";
 		$funcStringPrinted = 1;
 	    }
-	    
+
 	    $self->{'traceString'} .= "String 1: \"$firstString\"\n";
 	    $self->{'traceString'} .= "String 2: \"$secondString\"\n";
 	}
 	
 	$i++;
     }
-    
+
     # that does all the scoring. Put in cache if doing cacheing. Then
-    # return the score.    
-    if($self->{'doCache'})
-    {
-	$self->{'simCache'}->{"${wps1}::$wps2"} = $score;
-	$self->{'traceCache'}->{"${wps1}::$wps2"} = $self->{'traceString'} if($self->{'trace'});
-	push(@{$self->{'cacheQ'}}, "${wps1}::$wps2");
-	if($self->{'maxCacheSize'} >= 0)
-	{
-	    while(scalar(@{$self->{'cacheQ'}}) > $self->{'maxCacheSize'})
-	    {
-		my $delItem = shift(@{$self->{'cacheQ'}});
-		delete $self->{'simCache'}->{$delItem};
-		delete $self->{'traceCache'}->{$delItem};
-	    }
-	}
-    }
-    
+    # return the score.
+    $self->{doCache} and $self->storeToCache ($wps1, $wps2, $score);
     return $score;
 }
-
-
-# Function to return the current trace string
-sub getTraceString
-{
-    my $self = shift;
-    my $returnString = $self->{'traceString'}."\n";
-    $self->{'traceString'} = "" if($self->{'trace'});
-    $returnString =~ s/\n+$/\n/;
-    return $returnString;
-}
-
-
-# Method to return recent error/warning condition
-sub getError
-{
-    my $self = shift;
-    my $error = $self->{'error'};
-    my $errorString = $self->{'errorString'};
-    $self->{'error'} = 0;
-    $self->{'errorString'} = "";
-    $errorString =~ s/^\n//;
-    return ($error, $errorString);
-}
-
 
 1;
 __END__
 
-=head1 NAME
+=back
 
-WordNet::Similarity::lesk - Perl module for computing semantic relatedness
-of word senses using gloss overlaps as described by Banerjee and Pedersen 
-(2002) -- a method that adapts the Lesk approach to WordNet.
-
-=head1 SYNOPSIS
-
-  use WordNet::Similarity::lesk;
-
-  use WordNet::QueryData;
-
-  my $wn = WordNet::QueryData->new();
-
-  my $lesk = WordNet::Similarity::lesk->new($wn);
-
-  my $value = $lesk->getRelatedness("car#n#1", "bus#n#2");
-
-  ($error, $errorString) = $lesk->getError();
-
-  die "$errorString\n" if($error);
-
-  print "car (sense 1) <-> bus (sense 2) = $value\n";
-
-=head1 DESCRIPTION
-
-Lesk (1985) proposed that the relatedness of two words is proportional to
-to the extent of overlaps of their dictionary definitions. Banerjee and 
-Pedersen (2002) extended this notion to use WordNet as the dictionary
-for the word definitions. This notion was further extended to use the rich
-network of relationships between concepts present is WordNet. This adapted
-lesk measure has been implemented in this module.
-
-=head1 USAGE
+=head2 Usage
 
 The semantic relatedness modules in this distribution are built as classes
-that expose the following methods:
+that define the following methods:
+
   new()
   getRelatedness()
   getError()
@@ -809,10 +596,10 @@ that expose the following methods:
 
 See the WordNet::Similarity(3) documentation for details of these methods.
 
-=head1 TYPICAL USAGE EXAMPLES
+=head3 Typical Usage Examples
 
 To create an object of the lesk measure, we would have the following
-lines of code in the Perl program. 
+lines of code in the Perl program.
 
    use WordNet::Similarity::lesk;
    $measure = WordNet::Similarity::lesk->new($wn, '/home/sid/lesk.conf');
@@ -821,7 +608,7 @@ The reference of the initialized object is stored in the scalar variable
 '$measure'. '$wn' contains a WordNet::QueryData object that should have been
 created earlier in the program. The second parameter to the 'new' method is
 the path of the configuration file for the lesk measure. If the 'new'
-method is unable to create the object, '$measure' would be undefined. This, 
+method is unable to create the object, '$measure' would be undefined. This,
 as well as any other error/warning may be tested.
 
    die "Unable to create object.\n" if(!defined $measure);
@@ -833,7 +620,7 @@ the second sense of the noun 'bus' using the measure, we would write
 the following piece of code:
 
    $relatedness = $measure->getRelatedness('car#n#1', 'bus#n#2');
-  
+
 To get traces for the above computation:
 
    print $measure->getTraceString();
@@ -849,8 +636,8 @@ parameters are initialized within the object. A configuration file may be
 specified as a parameter during the creation of an object using the new
 method. The configuration files must follow a fixed format.
 
-Every configuration file starts with the name of the module ON THE FIRST LINE of
-the file. For example, a configuration file for the lesk module will have
+Every configuration file starts with the name of the module ON THE FIRST LINE
+of the file. For example, a configuration file for the lesk module will have
 on the first line 'WordNet::Similarity::lesk'. This is followed by the various
 parameters, each on a new line and having the form 'name::value'. The
 'value' of a parameter is optional (in case of boolean parameters). In case
@@ -858,90 +645,132 @@ parameters, each on a new line and having the form 'name::value'. The
 supported in the configuration file. Anything following a '#' is ignored till
 the end of the line.
 
-The module parses the configuration file and recognizes the following 
+The module parses the configuration file and recognizes the following
 parameters:
-  
-(a) 'trace::' -- The value of this parameter specifies the level of
-tracing that should be employed for generating the traces. This value
-is an integer 0, 1 or 2. A value of 0 switches tracing off. A value of
-1 displays as traces only the gloss overlaps found. A value of 2 displays
-as traces, all the text being compared.
-  
-(b) 'cache::' -- can take values 0 or 1 or the value can be omitted, in 
-which case it takes the value 1, i.e. switches 'on' caching. A value of 
-0 switches caching 'off'. By default caching is enabled.
-  
-(c) 'relation::' -- The value is a filename (with complete path) of a file
-that contains a list of WordNet-relations. The vector module combines the
-glosses of synsets related to the target synsets by these relations, and 
-forms the gloss-vector from this combined gloss. The format of the relation
-file is specified later in the documentation.
 
-(d) 'stop::' -- The value is a string that specifies the path of a file 
-containing a list of stop words that should be ignored for the gloss
-overlaps.
-  
-(e) 'stem::' -- can take values 0 or 1 or the value can be omitted, in 
-which case it takes the value 1, i.e. switches 'on' stemming. A value of 
-0 switches stemming 'off'. When stemming is enabled, all the words of the
-glosses are stemmed before their overlaps are determined.
-  
-(f) 'normalize::' -- can take values 0 or 1 or the value can be omitted, in 
-which case it takes the value 1, i.e. switches 'on' normalizing of the score. 
-A value of 0 switches normalizing 'off'. When normalizing is enabled, the 
-score obtained by counting the gloss overlaps is normalized by the size
-of the glosses. The details are described in Banerjee Pedersen (2002).
+=over
 
-(g) 'maxCacheSize::' -- takes a non-negative integer value. The value indicates
-the size of the cache, used for storing the computed relatedness value.
+=item trace
+
+The value of this parameter specifies the level of tracing that should
+be employed for generating the traces. This value
+is an integer equal to 0, 1, or 2. If the value is omitted, then the
+default value, 0, is used. A value of 0 switches tracing off. A value
+of 1 or 2 switches tracing on.  A value of 1 displays as
+traces only the gloss overlaps found. A value of 2 displays as traces all
+the text being compared.
+
+=item cache
+
+The value of this parameter specifies whether or not caching of the
+relatedness values should be performed.  This value is an
+integer equal to  0 or 1.  If the value is omitted, then the default
+value, 1, is used. A value of 0 switches caching 'off', and
+a value of 1 switches caching 'on'.
+
+=item maxCacheSize
+
+The value of this parameter indicates the size of the cache, used for
+storing the computed relatedness value. The specified value must be
+a non-negative integer.  If the value is omitted, then the default
+value, 5,000, is used. Setting maxCacheSize to zero has
+the same effect as setting cache to zero, but setting cache to zero is
+likely to be more efficient.  Caching and tracing at the same time can result
+in excessive memory usage because the trace strings are also cached.  If
+you intend to perform a large number of relatedness queries, then you
+might want to turn tracing off.
+
+=item relation
+
+The value of this parameter is the path to a file that contains a list of
+WordNet relations.  The path may be either an absolute path or a relative
+path.
+
+The lesk measure combines glosses of synsets related to the target
+synsets by these relations and then searches for overlaps in these
+"super-glosses."
+
+WARNING: the format of the relation file is different for the vector and lesk
+measures.
+
+=item stop
+
+The value of this parameter the path of a file containing a list of stop
+words that should be ignored in the glosses.  The path may be either an
+absolute path or a relative path.
+
+=item stem
+
+The value of this parameter indicates whether or not stemming should be
+performed.  The value must be an integer equal to 0 or 1.  If the
+value is omitted, then the default value, 0, is used.
+A value of 1 switches 'on' stemming, and a value of 0 switches stemming
+'off'. When stemming is enabled, all the words of the
+glosses are stemmed before their vectors are created for the vector
+measure or their overlaps are compared for the lesk measure.
+
+=item normalize
+
+The value of this parameter indicates whether or not normalization of
+scores is performed.  The value must be an integer equal to 0 or 1.  If
+the value is omitted, then the default value, 0, is assumed. A value of
+1 switches 'on' normalizing of the score, and a value of 0 switches
+normalizing 'off'. When normalizing is enabled, the score obtained by
+counting the gloss overlaps is normalized by the size of the glosses.
+The details are described in Banerjee and Pedersen (2002).
+
+=back
 
 =head1 RELATION FILE FORMAT
 
 The relation file starts with the string "LeskRelationFile" on the first line
 of the file. Following this, on each consecutive line, a relation is specified
-in the form -- 
+in the form --
 
 func(func(func... (func)...))-func(func(func... (func)...)) [weight]
 
 Where "func" can be any one of the following functions:
 
-hype() = Hypernym of
-hypo() = Hyponym of
-holo() = Holonym of
-mero() = Meronym of
-attr() = Attribute of
-also() = Also see
-sim() = Similar
-enta() = Entails
-caus() = Causes
-part() = Particle
-pert() = Pertainym of
-glos = gloss (without example)
-example = example (from the gloss)
-glosexample = gloss + example
-syns = synset of the concept
+  hype() = Hypernym of
+  hypo() = Hyponym of
+  holo() = Holonym of
+  mero() = Meronym of
+  attr() = Attribute of
+  also() = Also see
+  sim() = Similar
+  enta() = Entails
+  caus() = Causes
+  part() = Particle
+  pert() = Pertainym of
+  glos = gloss (without example)
+  example = example (from the gloss)
+  glosexample = gloss + example
+  syns = synset of the concept
 
 Each of these specifies a WordNet relation. And the outermost function in the
-nesting can only be one of glos, example, glosexample or syns. The set of functions 
-to the left of the "-" are applied to the first word sense. The functions to the 
-right of the "-" are applied to the second word sense. An optional weight can be 
-specified to weigh the contribution of that relation in the overall score.
+nesting can only be one of glos, example, glosexample or syns. The set of
+functions to the left of the "-" are applied to the first word sense. The
+functions to the right of the "-" are applied to the second word sense. An
+optional weight can be specified to weigh the contribution of that relation
+in the overall score.
 
 For example,
 
-glos(hype(hypo))-example(hype) 0.5
+ glos(hype(hypo))-example(hype) 0.5
 
-means that the gloss of the hypernym of the hyponym of the first synset is overlapped
-with the example of the hypernym of the second synset to get the lesk score. This 
-score is weighted 0.5. If "glos", "example", "glosexample" or "syns" is not provided 
-as the outermost function of the nesting, the measure assumes "glos" as the default.
+means that the gloss of the hypernym of the hyponym of the first synset is
+overlapped with the example of the hypernym of the second synset to get the
+lesk score. This score is weighted 0.5. If "glos", "example", "glosexample"
+or "syns" is not provided as the outermost function of the nesting, the
+measure assumes "glos" as the default.
+
 So,
 
-glos(hypo(also))-glos(holo(attr))
+ glos(hypo(also))-glos(holo(attr))
 
 and
 
-hypo(also)-holo(attr)
+ hypo(also)-holo(attr)
 
 are treated the same by the measure.
 
@@ -959,15 +788,46 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Satanjeev Banerjee,  <banerjee+@cs.cmu.edu>
-  Ted Pedersen, <tpederse@d.umn.edu>
-  Siddharth Patwardhan, <sidd@cs.utah.edu>
+ Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+ banerjee+ at cs.cmu.edu
+
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse at d.umn.edu
+
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
+
+=head1 BUGS
+
+None.
+
+To report bugs, go to http://groups.yahoo.com/group/wn-similarity/ or
+e-mail "S<tpederse at d.umn.edu>".
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003 by Satanjeev Banerjee, Ted Pedersen and Siddharth Patwardhan 
+Copyright (C) 2003-2004, Satanjeev Banerjee, Ted Pedersen and Siddharth
+Patwardhan
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to
+
+   The Free Software Foundation, Inc.,
+   59 Temple Place - Suite 330,
+   Boston, MA  02111-1307, USA.
+
+Note: a copy of the GNU General Public License is available on the web
+at L<http://www.gnu.org/licenses/gpl.txt> and is included in this
+distribution as GPL.txt.
 
 =cut
