@@ -14,7 +14,7 @@
 
 ##################### We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..8\n"; }
+BEGIN { $| = 1; print "1..9\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use WordNet::Similarity;
 use WordNet::QueryData;
@@ -111,23 +111,36 @@ else
     print "not ok 5\n";
   }
 
+$value = $wup->getRelatedness("eating_apple#n#1", "eating_apple#n#1");
+if (defined $value && $value =~ /\d+/)
+  {
+    if ($value == 1)
+      {
+        print "ok 6\n";
+      }
+    else 
+      {
+        print "not ok 6\n";
+      }
+  }
+
 ############ getRelatedness of badly formed synset.
 ## (Tried getRelatedness of unknown synsets... "hjxlq#n#1", "pynbr#n#2"...
-##  QueryData complains... can't trap that error myself.)
+##  QueryData complains... cannot trap that error myself.)
 if(defined $wup->getRelatedness("hjxlq#n", "pynbr#n"))
   {
-    print "not ok 6\n";
+    print "not ok 7\n";
   }
 else
   {
     my ($err, $errString) = $wup->getError();
     if($err == 1)
       {
-        print "ok 6\n";
+        print "ok 7\n";
       }
     else
       {
-        print "not ok 6\n";
+        print "not ok 7\n";
       }
   }
 
@@ -135,11 +148,11 @@ else
 $wup->{trace} = 1;
 if($wup->getRelatedness("object#n#1", "run#v#1") >= 0)
   {
-    print "not ok 7\n";
+    print "not ok 8\n";
   }
 else
   {
-    print "ok 7\n";
+    print "ok 8\n";
   }
 
 ############ Test traces.
@@ -149,10 +162,10 @@ else
 
 if (($wup->getError())[0] != 1)
   {
-    print "not ok 8\n";
+    print "not ok 9\n";
   }
 else
   {
-    print "ok 8\n";
+    print "ok 9\n";
   }
 

@@ -1,5 +1,5 @@
-# WordNet::Similarity::PathFinder version 0.10
-# (Updated 9/01/2004 -- Jason)
+# WordNet::Similarity::PathFinder version 0.11
+# (Updated 9/23/2004 -- Jason)
 #
 # Module containing path-finding code for the various measures of semantic
 # relatedness.
@@ -78,7 +78,7 @@ use File::Spec;
 
 our @ISA = qw/WordNet::Similarity/;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 WordNet::Similarity::addConfigOption ('rootNode', 0, 'i', 1);
 
@@ -516,7 +516,17 @@ sub _getHypernymTrees
 
   my $wordForm = $synset;
   if ($mode eq 'offset') {
+    # check if the input synset is one of the imaginary root nodes
+    if ($synset == 0) {
+      return ([0]);
+    }
     $wordForm = $wn->getSense($synset, $pos);
+  }
+  else {
+    # check for root node
+    if ($synset =~ /\*ROOT\*/i) {
+      return ([$synset]);
+    }
   }
 
   my @hypernyms = $wn->querySense($wordForm, "hype");

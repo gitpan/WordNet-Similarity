@@ -13,7 +13,7 @@ Completed Items, make sure to date and initial. When we have
 a version release, all of the recently completed items 
 should be moved into changelog.pod. 
 
-=head2 FOR VERSION 0.11:
+=head2 FOR VERSION 0.12:
 
 =over
 
@@ -54,7 +54,7 @@ update documentation to clarify that stoplists must also be all lowercase
 
 =back
 
-=head2 FOR VERSION 0.12:
+=head2 FOR VERSION 0.13:
 
 =over 4
 
@@ -69,7 +69,7 @@ update lesk/vector to support new relations in WordNet 2.0
 
 =back
 
-=head2 FOR VERSION 0.13:
+=head2 FOR VERSION 0.14:
 
 =over 4
 
@@ -140,52 +140,14 @@ this.)
 
 =item *
 
-05/19/04
+09/23/04
 
 =over
 
 =item 1
 
-The leather_carp mystery: leather_carp occurs 3 times in the BNC. It has
-only one sense, and it is a leaf node. By all rights both standard and
-resnik counting should agree. They do not, standard counting seems to
-overcount by a factor of 2. (JM)
-
-=item 2
-
-6412325 is the synset for i in wordnet.
-
- ic-brown-add1.dat:6412325n 10497
- ic-brown.dat:6412325n 10496
- ic-brown-resnik-add1.dat:6412325n 1750.33333333357
-
-there are three senses of 'i' in wordnet. Why isn't the count in the last
-line 3498.6. The count shown suggests that i has 6 senses, which it 
-doesn't...[TDP 12/28/03 - the overcounting shown in the leather_carp
-problem suggests that the resnik count above *might* be correct. 
-1750.3 * 3 = 5251 - if that is the number of occurrences of i in the
-brown corpus, then the resnik count is fine. The overcounting still
-exists in the standard method however. (JM)
-
-=item 3 
-
-run test case for rawtextFreq.pl. Use a single word in a file (like I), 
-and make sure that default and resnik counting work as expected. Ted ran a 
-test case where the only word in the file was "I" (with no stop list)
-and the counts were all 2 (both at leaf and up to ROOT). The same occurred 
-with brownFreq.pl and will presumably affect all the Freq.pl programs. (JM)
-
-=item 4 
-
-improve error handling in ***Freq.pl programs, such that  if they do not  
-get the input they require they issue an error  message and  do not run  
-endlessly. (JM)
-
-=item 5
-
-update documentation to warn users that Freq.pl programs convert text to
-lower case (verify that this is true for rawtextFreq.pl) (JM - corpus text
-can be any case, but stoplists must be lower case).
+Fixed bug in wup that allowed some relatedness scores to be greater
+than 1.  This bug is discussed in the archives of the mailing list. (JM)
 
 =back
 

@@ -1,5 +1,5 @@
-# WordNet::Similarity::wup.pm version 0.07
-# (updated 3/8/2004 -- Jason)
+# WordNet::Similarity::wup.pm version 0.11
+# (updated 9/23/2004 -- Jason)
 #
 # Semantic Similarity Measure package implementing the semantic
 # relatedness measure described by Wu & Palmer (1994) as revised
@@ -53,7 +53,7 @@ use WordNet::Similarity::LCSFinder;
 
 our @ISA = qw/WordNet::Similarity::LCSFinder/;
 
-our $VERSION = '0.07';
+our $VERSION = '0.11';
 
 =item $wup->getRelatedness ($synset1, $synset2)
 
@@ -110,47 +110,34 @@ sub getRelatedness
     return $self->UNRELATED;
   }
 
-  my @depths1 = $self->getSynsetDepth ($offset1, $pos1);
-  my @depths2 = $self->getSynsetDepth ($offset2, $pos2);
+  # now find the depth of $wps1 and $wps2
+  my $trace = $self->{trace};
+  $self->{trace} = 0;
+  my @paths1 = $self->getShortestPath ($wps1, $lcs, $pos1, 'wps');
+  my @paths2 = $self->getShortestPath ($wps2, $lcs, $pos1, 'wps');
+  $self->{trace} = $trace;
 
-  # find the depth of the synset, checking that the depth value is from
-  # the same taxonomy as the lcs (since synsets can belong to more than
-  # one taxonomy if the root node is off)
-  my $depth1 = 1_000_000;
-  foreach (@depths1) {
-    my ($d1, $root1) = @{$_};
-    if ($root1 eq $root) {
-      $depth1 = $d1 if $d1 < $depth1;
-    }
+  my ($length1, undef) = @{shift @paths1};
+  my ($length2, undef) = @{shift @paths2};
+
+  if (ref $length1) {
+      die "Length 1 is a ref\n";
+  }
+  # If we've already found an lcs, then there must be a path, so this
+  # error should never occur, but there's little harm in checking anyways
+  unless (defined $length1) {
+      $self->{errorString} .= "Length 1 is undefined.";
+      $self->{error} = 1;
+      return undef;
+  }
+  unless (defined $length2) {
+      $self->{errorString} .= "Length 2 is undefined.";
+      $self->{error} = 1;
+      return undef;
   }
 
-  # This test should only fail if synset1 doesn't belong to the same taxonomy
-  # as one of its subsumers.  Obviously this should never happen.  It might
-  # be a sign of some other mysterious internal error, but I can't think of
-  # why that would ever happen.
-  if ($depth1 > 10_000) {
-    $self->{error} = $self->{error} < 1 ? 1 : $self->{error};
-    $self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
-    $self->{errorString} .= "$wps1(1) does not belong to the same taxonomy as its subsumer $lcs.";
-    return undef;
-  }
-
-  # see comment above
-  my $depth2 = 1_000_000;
-  foreach (@depths2) {
-    my ($d2, $root2) = @{$_};
-    if ($root2 eq $root) {
-      $depth2 = $d2 if $d2 < $depth2;
-    }
-  }
-
-  # see comment above for an explantion of why this test might fail
-  if ($depth2 > 10_000) {
-    $self->{error} = $self->{error} < 1 ? 1 : $self->{error};
-    $self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
-    $self->{errorString} .= "$wps2(2) does not belong to the same taxonomy as its subsumer $lcs.";
-    return undef;
-  }
+  my $depth1 = $depth + $length1 - 1;
+  my $depth2 = $depth + $length2 - 1;
 
   $score = 2 * $depth / ($depth1 + $depth2);
 

@@ -85,10 +85,23 @@ DESCRIPTION
 
     Of course, you could also add the 'use lib' line to the top of the
     program yourself, but you might not want to do that.  You will need to
-    replace 5.8.3 with whatever version of Perl you are using.  The
-    preceeding instructions should be sufficient for standard and slightly
-    non-standard installations. However, if you need to modify other
-    makefile options you should look at the ExtUtils::MakeMaker
+    replace 5.8.3 with whatever version of Perl you are using.  
+
+    As an alternative to using the -I option from the command line, you 
+    can also set the value of the PERL5LIB environement variable to
+    include that directory. For example, in a .cshrc file you could set
+    this as follows:
+
+    setenv PERL5LIB /home/sid/lib/perl5/site_perl/5.8.3
+
+    The effect of using -I or PERL5LIB is to add the specified directory 
+    to the @INC array, which stores the list of directories that perl 
+    searches for when looking for modules. You can check the value of @INC 
+    by running the command "perl -V". 
+
+    The preceeding instructions should be sufficient for standard and  
+    slightly non-standard installations. However, if you need to modify  
+    other makefile options you should look at the ExtUtils::MakeMaker
     documentation. Modifying other makefile options is not recommended
     unless you really, absolutely, and completely know what you're doing!
 

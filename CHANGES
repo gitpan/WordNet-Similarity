@@ -7,6 +7,19 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
+  Version 0.11 (Released 09/23/04)
+    *   09/23/04
+
+        (1) Fixed bug in wup that allowed some relatedness scores to be
+            greater than 1. This bug is discussed in the archives of the
+            mailing list. (JM)
+
+	    http://groups.yahoo.com/group/wn-similarity/message/144
+	    http://groups.yahoo.com/group/wn-similarity/message/143
+
+	(2) Added brief discussion of use of PERL5LIB environment variable
+	    as an alternative to -I option in INSTALL. (TDP)
+
   Version 0.10 (Released 09/03/04)
     *   09/01/04
 

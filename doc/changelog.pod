@@ -10,7 +10,26 @@ is released.
 
 =head1 DESCRIPTION
 
-=head2  Version 0.10 (Released 09/03/04)
+=head2 Version 0.11 (Released 09/23/04)
+
+=over
+
+=item *
+
+09/23/04
+
+=over
+
+=item (1)
+
+Fixed bug in wup that allowed some relatedness scores to be greater
+than 1.  This bug is discussed in the archives of the mailing list. (JM)
+
+=back
+
+=back
+
+=head2 Version 0.10 (Released 09/03/04)
 
 =over
 
@@ -24,15 +43,15 @@ is released.
 
 Modified vector to look like the other measures. It now is
 derived from WordNet::Similarity.pm. (Sid)
-        
+ 
 =item (2) 
 
 Updated the MANIFEST. (Sid)
-        
+ 
 =item (3) 
 
 Fixed some minor typos in Makefile.PL. (Sid)
-        
+ 
 =item (4) 
 
 Added single test case (for vector) to t/access.t. (Sid)
