@@ -32,7 +32,7 @@ BEGIN {use_ok 'File::Spec'}
 
 my $wndepths = File::Spec->catfile ('utils', 'wnDepths.pl');
 my $devnull = File::Spec->devnull;
-my $perl = 'perl';
+my $perl = $^X;
 
 ok (-e $devnull);
 ok (-e $wndepths);

@@ -9,7 +9,8 @@ package WordNet::Similarity::ICFinder;
 
 =head1 NAME
 
-WordNet::Similarity::ICFinder
+WordNet::Similarity::ICFinder - a module for finding the information content
+of concepts in WordNet
 
 =head1 SYNOPSIS
 

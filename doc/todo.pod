@@ -13,7 +13,7 @@ Completed Items, make sure to date and initial. When we have
 a version release, all of the recently completed items 
 should be moved into changelog.pod. 
 
-=head2 FOR VERSION 0.09:
+=head2 FOR VERSION 0.10:
 
 =over
 
@@ -45,43 +45,6 @@ re-write *Freq.pl programs to reduce redundancy and make faster. At
 present there are bugs in all of these programs. Create test cases that 
 are manually verified and included in testing directory. 
 
-=item *
-
-The leather_carp mystery: leather_carp occurs 3 times in the BNC. It has
-only one sense, and it is a leaf node. By all rights both standard and
-resnik counting should agree. They do not, standard counting seems to
-overcount by a factor of 2. 
-
-=item *
-
-6412325 is the synset for i in wordnet.
-
- ic-brown-add1.dat:6412325n 10497
- ic-brown.dat:6412325n 10496
- ic-brown-resnik-add1.dat:6412325n 1750.33333333357
-
-there are three senses of 'i' in wordnet. Why isn't the count in the last
-line 3498.6. The count shown suggests that i has 6 senses, which it 
-doesn't...[TDP 12/28/03 - the overcounting shown in the leather_carp
-problem suggests that the resnik count above *might* be correct. 
-1750.3 * 3 = 5251 - if that is the number of occurrences of i in the
-brown corpus, then the resnik count is fine. The overcounting still
-exists in the standard method however.
-
-=item * 
-
-run test case for rawtextFreq.pl. Use a single word in a file (like I), 
-and make sure that default and resnik counting work as expected. Ted ran a 
-test case where the only word in the file was "I" (with no stop list)
-and the counts were all 2 (both at leaf and up to ROOT). The same occurred 
-with brownFreq.pl and will presumably affect all the Freq.pl programs.
-
-=item * 
-
-improve error handling in ***Freq.pl programs, such that  if they do not  
-get the input they require they issue an error  message and  do not run  
-endlessly. 
-
 =item * 
 
 support --trace option on info content programs to allow for wps format to 
@@ -109,13 +72,11 @@ some other way?
 
 =item *
 
-update documentation to warn users that Freq.pl programs convert text to
-lower case (verify that this is true for rawtextFreq.pl) and that 
-stoplists must also be all lowercase. 
+update documentation to clarify that stoplists must also be all lowercase
 
 =back
 
-=head2 FOR VERSION 0.10:
+=head2 FOR VERSION 0.11:
 
 =over 4
 
@@ -130,7 +91,7 @@ update lesk/vector to support new relations in WordNet 2.0
 
 =back
 
-=head2 FOR VERSION 0.11:
+=head2 FOR VERSION 0.12:
 
 =over 4
 
@@ -182,7 +143,7 @@ store WN version in vector DB file and warn when version is different
 
 =item * 
 
-check if warnings are issued when there are version clashes  between info  
+check if warnings are issued when there are version clashes between info  
 content files and wordnet version. 
 
 =item *
@@ -201,31 +162,52 @@ this.)
 
 =item *
 
-04/28/2004
+05/19/04
 
 =over
 
 =item 1
 
-Created a CGI-based web interface for the relatedness modules. (JM)
-
-=back
-
-=item *
-
-04/19/2004
-
-=over
-
-=item 1
-
-Fixed problem with path to Perl interpreter in Makefile.PL.  This was causing
-problems during installation if there was no /usr/local/bin/perl. (JM)
+The leather_carp mystery: leather_carp occurs 3 times in the BNC. It has
+only one sense, and it is a leaf node. By all rights both standard and
+resnik counting should agree. They do not, standard counting seems to
+overcount by a factor of 2. (JM)
 
 =item 2
 
-wnDepths.pl had forgotten that on Windows some filenames are different;
-for example, data.noun is noun.dat. (JM)
+6412325 is the synset for i in wordnet.
+
+ ic-brown-add1.dat:6412325n 10497
+ ic-brown.dat:6412325n 10496
+ ic-brown-resnik-add1.dat:6412325n 1750.33333333357
+
+there are three senses of 'i' in wordnet. Why isn't the count in the last
+line 3498.6. The count shown suggests that i has 6 senses, which it 
+doesn't...[TDP 12/28/03 - the overcounting shown in the leather_carp
+problem suggests that the resnik count above *might* be correct. 
+1750.3 * 3 = 5251 - if that is the number of occurrences of i in the
+brown corpus, then the resnik count is fine. The overcounting still
+exists in the standard method however. (JM)
+
+=item 3 
+
+run test case for rawtextFreq.pl. Use a single word in a file (like I), 
+and make sure that default and resnik counting work as expected. Ted ran a 
+test case where the only word in the file was "I" (with no stop list)
+and the counts were all 2 (both at leaf and up to ROOT). The same occurred 
+with brownFreq.pl and will presumably affect all the Freq.pl programs. (JM)
+
+=item 4 
+
+improve error handling in ***Freq.pl programs, such that  if they do not  
+get the input they require they issue an error  message and  do not run  
+endlessly. (JM)
+
+=item 5
+
+update documentation to warn users that Freq.pl programs convert text to
+lower case (verify that this is true for rawtextFreq.pl) (JM - corpus text
+can be any case, but stoplists must be lower case).
 
 =back
 

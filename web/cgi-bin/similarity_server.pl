@@ -60,7 +60,18 @@ $wn or die "Couldn't construct WordNet::QueryData object";
 our $hso = WordNet::Similarity::hso->new ($wn);
 our $jcn = WordNet::Similarity::jcn->new ($wn);
 our $lch = WordNet::Similarity::lch->new ($wn);
-our $lesk = WordNet::Similarity::lesk->new ($wn);
+
+my $leskcfg = "lesk$$.cfg";
+open FH, '>', $leskcfg or die "Cannot open $leskcfg for writing: $!";
+print FH "WordNet::Similarity::lesk\n";
+print FH "stem::1\n";
+print FH "stop::stoplist.txt\n" if -e 'stoplist.txt';
+close FH;
+
+our $lesk = WordNet::Similarity::lesk->new ($wn, $leskcfg);
+
+unlink $leskcfg;
+
 our $lin = WordNet::Similarity::lin->new ($wn);
 our $path = WordNet::Similarity::path->new ($wn);
 our $random = WordNet::Similarity::random->new ($wn);

@@ -38,7 +38,7 @@ ok (-e $similarity);
 ok (-r $similarity);
 ok (-x $similarity);
 
-my $perl = 'perl';
+my $perl = $^X;
 
 # create a temporary file to serve as an input file to similarity.pl
 my $wordsfile = "wordpairs$$.txt";

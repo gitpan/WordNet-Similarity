@@ -11,7 +11,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 27;
+use Test::More tests => 29;
 
 BEGIN {use_ok 'File::Spec'}
 
@@ -20,6 +20,7 @@ my $rawtextFreq = File::Spec->catfile ('utils', 'rawtextFreq.pl');
 my $devnull = File::Spec->devnull;
 my $corpus = 'GPL.txt';
 my $compfile = File::Spec->catfile ('samples', 'wn20compounds.txt');
+my $stopfile = File::Spec->catfile ('samples', 'stoplist.txt');
 
 ok (-e $devnull);
 ok (-e $rawtextFreq);
@@ -29,11 +30,13 @@ ok (-e $corpus);
 ok (-r $corpus);
 ok (-e $compfile);
 ok (-r $compfile);
+ok (-e $stopfile);
+ok (-r $stopfile);
 
 my $outfile = "rtout$$.txt";
-my $perl = 'perl';
+my $perl = $^X;
 
-system "$perl -MExtUtils::testlib $rawtextFreq --compfile=$compfile --outfile=$outfile $corpus 2>$devnull";
+system "$perl -MExtUtils::testlib $rawtextFreq --compfile=$compfile --stopfile=$stopfile --outfile=$outfile --infile=$corpus 2>$devnull";
 is ($?, 0);
 ok (-e $outfile);
 ok (open FH, "$outfile") or diag "Cannot open temporary file '$outfile': $!";
@@ -53,22 +56,22 @@ SKIP: {
 
   if ($wnver eq '2.0') {
     is ($offsetpos, '1740n');
-    is ($freq, 4066);
+    is ($freq, 1678);
     ok ($isroot);
   }
   elsif ($wnver eq '1.7.1') {
     is ($offsetpos, '1742n');
-    is ($freq, 3808);
+    is ($freq, 1601);
     ok ($isroot);
   }
   elsif ($wnver eq '1.7') {
     is ($offsetpos, '1740n');
-    is ($freq, 3562);
+    is ($freq, 1532);
     ok ($isroot);
   }
   elsif ($wnver eq '1.6') {
     is ($offsetpos, '1740n');
-    is ($freq, 2248);
+    is ($freq, 1122);
     ok ($isroot);
   }
   else {
@@ -79,7 +82,7 @@ SKIP: {
 ok (close FH);
 
 # now do it with Resnik counting
-system "$perl -MExtUtils::testlib $rawtextFreq --compfile=$compfile --resnik --outfile=$outfile $corpus 2>$devnull";
+system "$perl -MExtUtils::testlib $rawtextFreq --compfile=$compfile --stopfile=$stopfile --resnik --outfile=$outfile --infile=$corpus 2>$devnull";
 is ($?, 0);
 ok (-e $outfile);
 ok (open FH, "$outfile") or diag "Cannot open temporary file '$outfile': $!";
@@ -97,29 +100,29 @@ SKIP: {
   if ($wnver eq '2.0') {
     is ($offsetpos, '1740n');
     # expected frequency is 568.5933
-    cmp_ok ($freq, '>=', 568.5);
-    cmp_ok ($freq, '<=', 568.6);
+    cmp_ok ($freq, '>=', 386.7);
+    cmp_ok ($freq, '<=', 568.8);
     ok ($isroot);
   }
   elsif ($wnver eq '1.7.1') {
     is ($offsetpos, '1742n');
     # expected frequency is 550.8350
-    cmp_ok ($freq, '>=', 550.8);
-    cmp_ok ($freq, '<=', 550.9);
+    cmp_ok ($freq, '>=', 373.9);
+    cmp_ok ($freq, '<=', 374.0);
     ok ($isroot);
   }
   elsif ($wnver eq '1.7') {
     is ($offsetpos, '1740n');
     # expected frequency is 534.5786
-    cmp_ok ($freq, '>=', 534.5);
-    cmp_ok ($freq, '<=', 534.6);
+    cmp_ok ($freq, '>=', 366.1);
+    cmp_ok ($freq, '<=', 366.2);
     ok ($isroot);
   }
   elsif ($wnver eq '1.6') {
     is ($offsetpos, '1740n');
     # expected frequency is 339.2464
-    cmp_ok ($freq, '>=', 339.2);
-    cmp_ok ($freq, '<=', 339.3);
+    cmp_ok ($freq, '>=', 295.9);
+    cmp_ok ($freq, '<=', 296.0);
     ok ($isroot);
   }
   else {

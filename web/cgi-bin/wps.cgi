@@ -7,6 +7,7 @@ use Socket;
 
 my $remote_host = '127.0.0.1';
 my $remote_port = 31134;
+my $doc_base = '../../similarity';
 
 my $cgi = CGI->new;
 
@@ -21,7 +22,7 @@ print <<"EOB";
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
   <title>Gloss for $wps</title>
-  <link rel="stylesheet" href="sim-style.css" type="text/css" />
+  <link rel="stylesheet" href="$doc_base/sim-style.css" type="text/css" />
 </head>
 <body>
 EOB

@@ -5,6 +5,7 @@ use strict;
 # where do we connect to the Similarity server?  Here:
 my $remote_host = '127.0.0.1';
 my $remote_port = '31134';
+my $doc_base = '../../similarity';
 
 use CGI;
 use Socket;
@@ -474,7 +475,7 @@ sub showPageStart
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
   <title>Similarity</title>
-  <link rel="stylesheet" href="sim-style.css" type="text/css" />
+  <link rel="stylesheet" href="$doc_base/sim-style.css" type="text/css" />
   <script type="text/javascript">
     <!-- hide script from old browsers
     function measureChanged ()
@@ -514,7 +515,7 @@ sub showPageStart
 
    <div id="umdlogo" style="float: left">
      <a href="http://www.d.umn.edu/"><img style="border: 0px"
-        src="logo_black.gif"
+        src="$doc_base/logo_black.gif"
        alt="University of Minnesota Duluth" /></a>
    </div>
 
@@ -546,7 +547,7 @@ sub showForm ($$$$)
   <p>If words are entered in format 1 or 2, then the relatedness of all
      valid forms of the words will be computed (e.g., if 'dogs' is entered,
      then 'dog' will be used to compute relatedness).
-     <a href="instructions.html">More instructions</a>.</p>
+     <a href="$doc_base/instructions.html">More instructions</a>.</p>
 
   <form action="$action" method="get" id="queryform" onreset="formReset()">
     <p>
@@ -563,9 +564,9 @@ EOFORM1
       <input type="radio" name="senses1" id="senses1Ain" checked="checked" value="all" />
       <label for="senses1Ain">Use all senses</label>
       <input type="radio" name="senses1" id="senses1Bin" value="gloss" />
-      <label for="senses1Bin">Pick a sense by <a href="#" onclick="showWindow ('explanations.html#glossdef'); return false;">gloss</a></label>
+      <label for="senses1Bin">Pick a sense by <a href="#" onclick="showWindow ('$doc_base/explanations.html#glossdef'); return false;">gloss</a></label>
       <input type="radio" name="senses1" id="senses1Cin" value="synset" />
-      <label for="senses1Cin">Pick a sense by <a href="#" onclick="showWindow ('explanations.html#synsetdef'); return false;">synset</a></label>
+      <label for="senses1Cin">Pick a sense by <a href="#" onclick="showWindow ('$doc_base/explanations.html#synsetdef'); return false;">synset</a></label>
       <br />
 
       <label for="word2in" class="leftlabel">Word 2:</label>
@@ -573,9 +574,9 @@ EOFORM1
       <input type="radio" name="senses2" id="senses2Ain" checked="checked" value="all" />
       <label for="senses2Ain">Use all senses</label>
       <input type="radio" name="senses2" id="senses2Bin" value="gloss" />
-      <label for="senses2Bin">Pick a sense by <a href="#" onclick="showWindow ('explanations.html#glossdef'); return false;">gloss</a></label>
+      <label for="senses2Bin">Pick a sense by <a href="#" onclick="showWindow ('$doc_base/explanations.html#glossdef'); return false;">gloss</a></label>
       <input type="radio" name="senses2" id="senses2Cin" value="synset" />
-      <label for="senses2Cin">Pick a sense by <a href="#" onclick="showWindow ('explanations.html#synsetdef'); return false;">synset</a></label>
+      <label for="senses2Cin">Pick a sense by <a href="#" onclick="showWindow ('$doc_base/explanations.html#synsetdef'); return false;">synset</a></label>
       <br />
 EOT
     }
@@ -620,11 +621,11 @@ EOT
     print "</select>\n";
 
     print <<"EOFORM";
-      <a href="measures.html">About the measures</a><br />
+      <a href="$doc_base/measures.html">About the measures</a><br />
 
       <input type="checkbox" name="rootnode" id="rootin" value="yes"
        checked="checked" />
-      <label for="rootin">Use <a href="#" onclick="showWindow ('explanations.html#rootnodedef', 'Definitions'); return false;">root node</a>?</label>
+      <label for="rootin">Use <a href="#" onclick="showWindow ('$doc_base/explanations.html#rootnodedef', 'Definitions'); return false;">root node</a>?</label>
       <br />
 
     <!--

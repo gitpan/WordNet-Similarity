@@ -10,6 +10,40 @@ is released.
 
 =head1 DESCRIPTION
 
+=head2 Version 0.09 (Released 05/19/04)
+
+=over
+
+=item *
+
+05/19/04
+
+=over
+
+=item (1)
+
+Fixed over-counting problem in *Freq.pl programs.  Under certain conditions,
+word senses would sometimes get counted twice. (JM)
+
+=item (2)
+
+Updated *Freq.pl programs to use WordNet 2.0. (JM)
+
+=item (3)
+
+Input files to rawtextFreq.pl are now specified with the --infile option. (JM)
+
+=item (4)
+
+Improved speed of compound identification in rawtextFreq.pl by adding
+',', ';', and ':' to the list of characters that we consider to be the
+end of a sentence (compound identification time is proportional to the
+square of the length of the sentence). (JM)
+
+=back
+
+=back
+
 =head2 Version 0.08 (Released 04/28/04)
 
 =over

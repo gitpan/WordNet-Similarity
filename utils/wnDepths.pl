@@ -257,7 +257,7 @@ if ($opt_depthfile) {
 
 print STDERR "Cleaning junk from memory... ";
 undef %wpsDepths;
-print STDERR "\n";
+print STDERR "done.\n";
 
 my $deepest_n = 0;
 while (my ($off, $depth) = each %{$top_level{n}}) {

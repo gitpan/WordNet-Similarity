@@ -1,13 +1,13 @@
 #!/usr/local/bin/perl -w
 #
-# treebankFreq.pl version 0.07
-# (Updated 11/25/2003 -- Jason)
+# treebankFreq.pl version 0.09
+# (Updated 05/19/2004 -- Jason)
 #
 # This program reads the Treebank Corpus and computes the frequency counts
-# for each synset in WordNet. These frequency counts are used by 
-# various measures of semantic relatedness to calculate the information 
-# content of concepts. The output is generated in a format as required 
-# by the WordNet::Similarity modules (ver 0.01) for computing semantic 
+# for each synset in WordNet. These frequency counts are used by
+# various measures of semantic relatedness to calculate the information
+# content of concepts. The output is generated in a format as required
+# by the WordNet::Similarity modules (ver 0.01) for computing semantic
 # relatedness.
 #
 # Copyright (c) 2002-2003
@@ -107,8 +107,8 @@ if(defined $opt_wnpath)
 }
 else
 {
-    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\1.7.1";
-    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-1.7.1";
+    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\2.0";
+    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-2.0";
     $wnPCPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnPCPath."\\dict";
     $wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";
 }
@@ -235,7 +235,7 @@ if(defined $opt_smooth)
     }
 }
 
-# Propagating frequencies up the WordNet hierarchies... 
+# Propagating frequencies up the WordNet hierarchies...
 print STDERR "Propagating frequencies up through WordNet... ";
 $offsetFreq{"n"}{0} = 0;
 $offsetFreq{"v"}{0} = 0;
@@ -264,13 +264,13 @@ print "done.\n";
 # ----------------- Subroutines start Here ----------------------
 
 # Open one of the data files and get each line of the file
-# for processing... preprocess it and send it to the process 
+# for processing... preprocess it and send it to the process
 # function.
 sub lineProcess
 {
     my $fname;
     my $processed;
-    
+
     $fname = shift;
     $processed = 1;
     if(open(DATFILE, $fname))
@@ -305,7 +305,7 @@ sub lineProcess
 sub process
 {
     my $block;
-    
+
     $block = lc(shift);
     $block =~ s/\'//g;
     $block =~ s/[^a-z0-9]+/ /g;
@@ -329,21 +329,21 @@ sub compoundify
     my $firstPointer;
     my $secondPointer;
     my @wordsArray;
-    
+
     # get the block of text
     $block = shift;
-    
+
     # get all the words into an array
     @wordsArray = ();
     while ($block =~ /(\w+)/g)
     {
 	push @wordsArray, $1;
     }
-    
+
     # now compoundify, GREEDILY!!
     $firstPointer = 0;
     $string = "";
-    
+
     while($firstPointer <= $#wordsArray)
     {
 	$secondPointer = $#wordsArray;
@@ -353,26 +353,26 @@ sub compoundify
 	    $temp = join ("_", @wordsArray[$firstPointer..$secondPointer]);
 	    if(exists $compounds{$temp})
 	    {
-		$string .= "$temp "; 
+		$string .= "$temp ";
 		$done = 1;
 	    }
-	    else 
-	    { 
-		$secondPointer--; 
+	    else
+	    {
+		$secondPointer--;
 	    }
 	}
-	if(!$done) 
-	{ 
-	    $string .= "$wordsArray[$firstPointer] "; 
+	if(!$done)
+	{
+	    $string .= "$wordsArray[$firstPointer] ";
 	}
 	$firstPointer = $secondPointer + 1;
     }
     $string =~ s/ $//;
-    
-    return $string;    
+
+    return $string;
 }
 
-# Subroutine to update frequency tokens on "seeing" a 
+# Subroutine to update frequency tokens on "seeing" a
 # word in text
 sub updateFrequency
 {
@@ -385,7 +385,6 @@ sub updateFrequency
     $word = shift;
     foreach $pos ("n", "v")
     {
-	@senses = $wn->querySense($word."\#".$pos);
 	@forms = $wn->validForms($word."\#".$pos);
 	foreach $form (@forms)
 	{
@@ -539,7 +538,7 @@ sub printHelp
     print "--resnik         Option to specify that the frequency counting should\n";
     print "                 be performed according to the method described by\n";
     print "                 Resnik (1995).\n";
-    print "--smooth         Specifies the smoothing to be used on the probabilities\n"; 
+    print "--smooth         Specifies the smoothing to be used on the probabilities\n";
     print "                 computed. SCHEME specifies the type of smoothing to\n";
     print "                 perform. It is a string, which can be only be 'ADD1'\n";
     print "                 as of now. Other smoothing schemes will be added in\n";
@@ -565,15 +564,16 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "treebankFreq.pl version 0.07\n";
-    print "Copyright (c) 2002-2003 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
+    print "treebankFreq.pl version 0.09\n";
+    print "Copyright (c) 2002-2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
 
 __END__
 
 =head1 NAME
 
-treebankFreq.pl
+treebankFreq.pl - Perl program for finding the frequencies of words in the
+Treebank corpus
 
 =head1 SYNOPSIS
 

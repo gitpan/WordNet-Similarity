@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
 # brownFreq.pl version 0.07
-# (Updated 11/25/2003 -- Jason)
+# (Updated 05/19/2004 -- Jason)
 #
 # This program reads the Brown Corpus and computes the frequency counts
 # for each synset in WordNet. These frequency counts are used by 
@@ -10,7 +10,7 @@
 # required by the WordNet::Similarity modules (ver 0.01) for computing
 # semantic relatedness.
 #
-# Copyright (c) 2002-2003
+# Copyright (c) 2002-2004
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
@@ -105,8 +105,8 @@ if(defined $opt_wnpath)
 }
 else
 {
-    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\1.7.1";
-    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-1.7.1";
+    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\2.0";
+    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-2.0";
     $wnPCPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnPCPath."\\dict";
     $wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";
 }
@@ -332,7 +332,6 @@ sub updateFrequency
     $word = shift;
     foreach $pos ("n", "v")
     {
-	@senses = $wn->querySense($word."\#".$pos);
 	@forms = $wn->validForms($word."\#".$pos);
 	foreach $form (@forms)
 	{
@@ -510,8 +509,8 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "brownFreq.pl version 0.07\n";
-    print "Copyright (c) 2002-2003 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
+    print "brownFreq.pl version 0.09\n";
+    print "Copyright (c) 2002-2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
 
 __END__

@@ -184,7 +184,9 @@ sub configSub
 
     # Loading the Sense Indices.
     print STDERR "Loading sense indices ... ";
-    open(IDX, $wnUnixPath."/index.sense") || open(IDX, $wnPCPath."\\sense.idx") || die "Unable to open sense index file.\n";
+    open(IDX, $wnUnixPath."/index.sense")
+      or open(IDX, $wnPCPath."\\sense.idx")
+      or die "Unable to open sense index file.\n";
     $loaded = 2;
     while(<IDX>)
     {

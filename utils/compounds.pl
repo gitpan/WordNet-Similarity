@@ -1,12 +1,12 @@
 #!/usr/local/bin/perl -w
 #
-# compounds.pl ver 0.07
-# (Updated 11/25/2003 -- Sid)
+# compounds.pl ver 0.09
+# (Updated 05/04/2004 -- Jason)
 #
 # Program to generate a list of all compound words
 # present in WordNet.
 #
-# Copyright (c) 2002-2003
+# Copyright (C) 2002-2004
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
@@ -27,10 +27,10 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to: 
+# along with this program; if not, write to:
 #
-#    The Free Software Foundation, Inc., 
-#    59 Temple Place - Suite 330, 
+#    The Free Software Foundation, Inc.,
+#    59 Temple Place - Suite 330,
 #    Boston, MA  02111-1307, USA.
 #
 #
@@ -65,10 +65,10 @@ if(defined $opt_wnpath)
 }
 else
 {
-    $wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\1.7.1";
-    $wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-1.7.1";
-    $wnPCPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnPCPath."\\dict";
-    $wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";    
+    $wnPCPath = (defined $ENV{WNHOME}) ? $ENV{WNHOME} : "C:\\Program Files\\WordNet\\2.0";
+    $wnUnixPath = (defined $ENV{WNHOME}) ? $ENV{WNHOME} : "/usr/local/WordNet-2.0";
+    $wnPCPath = (defined $ENV{WNSEARCHDIR}) ? $ENV{WNSEARCHDIR} : $wnPCPath."\\dict";
+    $wnUnixPath = (defined $ENV{WNSEARCHDIR}) ? $ENV{WNSEARCHDIR} : $wnUnixPath."/dict";
 }
 
 open(NIDX, $wnUnixPath."/index.noun") || open(NIDX, $wnPCPath."\\noun.idx") || die "Unable to open index file.\n";
@@ -163,8 +163,8 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "compounds.pl version 0.07\n";
-    print "Copyright (c) 2002-2003 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
+    print "compounds.pl version 0.09\n";
+    print "Copyright (c) 2002-2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
 
 __END__
@@ -188,4 +188,29 @@ B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
     /usr/local/WordNet-2.0/dict)
+
+=head1 AUTHORS
+
+ Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+ banerjee+ @ cs.cmu.edu
+
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd @ cs.utah.edu
+
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse @ d.umn.edu
+
+=head1 BUGS
+
+None
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2003-2004, Satanjeev Banerjee, Siddharth Patwardhan, and Ted
+Pedersen.
+
+This program is free software; you may redistribute and/or modify it
+under the terms of the GNU General Public License; either version 2 of
+the License, or (at your option) any later version.
+
 

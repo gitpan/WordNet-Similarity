@@ -7,6 +7,23 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
+  Version 0.09 (Released 05/19/04)
+    *   05/19/04
+
+        (1) Fixed over-counting problem in *Freq.pl programs. Under certain
+            conditions, word senses would sometimes get counted twice. (JM)
+
+        (2) Updated *Freq.pl programs to use WordNet 2.0. (JM)
+
+        (3) Input files to rawtextFreq.pl are now specified with the
+            --infile option. (JM)
+
+        (4) Improved speed of compound identification in rawtextFreq.pl by
+            adding ',', ';', and ':' to the list of characters that we
+            consider to be the end of a sentence (compound identification
+            time is proportional to the square of the length of the
+            sentence). (JM)
+
   Version 0.08 (Released 04/28/04)
     *   04/28/2004
 

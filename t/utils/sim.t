@@ -36,7 +36,7 @@ use Test::More tests => $num_tests;
 
 BEGIN {use_ok ('File::Spec')}
 
-my $perl = 'perl';
+my $perl = $^X;
 my $similarity = File::Spec->catfile ('utils', 'similarity.pl');
 
 # get name of null device (such as /dev/null)

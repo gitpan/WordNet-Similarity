@@ -14,7 +14,7 @@ use Test::More tests => 13;
 
 BEGIN {use_ok ('File::Spec')}
 
-my $perl = 'perl';
+my $perl = $^X;
 my $compounds = File::Spec->catfile ("utils", "compounds.pl");
 
 # we need a null device
@@ -27,7 +27,7 @@ ok (-r $compounds);
 ok (-x $compounds);
 
 my $output = qx|$perl -MExtUtils::testlib $compounds 2> $devnull|;
-is ($? >> 8, 0);
+is ($? >> 8, 0) or diag "Failed to execute '$compounds' properly";
 
 # make sure that certain compounds are found in the output
 like ($output, qr/\bablative_absolute\b/);
