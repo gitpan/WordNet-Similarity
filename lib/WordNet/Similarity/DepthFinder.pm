@@ -1,5 +1,5 @@
-# WordNet::Similarity::DepthFinder version 0.10
-# (Last updated $Id: DepthFinder.pm,v 1.11 2004/10/23 07:23:04 sidz1979 Exp $)
+# WordNet::Similarity::DepthFinder version 0.13
+# (Last updated $Id: DepthFinder.pm,v 1.13 2005/04/20 01:13:46 jmichelizzi Exp $)
 #
 # Module containing code to find the depths of (noun and verb) synsets in
 # the WordNet 'is-a' taxonomies
@@ -48,11 +48,11 @@ The following methods are provided by this module:
 use strict;
 use warnings;
 
-use WordNet::Similarity::ICFinder;
+use WordNet::Similarity::PathFinder;
 
-our @ISA = qw/WordNet::Similarity::ICFinder/;
+our @ISA = qw/WordNet::Similarity::PathFinder/;
 
-our $VERSION = '0.10';
+our $VERSION = '0.13';
 
 WordNet::Similarity::addConfigOption ("taxonomyDepthsFile", 1, "p", undef);
 WordNet::Similarity::addConfigOption ("synsetDepthsFile", 1, "p", undef);
@@ -60,7 +60,7 @@ WordNet::Similarity::addConfigOption ("synsetDepthsFile", 1, "p", undef);
 =item $obj->initialize ($configfile)
 
 Overrides the initialize method in WordNet::Similarity to look for and
-process depths files.  The superclass' initialize method is also called.
+process depths files.  The initialize method of the superclass is also called.
 
 =cut
 
@@ -218,6 +218,120 @@ sub getTaxonomies
     }
     return @rtn;
 }
+
+=item getLCSbyDepth($synset1, $synset2, $pos, $mode)
+
+Given two input synsets, finds the least common subsumer (LCS) of them.
+If there are multiple candidates for the LCS (due to multiple inheritance
+in WordNet), the LCS with the greatest depth is chosen (i.e., the candidate
+whose shortest path to the root is the longest).
+
+Parameters: a blessed reference, two synsets, a part of speech, and a mode.
+The mode must the either the string 'wps' or 'offset'.  If the mode is wps,
+then the two input synsets must be in word#pos#sense format.  If the mode
+is offset, then the input synsets must be WordNet offsets.
+
+Returns: a list of the form ($lcs, $depth) where $lcs is the LCS (in wps
+format if mode is 'wps' or an offset if mode is 'offset'.  $depth is the
+depth of the LCS in its taxonomy.  Returns undef on error.
+
+=cut
+
+sub getLCSbyDepth
+{
+  my $self = shift;
+  my $synset1 = shift;
+  my $synset2 = shift;
+  my $pos = shift;
+  my $mode = shift;
+  my $class = ref $self || $self;
+
+  my @paths = $self->getAllPaths ($synset1, $synset2, $pos, $mode);
+  unless (defined $paths[0]) {
+    # no paths found
+    $self->{error} = $self->{error} < 1 ? 1 : $self->{error};
+    $self->{errorString} .= "\nWarning (${class}::getLCSbyDepth()) - ";
+    $self->{errorString} .= "No path between synsets found.";
+    return $self->UNRELATED;
+  }
+
+  my $wn = $self->{wn};
+  my %depth;           # a hash to hold the depth of each LCS candidate
+
+  # find the depth of each LCS candidate
+  foreach (@paths) {
+    my $offset = $_->[0];
+    if ($mode eq 'wps') {
+      if (index ($_->[0], "*Root*") >= $[) {
+	$offset = 0;
+      }
+      else {
+	$offset = $wn->offset ($_->[0]);
+      }
+    }
+
+    my @depths = $self->getSynsetDepth ($offset, $pos);
+    my ($depth, $root) = @{$depths[0]};
+    unless (defined $depth) {
+      # serious internal error -- possible problem with depths file?
+      $self->{error} = $self->{error} < 1 ? 1 : $self->{error};
+      $self->{errorString} .= "\nWarning (${class}::getLCSbyDepth()) - ";
+      $self->{errorString} .= "Undefined depth for $_->[0].  ";
+      $self->{errorString} .= "Possible problem with the depths file?";
+      return undef;
+    }
+    $depth{$_->[0]} = [$depth, $root];
+  }
+
+  # sort according to depth (descending order)
+  my @tmp = sort {$b->[1] <=> $a->[1]} map [$_, @{$depth{$_}}], keys %depth;
+
+  # remove from the array all the subsumers that are not tied for best
+  foreach (0..$#tmp) {
+    if ($tmp[$_]->[1] == $tmp[0]->[1]) {
+      # do nothing
+    }
+    else {
+      # kill the rest of the array and exit the loop
+      $#tmp = $_ - 1;
+      last;
+    }
+  }
+
+  unless (defined $tmp[0]) {
+    my $wps1 = $synset1;
+    my $wps2 = $synset2;
+    if ($mode eq 'offset') {
+      $wps1 = $synset1 ? $wn->getSense ($synset1, $pos) : "*Root*#$pos#1";
+      $wps2 = $synset2 ? $wn->getSynse ($synset2, $pos) : "*Root*#$pos#1";
+    }
+
+    $self->{error} = $self->{error} < 1 ? 1 : $self->{error};
+    $self->{errorString} .= "\nWarning (${class}::getLCSbyDepth() - ";
+    $self->{errorString} .= "No LCS found for $wps1 and $wps2.";
+
+    if ($self->{trace}) {
+      $self->{traceString} .= "\nNo LCS found for ";
+      $self->printSet ($pos, 'wps', $wps1);
+      $self->{traceString} .= ", ";
+      $self->printSet ($pos, 'wps', $wps2);
+      $self->{traceString} .= ".";
+    }
+    return undef;
+  }
+
+  if ($self->{trace}) {
+    $self->{traceString} .= "\nLowest Common Subsumers: ";
+    foreach (@tmp) {
+      $self->printSet ($pos, $mode, $_->[0]);
+      $self->{traceString} .= " (Depth=$_->[1]) ";
+    }
+  }
+
+  return @tmp;
+}
+
+
 
 =item $obj->_processSynsetsFile ($filename)
 

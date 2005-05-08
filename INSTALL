@@ -40,7 +40,7 @@ DESCRIPTION
     If you can't set the WNHOME environment variable, you can use the WNHOME
     option when running perl Makefile.PL. For example,
 
-     perl Makefile.PL --WNHOME=/usr/local/WordNet-2.0
+     perl Makefile.PL WNHOME=/usr/local/WordNet-2.0
 
     You will often need root access/superuser priviledges to run
     make install. The module can also be installed locally. To do a local
@@ -157,16 +157,16 @@ DESCRIPTION
 
      cd /tmp
      wget http://www.cogsci.princeton.edu/2.0/WordNet-2.0.tar.gz
-     wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.35.tar.gz
+     wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.37.tar.gz
      wget http://search.cpan.org/CPAN/authors/id/J/JA/JASONM/Text-Similarity-0.02.tar.gz
-     wget http://search.cpan.org/CPAN/authors/id/T/TP/TPEDERSE/WordNet-Similarity-0.12.tar.gz
+     wget http://search.cpan.org/CPAN/authors/id/T/TP/TPEDERSE/WordNet-Similarity-0.13.tar.gz
 
     Then unpack each one:
 
      tar -zxvf WordNet-2.0.tar.gz
-     tar -zxvf WordNet-QueryData-1.35.tar.gz
+     tar -zxvf WordNet-QueryData-1.37.tar.gz
      tar -zxvf Text-Similarity-0.02.tar.gz
-     tar -zxvf WordNet-Similarity-0.12.tar.gz
+     tar -zxvf WordNet-Similarity-0.13.tar.gz
 
     Install WordNet:
 
@@ -205,7 +205,7 @@ DESCRIPTION
 
     Installing QueryData and Similarity is much easier:
 
-     cd /tmp/WordNet-QueryData-1.35
+     cd /tmp/WordNet-QueryData-1.37
      perl Makefile.PL
      make
      make test
@@ -221,7 +221,7 @@ DESCRIPTION
      make install
      exit
 
-     cd /tmp/WordNet-Similarity-0.11
+     cd /tmp/WordNet-Similarity-0.13
      perl Makefile.PL
      make
      make test

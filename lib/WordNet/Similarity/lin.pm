@@ -1,5 +1,5 @@
-# WordNet::Similarity::lin.pm version 0.07
-# (Last updated $Id: lin.pm,v 1.17 2004/10/23 07:23:05 sidz1979 Exp $)
+# WordNet::Similarity::lin.pm version 0.13
+# (Last updated $Id: lin.pm,v 1.19 2005/04/20 01:13:59 jmichelizzi Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Lin (1998).
@@ -42,11 +42,11 @@ this measure of semantic relatedness of concepts.
 =cut
 
 use strict;
-use WordNet::Similarity::LCSFinder;
+use WordNet::Similarity::ICFinder;
 
-our @ISA = qw(WordNet::Similarity::LCSFinder);
+our @ISA = qw(WordNet::Similarity::ICFinder);
 
-our $VERSION = '0.07';
+our $VERSION = '0.13';
 
 =item $lin->getRelatedness ($synset1, $synset1)
 

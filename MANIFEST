@@ -22,12 +22,13 @@ lib/WordNet/Similarity/path.pm
 lib/WordNet/Similarity/random.pm
 lib/WordNet/Similarity/res.pm
 lib/WordNet/Similarity/vector.pm
+lib/WordNet/Similarity/vector_pairs.pm
 lib/WordNet/Similarity/wup.pm
 lib/WordNet/Similarity/DepthFinder.pm
-lib/WordNet/Similarity/LCSFinder.pm
 lib/WordNet/Similarity/ICFinder.pm
 lib/WordNet/Similarity.pm
 lib/WordNet/lesk-relation.dat
+lib/WordNet/vector-relation.dat
 lib/get_wn_info.pm
 lib/stem.pm
 lib/vectorFile.pm

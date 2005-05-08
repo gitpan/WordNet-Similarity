@@ -59,16 +59,16 @@ Switch to select the type of similarity measure
 to be used while calculating the semantic
 relatedness. The following strings are defined.
 
- 'WordNet::Similarity::lch'    The Leacock Chodorow measure.
- 'WordNet::Similarity::jcn'    The Jiang Conrath measure.
- 'WordNet::Similarity::res'    The Resnik measure.
- 'WordNet::Similarity::lin'    The Lin measure.
- 'WordNet::Similarity::hso'    The Hirst St-Onge measure.
- 'WordNet::Similarity::lesk'   Adapted gloss overlap measure.
- 'WordNet::Similarity::vector' Gloss Vector measure.
- 'WordNet::Similarity::edge'   Simple edge-counts (inverted).
- 'WordNet::Similarity::wup'    The Wu Palmer measure.
- 'WordNet::Similarity::random' A random-number "measure".
+  WordNet::Similarity::lch          The Leacock Chodorow measure.
+  WordNet::Similarity::jcn          The Jiang Conrath measure.
+  WordNet::Similarity::res          The Resnik measure.
+  WordNet::Similarity::lin          The Lin measure.
+  WordNet::Similarity::hso          The Hirst St-Onge measure.
+  WordNet::Similarity::lesk         Adapted gloss overlap measure.
+  WordNet::Similarity::vector_pairs Gloss Vector measure.
+  WordNet::Similarity::path         Simple node-counts (inverted).
+  WordNet::Similarity::wup          The Wu Palmer measure.
+  WordNet::Similarity::random       A random-number "measure".
 
 =item --config
 
@@ -146,10 +146,10 @@ that time, or for some reason the modules are unable to locate the default
 information content files, then alternate information content files can be
 specified only via the configuration file. Utilities to generate
 information content files have been provided in the package. For the
-WordNet::Similarity::vector measure, it is mandatory to provide the
+WordNet::Similarity::vector_pairs measure, it is mandatory to provide the
 location of a word vector data file and this can be only done by using the
 '--config' option. In short, the '--config' option is REQUIRED for the
-WordNet::Similarity::vector measure.
+WordNet::Similarity::vector_pairs measure.
 
 YET ANOTHER NOTE: During any given session, only one of three modes of 
 input can be specified to the program -- command-line input (WORD1 WORD2), 
@@ -195,7 +195,7 @@ similarity.pl --type WordNet::Similarity::lesk "interest rate#n" bank#nv
 
 similarity.pl --type WordNet::Similarity::hso telephone talk#v
 
-similarity.pl --type WordNet::Similarity::vector word#n#2 newspaper#v
+similarity.pl --type WordNet::Similarity::vector_pairs word#n#2 newspaper#v
 
 similarity.pl --type WordNet::Similarity::random chat#n#1 talk#v#2
 
@@ -543,7 +543,7 @@ frequency values.
 
 =head2 wordVectors.pl
 
-The WordNet::Similarity::vector module requires a file
+The WordNet::Similarity::vector_pairs module requires a file
 containing co-occurrence vectors for all the words in the WordNet
 glosses. The utility wordVectors.pl has been provided to generate such a
 database file. This utility generates co-occurrence vectors from the

@@ -1,5 +1,5 @@
-# WordNet::Similarity::lch.pm version 0.07
-# (Last update $Id: lch.pm,v 1.18 2004/10/23 07:23:04 sidz1979 Exp $)
+# WordNet::Similarity::lch.pm version 0.13
+# (Last update $Id: lch.pm,v 1.20 2005/04/20 01:13:59 jmichelizzi Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Leacock and Chodorow (1998).
@@ -47,11 +47,11 @@ of this scaled value.
 use strict;
 
 use Exporter;
-use WordNet::Similarity::LCSFinder;
+use WordNet::Similarity::DepthFinder;
 
-our @ISA = qw/WordNet::Similarity::LCSFinder/;
+our @ISA = qw/WordNet::Similarity::DepthFinder/;
 
-our $VERSION = '0.07';
+our $VERSION = '0.13';
 
 sub setPosList
 {

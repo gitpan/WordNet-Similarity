@@ -1,8 +1,9 @@
 #!/usr/local/bin/perl -wT
 
 use strict;
+use POSIX ':sys_wait_h';  # for waitpid() and friends; used by reaper()
 
-# the following three variablees will (may) need to be tweaked according
+# the following three variables will need to be tweaked according
 # to your installation.  BASEDIR in particular will need to be changed,
 # the others might work as is.
 #
@@ -19,6 +20,11 @@ my $conf_file = "similarity_server.conf";
 my $wordvectors = "wordvectors.dat";
 my $compfile = "compfile.txt";
 my $stoplist = "stoplist.txt";
+
+my $maxchild = 4; # max number of child processes at one time
+
+sub reaper;
+
 if (-e $conf_file) {
     open CFH, '<', $conf_file or die "Cannot open config file $conf_file: $!";
 
@@ -48,6 +54,10 @@ if (-e $conf_file) {
 	elsif ($1 eq 'stop') {
 	    $stoplist = $2;
 	    print "stoplist=$2\n";
+	}
+	elsif ($1 eq 'maxchild') {
+	    $maxchild = $2;
+	    print "maxchild=$2\n";
 	}
         else {
             warn "Unknown config option in $conf_file at $.\n";
@@ -96,7 +106,7 @@ use WordNet::Similarity::lin;
 use WordNet::Similarity::path;
 use WordNet::Similarity::random;
 use WordNet::Similarity::res;
-use WordNet::Similarity::vector;
+use WordNet::Similarity::vector_pairs;
 use WordNet::Similarity::wup;
 
 my $wn = WordNet::QueryData->new ($wnlocation);
@@ -146,8 +156,7 @@ undef @measures;
 # reset (untaint) the PATH
 $ENV{PATH} = '/bin:/usr/bin:/usr/local/bin';
 
-# automatically reap child processes
-$SIG{CHLD} = 'IGNORE';
+
 
 # re-direct STDERR from wherever it is now to a log file
 close STDERR;
@@ -162,13 +171,48 @@ my $socket = IO::Socket::INET->new (LocalPort => $localport,
 				    Type => SOCK_STREAM
 				   ) or die "Could not be a server: $!";
 
+# this variable is incremented after every fork, and is 
+# updated by reaper() when a child process dies
+my $num_children = 0;
+
+## SEE BELOW
+# automatically reap child processes
+#$SIG{CHLD} = 'IGNORE';
+##
+## BETTER WAY:
+# handle death of child process
+$SIG{CHLD} = \&reaper;
+
+my $interrupted = 0;
+
 ACCEPT:
-while (my $client = $socket->accept) {
-    my $childpid;
-    if ($childpid = fork) {
-	# we're the parent here, so we just go wait for the next request
+while ((my $client = $socket->accept) or $interrupted) {
+    $interrupted = 0;
+
+    next unless $client; # a SIGCHLD was raised
+
+    # check to see if it's okay to handle this request
+    if ($num_children >= $maxchild) {
+	print $client "busy\015\012";
+	$client->close;
+	undef $client;
 	next ACCEPT;
     }
+
+
+    my $childpid;
+    # fork; let the child handle the actual request
+    if ($childpid = fork) {
+	# This is the parent
+
+	$num_children++;
+
+	# go wait for next request
+	undef $client;
+	next ACCEPT;
+    }
+
+    # This is the child process
 
     defined $childpid or die "Could not fork: $!";
 
@@ -388,6 +432,21 @@ sub releaselock ()
 {
     flock $lockfh, LOCK_UN;
     close $lockfh;
+}
+
+# sub to reap child processes (so they don't become zombies)
+# also updates the num_children variable
+#
+# Sub was loosely inspired by an example at
+# http://www.india-seo.com/perl/cookbook/ch16_20.htm
+sub reaper
+{
+    my $moribund;
+    if (my $pid = waitpid (-1, WNOHANG) > 0) {
+	$num_children-- if WIFEXITED ($?);
+    }
+    $interrupted = 1;
+    $SIG{CHLD} = \&reaper; # cursed be SysV
 }
 
 __END__

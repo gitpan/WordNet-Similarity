@@ -28,7 +28,7 @@ default value, 0, is used. A value of 0 switches tracing off. A value
 of 1 or 2 switches tracing on.  The difference between a value of 1 or 2
 depends upon the measure being used.
 
-For vector and lesk, a value of 1 displays as
+For vector_pairs and lesk, a value of 1 displays as
 traces only the gloss overlaps found. A value of 2 displays as traces all
 the text being compared.
 
@@ -103,13 +103,13 @@ Similarity package was installed.
 
 =item relation
 
-This option is supported only by the lesk and vector measures.
+This option is supported only by the lesk and vector_pairs measures.
 
 The value of this parameter is the path to a file that contains a list of
 WordNet relations.  The path may be either an absolute path or a relative
 path.
 
-The vector module combines the glosses of synsets related to the target
+The vector_pairs module combines the glosses of synsets related to the target
 synsets by these relations and forms the gloss-vector from this combined
 gloss.
 
@@ -117,14 +117,15 @@ The lesk module combines glosses of synsets related to the target
 synsets by these relations and then searches for overlaps in these
 "super-glosses."
 
-WARNING: the format of the relation file is different for the vector and lesk
-measures.  The documentation for lesk and vector describe the respective
-formats for the relation files. See I<WordNet::Similarity::vector>(3pm) and
+WARNING: the format of the relation file is different for the vector_pairs
+and lesk measures.  The documentation for lesk and vector_pairs describe
+the respective formats for the relation files.
+See I<WordNet::Similarity::vector_pairs>(3pm) and
 I<WordNet::Similarity::lesk>(3pm).
 
 =item stop
 
-This option is supported only by the lesk and vector measures.
+This option is supported only by the lesk and vector_pairs measures.
 
 The value of this parameter the path of a file containing a list of stop
 words that should be ignored in the glosses.  The path may be either an
@@ -132,7 +133,7 @@ absolute path or a relative path.
 
 =item stem
 
-This option is supported only by the lesk and vector measures.
+This option is supported only by the lesk and vector_pairs measures.
 
 The value of this parameter indicates whether or not stemming should be
 performed.  The value must be an integer equal to 0 or 1.  If the
@@ -156,7 +157,7 @@ The details are described in Banerjee and Pedersen (2002).
 
 =item compounds
 
-This option is supported only by the vector measure.
+This option is supported only by the vector_pairs measure.
 
 The value of this parameter is the path of a file containing a list of
 compound words in WordNet.  This path may be either an absolute path or
@@ -165,12 +166,12 @@ behavior (no compound recognition) is used.
 
 =item vectordb
 
-This option is supported only by the vector measure.
+This option is supported only by the vector_pairs measure.
 
 The value of this parameter is the path to a Vectors file 
 containing word vectors, i.e. co-occurrence vectors for all the words
 in the WordNet glosses.  The value of this parameter may not be omitted,
-and the vector measure will not run without a DB file being specified
+and the vector_pairs measure will not run without a DB file being specified
 in a configuration file.
 
 =item maxrand

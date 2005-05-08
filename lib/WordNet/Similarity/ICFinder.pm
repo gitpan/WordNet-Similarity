@@ -1,5 +1,5 @@
-# WordNet::Similarity::ICFinder.pm version 0.10
-# (Last updated $Id: ICFinder.pm,v 1.10 2004/10/23 07:23:04 sidz1979 Exp $)
+# WordNet::Similarity::ICFinder.pm version 0.13
+# (Last updated $Id: ICFinder.pm,v 1.12 2005/04/20 01:13:59 jmichelizzi Exp $)
 #
 # A generic (and abstract) information content measure--this is not a
 # real measure.  The res, lin, and jcn measures inherit from this class.
@@ -96,7 +96,7 @@ use WordNet::Similarity::PathFinder;
 
 our @ISA = qw/WordNet::Similarity::PathFinder/;
 
-our $VERSION = '0.10';
+our $VERSION = '0.13';
 
 WordNet::Similarity::addConfigOption ('infocontent', 0, 'p', undef);
 
@@ -199,6 +199,105 @@ sub getFrequency
   }
   my $freq = $self->{offsetFreq}->{$pos}->{$offset};
   return $freq;
+}
+
+=item getLCSbyIC($synset1, $synset2, $pos, $mode)
+
+Given two input synsets, finds the least common subsumer (LCS) of them.  If
+there are multiple candidates for the LCS, the the candidate with the greatest
+information content.
+
+Parameters: two synsets, a part of speech, and a mode.
+
+Returns: a list of the form ($lcs, $ic) where $lcs is the LCS and $ic is
+the information content of the LCS.
+
+=cut
+
+sub getLCSbyIC
+{
+  my $self = shift;
+  my $synset1 = shift;
+  my $synset2 = shift;
+  my $pos = shift;
+  my $mode = shift;
+  my $class = ref $self || $self;
+
+  my $wn = $self->{wn};
+
+  my @paths = $self->getAllPaths ($synset1, $synset2, $pos, $mode);
+
+  # check to see if any paths were found
+  unless (defined $paths[0]) {
+    $self->{error} = $self->{error} < 1 ? 1 : $self->{error};
+    $self->{errorString} .= "\nWarning (${class}::getLCSbyIC()) - ";
+
+    my $wps1 = $mode eq 'wps' ? $synset1 : $wn->getSense ($synset1, $pos);
+    my $wps2 = $mode eq 'wps' ? $synset2 : $wn->getSense ($synset2, $pos);
+
+    $self->{errorString} .= "No LCS found for $wps1 and $wps2.";
+
+    if ($self->{trace}) {
+      $self->{traceString} .= "\nNo LCS found for ";
+      $self->printSet ($pos, $mode, $synset1);
+      $self->{traceString} .= ", ";
+      $self->printSet ($pos, $mode, $synset2);
+      $self->{traceString} .= ".";
+    }
+    return undef;
+  }
+
+  my %IC;
+
+  # get the IC of each subsumer, put it in a hash
+  foreach (@paths) {
+    # the "O + $off" below is a hack to cope with an unfortunate problem:
+    # The offsets in the WordNet data files are zero-padded, eight-digit
+    # decimal numbers.  Sometimes these numbers get stripped off (QueryData's
+    # offset() method does this).  As a result, it is much easier to compare
+    # the offsets as numbers rather than as strings:
+    # '00001740' ne '1740', BUT 0 + '00001740' == 0 + '1740'
+    my $off;
+    if ($mode eq 'offset') {
+      $off = $_->[0];
+    }
+    else {
+      $off = (index ($_->[0], '*Root*') < $[) ? $wn->offset ($_->[0]) : 0;
+    }
+
+    next if defined $IC{$_->[0]};
+
+   $IC{$_->[0]} = $self->IC (0 + $off, $pos) || 0;
+  }
+
+
+  # sort lcs by info content
+  my @array = sort {$b->[1] <=> $a->[1]} map {[$_, $IC{$_}]} keys %IC;
+
+  if ($self->{trace}) {
+    $self->{traceString} .= "Lowest Common Subsumer(s): ";
+  }
+
+  my @return;
+
+  # determine which subsumers have the highest info content; do some
+  # tracing as well
+  foreach my $ref (@array) {
+    if ($self->{trace}) {
+      $self->printSet ($pos, $mode, $ref->[0]);
+      $self->{traceString} .= " (IC=";
+      $self->{traceString} .= sprintf ("%.6f", $ref->[1]);
+      $self->{traceString} .= ") ";
+    }
+
+    if ($ref->[1] == $array[0]->[1]) {
+      push @return, $ref;
+    }
+  }
+
+  $self->{trace} and $self->{traceString} .= "\n";
+
+  return @return;
 }
 
 

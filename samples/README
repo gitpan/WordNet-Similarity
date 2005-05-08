@@ -57,9 +57,10 @@ WordNet::Similarity::wup, etc.).
 Relation files
 ==============
 
-The files vector-relation.dat and lesk-relation.dat are used by the vector
-and lesk measures respectively.  Run 'perldoc WordNet::Similarity::lesk'
-and 'perldoc WordNet::Similarity::vector' for more information.
+The files vector-relation.dat and lesk-relation.dat are used by the 
+vector_pairs and lesk measures respectively. Run 
+'perldoc WordNet::Similarity::lesk' and 
+'perldoc WordNet::Similarity::vector_pairs' for more information.
 
 Word files
 ==========

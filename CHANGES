@@ -7,6 +7,59 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
+  Version 0.13 (Released 5/9/2005)
+    *   04/21/05
+
+        (1) removed LCSFinder module; moved LCS methods to DepthFinder,
+            ICFinder, and PathFinder (JM)
+
+        (2) renamed vector measure vector_pairs (JM)
+
+    *   03/24/05
+
+        (1) Modified the documentation to reflect the relation file format
+            for vector and for lesk. (Sid)
+
+    *   03/02/05
+
+        (1) Set up selective test cases for "make test", depending upon the
+            default data files installed by user. (Sid)
+
+    *   02/24/05
+
+        (1) Reinstated default relation files for vector and lesk. In case
+            the default relation files (vector-relation.dat and
+            lesk-relation.dat) are missing, both modules would default to
+            the glosexample-glosexample relation. (Sid)
+
+        (2) Modified Makefile.PL to query the user before installing default
+            data files. (Sid)
+
+        (3) Removed infocontent file generation code from Makefile.PL. Now
+            Makefile.PL simply calls utilities from the /utils directory
+            (wnDepths.pl, semCorFreq.pl and wordVectors.pl) to generate the
+            all default data files. (Sid)
+
+        (4) Installation process now generates a default word vectors file.
+            The vectordb configuration variable for vector is now optional.
+            (Sid)
+
+        (5) Earlier, the WNHOME option was given to Makefile.PL as --WNHOME
+            <path>, whereas the PREFIX option was written as PREFIX=<path>.
+            This inconsistent (and potentially confusing) notation has now
+            been fixed. Now, the WNHOME option is provided to Makefile.PL as
+            WNHOME=<path>. (Sid)
+
+        (6) Added some basic tests for vector in t/vector.t.
+
+    *   12/11/04
+
+        (1) Created WordNet::Similarity::GlossFinder.pm, a super-class of
+            WordNet::Similarity::vector and WordNet::Similarity::lesk. (Sid)
+
+        (2) Removed default relation file for lesk. Vector and lesk both
+            default to glosexample-glosexample. (Sid)
+
   Version 0.12 (Released 10/29/04)
     *   10/29/04
 
@@ -816,7 +869,7 @@ SEE ALSO
     todo.pod
 
 COPYRIGHT
-    Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, Satanjeev
+    Copyright (C) 2003-2005 Siddharth Patwardhan, Ted Pedersen, Satanjeev
     Banerjee, and Jason Michelizzi
 
     Permission is granted to copy, distribute and/or modify this document

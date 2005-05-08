@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for WordNet::Similarity
-# (Last updated $Id: Makefile.PL,v 1.23 2004/10/28 14:10:48 jmichelizzi Exp $)
+# (Last updated $Id: Makefile.PL,v 1.28 2005/05/05 18:58:45 jmichelizzi Exp $)
 #
 # Generates the Makefile for the WordNet::Similarity CPAN modules. Requires
 # WordNet::QueryData (1.30 or above) be installed and be accessible via the
@@ -7,10 +7,11 @@
 # WordNet home directory is determined from the WNHOME environment variable
 # (e.g. /usr/local/WordNet-2.0). If the WNHOME environment variable does not
 # exist, the WordNet home directory can be specified to Makefile.PL via the
-# --WNHOME option. Example usage:
+# WNHOME option. Example usage:
 #
-# perl Makefile.PL --WNHOME /usr/local/wordnet17
+# perl Makefile.PL WNHOME=/usr/local/wordnet17
 #
+# ----------------------------------------------------------------------------
 
 use 5.005;
 use ExtUtils::MakeMaker;
@@ -22,7 +23,7 @@ END
 {
     if(!$loaded)
     {
-	print STDERR <<'EONL'
+        print STDERR <<'EONL'
 The installation of WordNet::Similarity requires that WordNet and
 the WordNet::QueryData module (ver 1.30 or above) be installed on
 this machine and that the module be accessible via the @INC perl
@@ -32,21 +33,18 @@ EONL
     }
     elsif($loaded < 2)
     {
-	print STDERR <<'EOT';
+        print STDERR <<'EOT';
 The WordNet::Similarity module installer determines the location of
 WordNet from the WNHOME environment variable.  If the WNHOME
 environment variable has not been set, either set it, or specify the
-location of your WordNet installation using the --WNHOME option.
+location of your WordNet installation using the WNHOME option.
 
   Example usage:
-  perl Makefile.PL --WNHOME /usr/local/WordNet-1.7.1
+  perl Makefile.PL WNHOME=/usr/local/WordNet-1.7.1
 
 EOT
     }
 }
-
-# Get Options.
-use Getopt::Long;
 
 # Global Variable declaration.
 my $wn;
@@ -54,7 +52,7 @@ my $wnPCPath;
 my $wnUnixPath;
 my $totalCount;
 my $offset;
-my $fname;
+my $icflag = 0;
 my @line;
 my @programs_to_install;
 my %offsetMnem;
@@ -64,7 +62,10 @@ my %newFreq;
 my %posMap;
 my %topHash;
 
-GetOptions("WNHOME=s");
+# Authors' names and email addresses
+my $author1 = "Siddharth Patwardhan <sidd at cs.utah.edu>";
+my $author2 = "Ted Pedersen <tpederse at d.umn.edu>";
+my $author3 = "Jason Michelizzi <mich0212 at d.umn.edu>";
 
 # tdp 12/16/03 renamed semCor1.7Freq.pl as semCorRaw.pl, and
 # semTagFreq.pl as semCorFreq.pl
@@ -72,31 +73,54 @@ GetOptions("WNHOME=s");
 # run $short_tests when doing 'make test', but run $long_tests when
 # doing 'make test_all'
 my $short_tests = 't/access.t t/res.t t/lin.t t/jcn.t t/path.t t/lch.t';
-$short_tests .= ' t/wup.t t/lesk.t t/hso.t t/random.t t/config/rootnode.t';
+$short_tests .= ' t/wup.t t/lesk.t t/vector_pairs.t t/hso.t t/random.t t/config/rootnode.t';
 my $long_tests = 't/*.t t/config/*.t t/utils/*.t';
+my $basic_tests = 't/random.t t/hso.t t/path.t t/lesk.t';
+my $stage2_tests = 't/lch.t t/wup.t t/config/rootnode.t t/res.t t/jcn.t t/lin.t';
+my $stage3_tests = 't/vector_pairs.t';
+my $stage_all = 't/access.t';
 
 @programs_to_install = qw(BNCFreq.pl brownFreq.pl compounds.pl
-			  rawtextFreq.pl semCorRawFreq.pl semCorFreq.pl
-			  similarity.pl  treebankFreq.pl wordVectors.pl
-			  wnDepths.pl);
+                          rawtextFreq.pl semCorRawFreq.pl semCorFreq.pl
+                          similarity.pl  treebankFreq.pl wordVectors.pl
+                          wnDepths.pl);
 
+# Get the WNHOME option from the command line
+my @tmpArgs = @ARGV;
+@ARGV = ();
+foreach my $arg (@tmpArgs)
+{
+    if($arg =~ /^WNHOME=(.*)/)
+    {
+        $opt_WNHOME=$1;
+    }
+    else
+    {
+        push(@ARGV, $arg);
+    }
+}
+
+# Write out the make file
 WriteMakefile(
-    'NAME'		  => 'WordNet::Similarity',
-    'PREREQ_PM'		=> {'WordNet::QueryData' => '1.30',
-			    'Text::OverlapFinder' => '0.02'},
-    'CONFIGURE'         => \&configSub,
-    'VERSION_FROM'	  => 'lib/WordNet/Similarity.pm', # finds $VERSION
-    'EXE_FILES'         => [ map "utils/$_", @programs_to_install ],
-    'dist'              => {'COMPRESS' => 'gzip -9f', 'SUFFIX' => 'gz'},
-    'clean'             => {'FILES' => 'lib/WordNet/ic-semcor.dat lib/WordNet/*depths-*.dat'},
-    'test'            => {TESTS => $short_tests},
-    ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
-    ('ABSTRACT_FROM'   => 'lib/WordNet/Similarity.pm', # retrieve abstract from module
-     'AUTHOR'          => 'Siddharth Patwardhan <sidd at cs.utah.edu>, Ted Pedersen <tpederse at d.umn.edu>, Jason Michelizzi <mich0212 at d.umn.edu>') : ()),
-);
+              'NAME'         => 'WordNet::Similarity',
+              'PREREQ_PM'    => {'WordNet::QueryData' => '1.30',
+                                 'Text::Similarity'   => '0.02'},
+              'CONFIGURE'    => \&configSub,
+              'VERSION_FROM' => 'lib/WordNet/Similarity.pm', # finds $VERSION
+              'EXE_FILES'    => [ map "utils/$_", @programs_to_install ],
+              'dist'         => {'COMPRESS' => 'gzip -9f', 'SUFFIX' => 'gz'},
+              'clean'        => {'FILES' => 'lib/WordNet/ic-semcor.dat lib/WordNet/wordvectors.dat lib/WordNet/*depths-*.dat'},
+#              'test'         => {TESTS => $short_tests},
+              ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
+               ('ABSTRACT_FROM'   => 'lib/WordNet/Similarity.pm', # retrieve abstract from module
+                'AUTHOR'          => '$author1, $author2, $author3') : ())
+              );
 
 my $wnver = $wn->version();
-print STDERR <<"EOIN";
+
+if($icflag)
+{
+    print STDERR <<"EOIN";
 
 *** IMPORTANT NOTE: The information content files generated during this
 process have been generated for WordNet version ${wnver}. If, at a later
@@ -108,6 +132,10 @@ Alternate information content files will need to be explicitly specified
 using configuration files for the respective measures.  An alternative
 is to re-run this installation from scratch at that time.  For more
 information regarding configuration files, see the man-pages/pods.
+EOIN
+}
+
+print STDERR <<"EOLST";
 
 To continue the installation process run:
 
@@ -116,23 +144,59 @@ To continue the installation process run:
     make install
 
 You may also run a series of more rigorous tests by running 'make test_all'
-instead of 'make test'.
+instead of 'make test'. NOTE: Most of the rigorous test will fail if the
+default data files were not installed.
 
-EOIN
+EOLST
 
 
 # Config subroutine that generates the ic-semcor.dat data file
 # also generates a WordNet depths file by running utils/wnDepths.pl
 sub configSub
 {
-    my $missing_modules = 0;
+    my $tryTests = $basic_tests;
+    my $dataCount = 0;
 
-    print STDERR "Creating Makefile and datafiles for WordNet::Similarity. Generation of\n";
-    print STDERR "datafiles may take a few minutes.\n";
+    print STDERR << "EOFST";
+Creating Makefile and datafiles for WordNet::Similarity.
+Generation of datafiles may take a few minutes.
+    
+Some of the similarity modules require access to certain
+data files (information content files and word vector files)
+in order to execute completely and correctly. "Default"
+data files can be generated now, and be stored along with
+the modules. In the absence of user-specified data files,
+these "default" files would be used by the modules.
 
+EOFST
+
+    my $qAns = "y";
+    print STDERR "Would you like to generate and install default data files?\n";
+    print STDERR "((y)es, (n)o, (q)uery-before-each) [y] ";
+    my $line = <STDIN>;
+    $line =~ s/[\r\f\n]//;
+    $line =~ s/^\s+//;
+    $line =~ s/\s+$//;
+    $qAns = $line if(defined $line && $line ne "");
+    while($qAns !~ /^[yYnNqQ]$/)
+    {
+        $qAns = "y";
+        print STDERR "((y)es, (n)o, (q)uery-before-each) [y] ";
+        $line = <STDIN>;
+        $line =~ s/[\r\f\n]//;
+        $line =~ s/^\s+//;
+        $line =~ s/\s+$//;
+        $qAns = $line if(defined $line && $line ne "");
+    }
+    print STDERR "\n";
+    print STDERR "Installing all the default data files.\n" if($qAns =~ /^[yY]$/);
+    print STDERR "Continuing without installing the default data files.\n" if($qAns =~ /^[nN]$/);
+    print STDERR "You will be asked before each data file is installed.\n" if($qAns =~ /^[qQ]$/);
+   
     # Include the QueryData package.
     require WordNet::QueryData;
     $loaded = 1;
+    my $wndictpath;
 
     # Check if path to WordNet has been provided... If so... save it.
     if(defined $opt_WNHOME)
@@ -148,324 +212,192 @@ sub configSub
 	$wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";
     }
 
-    # Output File...
-    $fname = "lib/WordNet/ic-semcor.dat";
-
-    # Initialize POS Map.
-    $posMap{"1"} = "n";
-    $posMap{"2"} = "v";
-
-    print STDERR "Loading WordNet ... ";
+    # Load WordNet::QueryData, get version and path to datafiles...
+    print STDERR "Checking WordNet::QueryData ... ";
+    $wndictpath = $wnUnixPath;
     $wn = WordNet::QueryData->new($wnUnixPath);
+    $wndictpath = $wnPCPath if(!$wn);
     $wn = WordNet::QueryData->new($wnPCPath) if(!$wn);
     if(!$wn)
     {
-	print STDERR "\nUnable to create WordNet object.\n";
+	print STDERR "\nUnable to create WordNet::QueryData object.\n";
 	exit;
     }
-    $wnUnixPath = $wnPCPath = $wn->dataPath() if($wn->can('dataPath'));
-    print STDERR "done.\n";
+    $loaded = 2;
+    $wndictpath = $wnUnixPath = $wnPCPath = $wn->dataPath() if($wn->can('dataPath'));
+    print STDERR "done.\n\n";
+
+    # Query if depth files should be installed...
+    my $infAns = "n";
+    if($qAns =~ /^[qQ]$/)
+    {
+        $infAns = "";
+        while($infAns !~ /^[yYnN]$/)
+        {
+            $infAns = "y";
+            print STDERR "Would you like to install the default WordNet depth files ((y)es, (n)o)?\n";
+            print STDERR "(These files are accessed by most of the modules) [y] ";
+            my $line = <STDIN>;
+            $line =~ s/[\r\f\n]//;
+            $line =~ s/^\s+//;
+            $line =~ s/\s+$//;
+            $infAns = $line if(defined $line && $line ne "");
+        }
+    }
+    elsif($qAns =~ /^[yY]$/)
+    {
+        $infAns = "y";
+    }
 
     # JM 1-7-04
     # added the follow to generate a WordNet depths file for DepthFinder.pm
     #
     # Generate depths files:
     #
-    print STDERR "Creating WordNet depths file.\n";
     my $wnversion = $wn->version();
     my $synsetsfile = "lib/WordNet/synsetdepths-$wnversion.dat";
     my $taxonomyfile = "lib/WordNet/treedepths-$wnversion.dat";
-    system ($^X, "utils/wnDepths.pl", "--outfile=$taxonomyfile",
-	    "--depthfile=$synsetsfile");
-    if (-z $synsetsfile or -z $taxonomyfile) {
-      print STDERR "Error: failed to create WordNet depths file\n";
-    }
-    # done with depths files
-
-    # Loading the Sense Indices.
-    print STDERR "Loading sense indices ... ";
-    open(IDX, $wnUnixPath."/index.sense")
-      or open(IDX, $wnPCPath."\\sense.idx")
-      or die "Unable to open sense index file.\n";
-    $loaded = 2;
-    while(<IDX>)
+    if($infAns =~ /^[yY]$/)
     {
-	s/[\r\f\n]//;
-	@line = split / +/;
-	if($line[0] =~ /%([12]):/)
-	{
-	    $posHere = $1;
-	    $line[1] =~ s/^0*//;
-	    push @{$offsetMnem{$line[1].$posMap{$posHere}}}, $line[0];
-	}
+        print STDERR "Creating WordNet depth files.\n";
+        print STDERR "This will take a few minutes.\n";
+        system ($^X, "utils/wnDepths.pl", 
+                "--outfile=$taxonomyfile",
+                "--depthfile=$synsetsfile",
+                "--wnpath=$wndictpath");
+        if (-z $synsetsfile or -z $taxonomyfile) {
+            print STDERR "Error: failed to create WordNet depths file\n";
+        }
+        else
+        {
+            $dataCount++;
+        }
+        # done with depths files
     }
-    close(IDX);
-    print STDERR "done.\n";
+    print STDERR "\n" if($qAns !~ /^[nN]$/);
 
-
-    # Loading the frequency counts from 'cntlist'.
-    print STDERR "Loading cntlist ... ";
-    open(CNT, $wnUnixPath."/cntlist") || open(CNT, $wnPCPath."\\cntlist") || die "Unable to open cntlist.\n";
-    while(<CNT>)
+    # Query if infocontent file should be created...
+    $infAns = "n";
+    if($qAns =~ /^[qQ]$/)
     {
-	s/[\r\f\n]//;
-	@line = split / +/;
-	if($line[1] =~ /%[12]:/)
-	{
-	    $mnemFreq{$line[1]}=$line[0];
-	}
+        $infAns = "";
+        while($infAns !~ /^[yYnN]$/)
+        {
+            $infAns = "y";
+            print STDERR "Would you like to install a default information content file ((y)es, (n)o)?\n";
+            print STDERR "(This file is accessed by the res, lin and jcn modules) [y] ";
+            my $line = <STDIN>;
+            $line =~ s/[\r\f\n]//;
+            $line =~ s/^\s+//;
+            $line =~ s/\s+$//;
+            $infAns = $line if(defined $line && $line ne "");
+        }
     }
-    close(CNT);
-    print STDERR "done.\n";
-
-
-    # Mapping offsets to frequencies.
-    print STDERR "Mapping noun offsets to frequencies ... ";
-    open(DATA, $wnUnixPath."/data.noun") || open(DATA, $wnPCPath."\\noun.dat") || die "Unable to open data file.\n";
-    while($line=<DATA>)
+    elsif($qAns =~ /^[yY]$/)
     {
-	next if($line =~ /^\s/);
-	$line =~ /^([0-9]+)\s+/;
-	$offset = $1;
-	$offset =~ s/^0*//;
-	if(exists $offsetMnem{$offset."n"})
-	{
-	    foreach $mnem (@{$offsetMnem{$offset."n"}})
-	    {
-		if($offsetFreq{"n"}{$offset})
-		{
-		    $offsetFreq{"n"}{$offset} += ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
-		}
-		else
-		{
-		    # [old]
-		    # Using initial value of 1 for add-1 smoothing. (added 06/22/2002)
-		    # $offsetFreq{$offset} = ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
-		    # [/old]
-		    # No more add-1 (09/13/2002)
-		    $offsetFreq{"n"}{$offset} = ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
-		}
-	    }
-	}
-	else
-	{
-	    # Code added for Add-1 smoothing (06/22/2002)
-	    # Code changed... no more add-1 (09/13/2002)
-	    $offsetFreq{"n"}{$offset} = 0;
-	}
+        $infAns = "y";
     }
-    close(DATA);
-    print STDERR "done.\n";
 
-
-    # Mapping offsets to frequencies.
-    print STDERR "Mapping verb offsets to frequencies ... ";
-    open(DATA, $wnUnixPath."/data.verb") || open(DATA, $wnPCPath."\\verb.dat") || die "Unable to open data file.\n";
-    while($line=<DATA>)
+    # Depending on whether infocontent file must be installed.
+    my $fname = "lib/WordNet/ic-semcor.dat";
+    if($infAns =~ /^[yY]$/)
     {
-	next if($line =~ /^\s/);
-	$line =~ /^([0-9]+)\s+/;
-	$offset = $1;
-	$offset =~ s/^0*//;
-	if(exists $offsetMnem{$offset."v"})
-	{
-	    foreach $mnem (@{$offsetMnem{$offset."v"}})
-	    {
-		if($offsetFreq{"v"}{$offset})
-		{
-		    $offsetFreq{"v"}{$offset} += ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
-		}
-		else
-		{
-		    # [old]
-		    # Using initial value of 1 for add-1 smoothing. (added 06/22/2002)
-		    # $offsetFreq{$offset} = ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
-		    # [/old]
-		    # No more add-1 (09/13/2002)
-		    $offsetFreq{"v"}{$offset} = ($mnemFreq{$mnem}) ? $mnemFreq{$mnem} : 0;
-		}
-	    }
-	}
-	else
-	{
-	    # Code added for Add-1 smoothing (06/22/2002)
-	    # Code changed... no more add-1 (09/13/2002)
-	    $offsetFreq{"v"}{$offset} = 0;
-	}
+        # Installing the default infocontent file...
+        print STDERR "Creating information content file.\n";
+        print STDERR "This will take a few minutes.\n";
+
+        # Generate infocontent file:
+        #
+        system ($^X, "utils/semCorFreq.pl", 
+                "--outfile=$fname",
+                "--wnpath=$wndictpath");
+        if (-z $fname) 
+        {
+            print STDERR "Error: Failed to create default infocontent file.\n";
+        }
+        else
+        {
+            my $icVersion = &getICVersion($fname);
+            $icflag = 1;
+            print STDERR "Wrote file $fname (WordNet ver ".$icVersion.").\n";
+            $dataCount++;
+            $tryTests .= " $stage2_tests" if($dataCount == 2);
+        }
+        # done with infocontent file
     }
-    close(DATA);
-    print STDERR "done.\n";
+    print STDERR "\n" if($qAns !~ /^[nN]$/);
 
-
-    # Making some space in memory.
-    print STDERR "Cleaning junk from memory ... ";
-    undef %offsetMnem;
-    undef %mnemFreq;
-    print STDERR "done.\n";
-
-
-    # What are the topmost nodes?
-    print STDERR "Determining topmost nodes of all hierarchies ... ";
-    &createTopHash();
-    print STDERR "done.\n";
-
-
-    # Propagating frequency counts up the trees.
-    print STDERR "Webcrawling through WordNet ... ";
-    $offsetFreq{"n"}{0} = 0;
-    $offsetFreq{"v"}{0} = 0;
-    &updateFrequency(0, "n");
-    &updateFrequency(0, "v");
-    delete $newFreq{"n"}{0};
-    delete $newFreq{"v"}{0};
-    print STDERR "done.\n";
-
-
-    # Writing the default infocontent file.
-    print STDERR "Writing infocontent file ... ";
-    open(DATA, ">$fname") || die "Unable to open data file for writing.\n";
-    print DATA "wnver::".$wn->version()."\n";
-    foreach $offset (sort {$a <=> $b} keys %{$newFreq{"n"}})
+    # Query if word vectors file must be created...
+    $infAns = "n";
+    if($qAns =~ /^[qQ]$/)
     {
-	print DATA $offset."n ".$newFreq{"n"}{$offset};
-	print DATA " ROOT" if($topHash{"n"}{$offset});
-	print DATA "\n";
+        $infAns = "";
+        while($infAns !~ /^[yYnN]$/)
+        {
+            $infAns = "y";
+            print STDERR "Would you like to install a default word vectors file ((y)es, (n)o)?\n";
+            print STDERR "(This file is accessed by the vector module) [y] ";
+            my $line = <STDIN>;
+            $line =~ s/[\r\f\n]//;
+            $line =~ s/^\s+//;
+            $line =~ s/\s+$//;
+            $infAns = $line if(defined $line && $line ne "");
+        }
     }
-    foreach $offset (sort {$a <=> $b} keys %{$newFreq{"v"}})
+    elsif($qAns =~ /^[yY]$/)
     {
-	print DATA $offset."v ".$newFreq{"v"}{$offset};
-	print DATA " ROOT" if($topHash{"v"}{$offset});
-	print DATA "\n";
+        $infAns = "y";
     }
-    close(DATA);
-    print STDERR "done.\n";
-    print STDERR "Wrote file $fname (WordNet ver ".$wn->version().").\n";
 
+    # Depending on whether word vectors file must be installed.
+    my $wvfile = "lib/WordNet/wordvectors.dat";
+    if($infAns =~ /^[yY]$/)
+    {
+        # Installing the default word vectors file...
+        print STDERR "Generating word vectors file.\n";
+        print STDERR "This will take a few minutes.\n";
 
-    return {};
+        # Generate wordvectors file:
+        #
+        system ($^X, "-Ilib", "utils/wordVectors.pl", 
+                "--compfile=samples/wn20compounds.txt",
+                "--stopfile=samples/stoplist.txt",
+                "--chigh=1000", "--clow=5", 
+                "--wnpath=$wndictpath", $wvfile);
+        if (-z $wvfile) 
+        {
+            print STDERR "Error: Failed to create default word vectors file.\n";
+        }
+        else
+        {
+            print STDERR "Wrote vectors file ($wvfile).\n";
+            $dataCount++;
+            $tryTests .= " $stage3_tests";
+            $tryTests .= " $stage_all" if($dataCount == 3);
+        }
+        # done with wordvectors file
+    }
+    print STDERR "\n" if($qAns !~ /^[nN]$/);
+
+    my %retRef = ();
+    $retRef{'test'}{'TESTS'} = $tryTests;
+    return \%retRef;
 }
 
-
-# Recursive subroutine that calculates the cumulative frequencies
-# of all synsets in WordNet.
-# INPUT PARAMS  : $offset  .. Offset of the synset to update.
-#                 $pos     .. Part-of-Speech ("n", "v").
-# RETRUN VALUES : $freq    .. The cumulative frequency calculated for
-#                             the node.
-sub updateFrequency
+# Returns the WordNet version used in generating an infocontent file.
+sub getICVersion
 {
-    my $node;
-    my $pos;
-    my $sum;
-    my $retValue;
-    my $hyponym;
-    my @hyponyms;
-
-    $node = shift;
-    $pos = shift;
-    if($newFreq{$pos}{$node})
-    {
-	return $newFreq{$pos}{$node};
-    }
-    $retValue = &getHyponymOffsets($node, $pos);
-    if($retValue)
-    {
-	@hyponyms = @{$retValue};
-    }
-    else
-    {
-	$newFreq{$pos}{$node} = $offsetFreq{$pos}{$node};
-	return $offsetFreq{$pos}{$node};
-    }
-    $sum = 0;
-    if($#{$retValue} >= 0)
-    {
-	foreach $hyponym (@hyponyms)
-	{
-	    $sum += &updateFrequency($hyponym, $pos);
-	}
-    }
-    $newFreq{$pos}{$node} = $offsetFreq{$pos}{$node} + $sum;
-    return $offsetFreq{$pos}{$node} + $sum;
-}
-
-
-# Creates and loads the topmost nodes hash.
-sub createTopHash
-{
-    my $word;
-    my $wps;
-    my $upper;
-    my $fileIsGood;
-    my %wpsOffset;
-
-    undef %wpsOffset;
-    foreach $word ($wn->listAllWords("n"))
-    {
-	foreach $wps ($wn->querySense($word."\#n"))
-	{
-	    if(!$wpsOffset{$wn->offset($wps)})
-	    {
-		($upper) = $wn->querySense($wps, "hype");
-		if(!$upper)
-		{
-		    $topHash{"n"}{$wn->offset($wps)} = 1;	
-		}
-		$wpsOffset{$wn->offset($wps)} = 1;
-	    }
-	}
-    }
-    undef %wpsOffset;
-    foreach $word ($wn->listAllWords("v"))
-    {
-	foreach $wps ($wn->querySense($word."\#v"))
-	{
-	    if(!$wpsOffset{$wn->offset($wps)})
-	    {
-		($upper) = $wn->querySense($wps, "hype");
-		if(!$upper)
-		{
-		    $topHash{"v"}{$wn->offset($wps)} = 1;
-		}
-		$wpsOffset{$wn->offset($wps)} = 1;
-	    }
-	}
-    }
-}
-
-
-# Subroutine that returns the hyponyms of a given synset.
-# INPUT PARAMS  : $offset  .. Offset of the given synset.
-#                 $pos     .. Part-of-Speech ("n", "v").
-# RETURN PARAMS : @offsets .. Offsets of the hyponyms of $offset.
-sub getHyponymOffsets
-{
-    my $offset;
-    my $wordForm;
-    my $hyponym;
-    my @hyponyms;
-    my @retVal;
-
-    $offset = shift;
-    $pos = shift;
-    if($offset == 0)
-    {
-	@retVal = keys %{$topHash{$pos}};
-	return [@retVal];
-    }
-    $wordForm = $wn->getSense($offset, $pos);
-    @hyponyms = $wn->querySense($wordForm, "hypo");
-    if(!@hyponyms || $#hyponyms < 0)
-    {
-	return undef;
-    }
-    @retVal = ();
-    foreach $hyponym (@hyponyms)
-    {
-	$offset = $wn->offset($hyponym);
-	push @retVal, $offset;
-    }
-    return [@retVal];
+    my $fname = shift;
+    return "" if(!defined $fname);
+    return "" if(!open(ICFILE, $fname));
+    my $line = <ICFILE>;
+    close(ICFILE);
+    $line =~ s/[\r\f\n]//;
+    $line =~ s/^\s+//;
+    $line =~ s/\s+$//;
+    my $wnver = "";
+    $wnver = $1 if($line =~ /wnver\s*::\s*(.*)/);
+    return $wnver;
 }
 
 # What follows is some magic that makes some low-level modifications to
@@ -512,3 +444,4 @@ sub special_targets
 
     return $str;
 }
+

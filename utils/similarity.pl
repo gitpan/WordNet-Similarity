@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
 # similarity.pl version 0.12
-# (Last updated $Id: similarity.pl,v 1.13 2004/10/29 19:25:42 sidz1979 Exp $)
+# (Last updated $Id: similarity.pl,v 1.14 2005/04/21 18:28:34 jmichelizzi Exp $)
 #
 # This program is a command line interface to WordNet::Similarity
 #
@@ -513,7 +513,7 @@ sub showHelp
     print "               'WordNet::Similarity::jcn'    The Jiang Conrath measure.\n";
     print "               'WordNet::Similarity::random' A random measure.\n";
     print "               'WordNet::Similarity::res'    The Resnik measure.\n";
-    print "               'WordNet::Similarity::vector' Gloss Vector overlap measure.\n";
+    print "               'WordNet::Similarity::vector_pairs' Gloss Vector overlap measure.\n";
     print "               'WordNet::Similarity::wup'    Wu Palmer measure.\n";
     print "--config      Module-specific configuration file CONFIGFILE. This file\n";
     print "              contains the configuration that is used by the\n";

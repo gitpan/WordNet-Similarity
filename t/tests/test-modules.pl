@@ -9,7 +9,7 @@ use Getopt::Long;
 use WordNet::Similarity::res;
 use WordNet::Similarity::lin;
 use WordNet::Similarity::jcn;
-use WordNet::Similarity::edge;
+use WordNet::Similarity::path;
 use WordNet::Similarity::wup;
 use WordNet::Similarity::lch;
 use WordNet::Similarity::hso;

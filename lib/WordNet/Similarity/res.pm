@@ -1,5 +1,5 @@
-# WordNet::Similarity::res.pm version 0.07
-# (Last updated $Id: res.pm,v 1.16 2004/10/23 07:23:05 sidz1979 Exp $)
+# WordNet::Similarity::res.pm version 0.13
+# (Last updated $Id: res.pm,v 1.18 2005/04/20 01:13:59 jmichelizzi Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Resnik (1995).
@@ -44,11 +44,11 @@ The following methods are defined:
 =cut
 
 use strict;
-use WordNet::Similarity::LCSFinder;
+use WordNet::Similarity::ICFinder;
 
-our @ISA = qw/WordNet::Similarity::LCSFinder/;
+our @ISA = qw/WordNet::Similarity::ICFinder/;
 
-our $VERSION = '0.07';
+our $VERSION = '0.13';
 
 # The 'new' method for this class is supplied by WordNet::Similarity
 

@@ -13,7 +13,7 @@ Completed Items, make sure to date and initial. When we have
 a version release, all of the recently completed items 
 should be moved into changelog.pod. 
 
-=head2 FOR VERSION 0.13:
+=head2 FOR VERSION 0.14:
 
 =over
 
@@ -54,7 +54,7 @@ update documentation to clarify that stoplists must also be all lowercase
 
 =back
 
-=head2 FOR VERSION 0.14:
+=head2 FOR VERSION 0.15:
 
 =over 4
 
@@ -69,7 +69,7 @@ update lesk/vector to support new relations in WordNet 2.0
 
 =back
 
-=head2 FOR VERSION 0.15:
+=head2 FOR VERSION 0.16:
 
 =over 4
 

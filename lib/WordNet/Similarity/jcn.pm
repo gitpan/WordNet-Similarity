@@ -1,5 +1,5 @@
-# WordNet::Similarity::jcn.pm version 0.07
-# (Last updated $Id: jcn.pm,v 1.18 2004/10/23 07:23:04 sidz1979 Exp $)
+# WordNet::Similarity::jcn.pm version 0.13
+# (Last updated $Id: jcn.pm,v 1.20 2005/04/20 01:13:59 jmichelizzi Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Jiang and Conrath (1997).
@@ -52,11 +52,11 @@ use strict;
 use warnings;
 
 use Exporter;
-use WordNet::Similarity::LCSFinder;
+use WordNet::Similarity::ICFinder;
 
 our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
-@ISA = qw(WordNet::Similarity::LCSFinder);
+@ISA = qw(WordNet::Similarity::ICFinder);
 
 %EXPORT_TAGS = ();
 
@@ -64,7 +64,7 @@ our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 @EXPORT = ();
 
-our $VERSION = '0.07';
+our $VERSION = '0.13';
 
 # the 'new' method is supplied by WordNet::Similarity
 

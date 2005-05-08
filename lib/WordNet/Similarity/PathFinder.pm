@@ -1,5 +1,5 @@
-# WordNet::Similarity::PathFinder version 0.11
-# (Last updated $Id: PathFinder.pm,v 1.30 2004/10/23 07:23:04 sidz1979 Exp $)
+# WordNet::Similarity::PathFinder version 0.13
+# (Last updated $Id: PathFinder.pm,v 1.32 2005/04/20 01:13:59 jmichelizzi Exp $)
 #
 # Module containing path-finding code for the various measures of semantic
 # relatedness.
@@ -78,7 +78,7 @@ use File::Spec;
 
 our @ISA = qw/WordNet::Similarity/;
 
-our $VERSION = '0.11';
+our $VERSION = '0.13';
 
 WordNet::Similarity::addConfigOption ('rootNode', 0, 'i', 1);
 
@@ -557,6 +557,70 @@ sub _getHypernymTrees
   }
   return @returnArray;
 }
+
+=item getLCSbyPath($synset1, $synset2, $pos, $mode)
+
+Given two input synsets, finds the least common subsumer (LCS) of them.
+If there are multiple candidates for the LCS (due to multiple inheritance),
+the LCS that results in the shortest path between in input concepts is
+chosen.
+
+Parameters: two synsets, a part of speech, and a mode.
+
+Returns: a list of references to arrays where each array has the from
+C<($lcs, $pathlength)>.  $pathlength is the length
+of the path between the two input concepts.  There can be multiple LCSs
+returned if there are ties for the shortest path between the two synsets.
+Returns undef on error.
+
+=cut
+
+sub getLCSbyPath
+{
+  my $self = shift;
+  my $synset1 = shift;
+  my $synset2 = shift;
+  my $pos = shift;
+  my $mode = shift;
+  my $class = ref $self || $self;
+
+  my @paths = $self->getAllPaths ($synset1, $synset2, $pos, $mode);
+
+  # if no paths were found, $paths[0] should be undefined
+  unless (defined $paths[0]) {
+    $self->{error} = $self->{error} < 1 ? 1 : $self->{error};
+    $self->{errorString} .= "\nWarning (${class}::getLCSbyPath()) - ";
+    $self->{errorString} .= "No LCS found.";
+    return undef;
+  }
+
+  if ($self->{trace}) {
+    $self->{traceString} .= "Lowest Common Subsumer(s): ";
+  }
+
+  my @return;
+
+  # put the best LCS(s) into @return; do some tracing at the same time.
+  foreach my $pathref (@paths) {
+    if ($self->{trace}) {
+      # print path to trace string
+      $self->printSet ($pos, $mode, $pathref->[0]);	
+      $self->{traceString} .= " (Length=".$pathref->[1].")\n";
+    }
+
+    # push onto return array if this path length is tied for best
+    if ($pathref->[1] <= $paths[0]->[1]) {
+      push @return, [$pathref->[0], $pathref->[1]];
+    }
+  }
+
+  if ($self->{trace}) {
+    $self->{traceString} .= "\n\n";
+  }
+
+  return @return;
+}
+
 
 =item $measure->_getSubsumerFromTrees($treeref1, $treeref2, $mode)
 

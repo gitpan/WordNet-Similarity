@@ -9,7 +9,7 @@ WordNet::Similarity - modules for computing semantic relatedness.
 All the modules that will be installed in the Perl system directory are
 present in the '/lib' directory tree of the package. These include the
 semantic relatedness modules -- jcn.pm, res.pm, lin.pm, lch.pm, hso.pm,
-lesk.pm, vector.pm, wup.pm, path.pm and random.pm -- present in the 
+lesk.pm, vector_pairs.pm, wup.pm, path.pm and random.pm -- present in the 
 /lib/WordNet/Similarity subdirectory and the supporting modules
 PathFinder, ICFinder, DepthFinder, LCSFinder, get_wn_info.pm, and
 string_compare.pm. There also exists a WordNet/Similarity.pm module that

@@ -46,7 +46,7 @@ The usual way to install the package is to run the following commands:
 If you can't set the WNHOME environment variable, you can use the WNHOME
 option when running S<perl Makefile.PL>.  For example,
 
- perl Makefile.PL --WNHOME=/usr/local/WordNet-2.0
+ perl Makefile.PL WNHOME=/usr/local/WordNet-2.0
 
 You will often need root access/superuser priviledges to run S<make install>.
 The module can also be installed locally.  To do a local install, you need

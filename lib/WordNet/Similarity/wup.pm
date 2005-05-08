@@ -1,5 +1,5 @@
-# WordNet::Similarity::wup.pm version 0.11
-# (Last updated $Id: wup.pm,v 1.22 2004/10/23 07:23:05 sidz1979 Exp $)
+# WordNet::Similarity::wup.pm version 0.13
+# (Last updated $Id: wup.pm,v 1.24 2005/04/20 01:14:00 jmichelizzi Exp $)
 #
 # Semantic Similarity Measure package implementing the semantic
 # relatedness measure described by Wu & Palmer (1994) as revised
@@ -49,11 +49,11 @@ This module defines the following methods:
 use strict;
 use warnings;
 
-use WordNet::Similarity::LCSFinder;
+use WordNet::Similarity::DepthFinder;
 
-our @ISA = qw/WordNet::Similarity::LCSFinder/;
+our @ISA = qw/WordNet::Similarity::DepthFinder/;
 
-our $VERSION = '0.11';
+our $VERSION = '0.13';
 
 =item $wup->getRelatedness ($synset1, $synset2)
 
