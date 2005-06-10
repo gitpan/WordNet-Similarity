@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for WordNet::Similarity
-# (Last updated $Id: Makefile.PL,v 1.28 2005/05/05 18:58:45 jmichelizzi Exp $)
+# (Last updated $Id: Makefile.PL,v 1.30 2005/06/09 17:06:25 sidz1979 Exp $)
 #
 # Generates the Makefile for the WordNet::Similarity CPAN modules. Requires
 # WordNet::QueryData (1.30 or above) be installed and be accessible via the
@@ -73,11 +73,11 @@ my $author3 = "Jason Michelizzi <mich0212 at d.umn.edu>";
 # run $short_tests when doing 'make test', but run $long_tests when
 # doing 'make test_all'
 my $short_tests = 't/access.t t/res.t t/lin.t t/jcn.t t/path.t t/lch.t';
-$short_tests .= ' t/wup.t t/lesk.t t/vector_pairs.t t/hso.t t/random.t t/config/rootnode.t';
+$short_tests .= ' t/wup.t t/lesk.t t/vector_pairs.t t/vector.t t/hso.t t/random.t t/config/rootnode.t';
 my $long_tests = 't/*.t t/config/*.t t/utils/*.t';
 my $basic_tests = 't/random.t t/hso.t t/path.t t/lesk.t';
 my $stage2_tests = 't/lch.t t/wup.t t/config/rootnode.t t/res.t t/jcn.t t/lin.t';
-my $stage3_tests = 't/vector_pairs.t';
+my $stage3_tests = 't/vector_pairs.t t/vector.t';
 my $stage_all = 't/access.t';
 
 @programs_to_install = qw(BNCFreq.pl brownFreq.pl compounds.pl
@@ -110,7 +110,6 @@ WriteMakefile(
               'EXE_FILES'    => [ map "utils/$_", @programs_to_install ],
               'dist'         => {'COMPRESS' => 'gzip -9f', 'SUFFIX' => 'gz'},
               'clean'        => {'FILES' => 'lib/WordNet/ic-semcor.dat lib/WordNet/wordvectors.dat lib/WordNet/*depths-*.dat'},
-#              'test'         => {TESTS => $short_tests},
               ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
                ('ABSTRACT_FROM'   => 'lib/WordNet/Similarity.pm', # retrieve abstract from module
                 'AUTHOR'          => '$author1, $author2, $author3') : ())

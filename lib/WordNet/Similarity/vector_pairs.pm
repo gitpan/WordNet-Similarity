@@ -1,5 +1,5 @@
 # WordNet::Similarity::vector_pairs.pm version 0.13
-# (Last updated $Id: vector_pairs.pm,v 1.2 2005/04/28 19:01:49 tpederse Exp $)
+# (Last updated $Id: vector_pairs.pm,v 1.3 2005/06/08 17:11:12 sidz1979 Exp $)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using a
@@ -67,6 +67,7 @@ to create the overall relatedness score.
 use strict;
 use vectorFile;
 use WordNet::Similarity::GlossFinder;
+use File::Spec;
 use vars qw($VERSION @ISA);
 
 @ISA = qw(WordNet::Similarity::GlossFinder);
@@ -109,7 +110,7 @@ sub initialize
         foreach $path (@INC) 
         {
             # JM 1-16-04  -- modified to use File::Spec
-            my $file = File::Spec->catfile($path, 'WordNet', 'vector-relation.dat');
+            my $file = File::Spec->catfile($path, 'WordNet', 'vector-pairs-relation.dat');
             push @possiblePaths, $file if(-e $file);
         }
         

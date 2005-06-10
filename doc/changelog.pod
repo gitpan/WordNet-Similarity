@@ -10,6 +10,36 @@ is released.
 
 =head1 DESCRIPTION
 
+=head2 Version 0.14 (Released 6/9/2005)
+
+=over
+
+=item *
+
+06/08/05
+
+=over
+
+=item (1)
+
+Re-introduced the previous (non-pairwise-comparison) vector. (Sid)
+
+=item (2)
+
+Updated documentation and test cases to support the new vector measure. (Sid)
+
+=item (3)
+
+Added default relation file for new vector measure. (Sid)
+
+=item (4)
+
+Expunged erroneous references to LCSFinder, esp. in test scripts. (JM)
+
+=back
+
+=back
+
 =head2 Version 0.13 (Released 5/9/2005)
 
 =over

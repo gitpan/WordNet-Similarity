@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# all.t version 0.07
+# all.t version 0.14
 # (Updated 1/12/2004 -- Jason)
 #
 # Copyright (C) 2004

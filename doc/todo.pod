@@ -8,14 +8,32 @@ A list of things to do for WordNet Similarity.
 
 =head1 DESCRIPTION
 
-As these items are completed, move them down into Recently
-Completed Items, make sure to date and initial. When we have
-a version release, all of the recently completed items 
-should be moved into changelog.pod. 
+As these items are completed, move them down into Recently Completed  
+Items,  make sure to date and initial. When we have  a version release,  
+all of the recently completed items  should be moved into changelog.pod. 
 
-=head2 FOR VERSION 0.14:
+=head2 FOR FUTURE VERSIONS
 
 =over
+
+=item * 
+
+update hso to support new relations in WordNet 2.0
+
+=item *
+
+update hso to support the use of a hypothetical root node. Currently (as 
+of version 0.06 and 0.07) its paths (for hypernyms) are limited to a 
+particular taxonomy. This might be problematic when it comes to nouns, 
+which are split into 9(?) separate taxonomies within wordnet. And of
+course verbs are split into hundreds of taxonomies. Right now when hso
+is on a hypernym path it isn't able to cross "up and over". Seems like it 
+should be able to do so. 
+
+=item * 
+
+re-write hso to make it faster and more generic. check to see if hso uses  
+hypo root node, and consider adding ability to turn on/off. 
 
 =item *
 
@@ -50,53 +68,18 @@ some other way?
 
 =item *
 
-update documentation to clarify that stoplists must also be all lowercase
-
-=back
-
-=head2 FOR VERSION 0.15:
-
-=over 4
+Update documentation to clarify that stoplists must also be all lowercase. 
+Consider adjusting stoplists to use regular expressions. 
 
 =item * 
 
-speed up lesk, and make it more generic. string matching is the  big offender with respect to speed, and wordnet specific  stuff is the  
+speed up lesk, and make it more generic. string matching is the  big 
+offender with respect to speed, and wordnet specific  stuff is the   
 problem with respect to generality. 
 
 =item * 
 
 update lesk/vector to support new relations in WordNet 2.0
-
-=back
-
-=head2 FOR VERSION 0.16:
-
-=over 4
-
-=item * 
-
-update hso to support new relations in WordNet 2.0
-
-=item *
-
-update hso to support the use of a hypothetical root node. Currently (as 
-of version 0.06 and 0.07) its paths (for hypernyms) are limited to a 
-particular taxonomy. This might be problematic when it comes to nouns, 
-which are split into 9(?) separate taxonomies within wordnet. And of
-course verbs are split into hundreds of taxonomies. Right now when hso
-is on a hypernym path it isn't able to cross "up and over". Seems like it 
-should be able to do so. 
-
-=back
-
-=head2 FOR VERSION 1.00:
-
-=over 4
-
-=item * 
-
-re-write hso to make it faster and more generic. check to see if hso uses  
-hypo root node, and consider adding ability to turn on/off. 
 
 =back
 
@@ -124,26 +107,10 @@ content files and wordnet version.
 
 =head2 RECENTLY COMPLETED ITEMS
 
-=over
-
-=item *
-
-09/23/04
-
-=over
-
-=item 1
-
-Fixed bug in wup that allowed some relatedness scores to be greater
-than 1.  This bug is discussed in the archives of the mailing list. (JM)
-
-=back
-
-=back
 
 =head1 AUTHORS
 
-Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, and Jason
+Copyright (C) 2003-2005 Siddharth Patwardhan, Ted Pedersen, and Jason
 Michelizzi. 
 
 =head1 BUGS

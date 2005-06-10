@@ -1,39 +1,38 @@
 NAME
-
-    README - introduction to WordNet::Similarity
+    intro.pod - introduction to WordNet::Similarity
 
 CONTENTS
-
     *intro.pod*, *install.pod*, *utils.pod*, *modules.pod*,
     *developers.pod*, *config.pod*, FDL.txt
 
 SYNOPSIS
-
     You can use pod2html, pod2latex, pod2man, or pod2text to get this
-    documentation in a different format.  See the man pages for pod2html,
-    etc.  These translators should come with Perl, but you can also download
+    documentation in a different format. See the man pages for pod2html,
+    etc. These translators should come with Perl, but you can also download
     them from <http://search.cpan.org>.
 
 DESCRIPTION
-
     This package consists of Perl modules along with supporting Perl
     programs that implement the semantic relatedness measures described by
     Leacock & Chodorow (1998), Jiang & Conrath (1997), Resnik (1995), Lin
     (1998), Hirst & St-Onge (1998), Wu & Palmer (1994), the adapted gloss
-    overlap measure by Banerjee and Pedersen (2002), and a measure based on
-    context vectors by Patwardhan (2003). The details of the Vector measure
-    are described in the Master's thesis work done by Patwardhan (2003) at
-    the University of Minnesota Duluth. The  Perl modules are designed as
-    objects with methods that take as input two word senses. The semantic
-    relatedness of these word senses is returned by these methods. A
-    quantitative measure of the degree to which two word senses are related
-    has wide ranging applications in numerous areas, such as word sense
-    disambiguation, information retrieval, etc. For example, in order to
-    determine which sense of a given word is being used in a particular
-    context, the sense having the highest relatedness with its context word
-    senses is most likely to be the sense being used. Similarly, in
-    information retrieval, retrieving documents containing highly related
-    concepts are more likely to have higher precision and recall values.
+    overlap measure by Banerjee and Pedersen (2002), and two measures based
+    on context vectors by Patwardhan (2003). The details of the vector
+    measure are described in the Master's thesis work of Patwardhan (2003)
+    at the University of Minnesota Duluth, and the vector_pairs measure is
+    derived from that.
+
+    The Perl modules are designed as objects with methods that take as input
+    two word senses. The semantic relatedness of these word senses is
+    returned by these methods. A quantitative measure of the degree to which
+    two word senses are related has wide ranging applications in numerous
+    areas, such as word sense disambiguation, information retrieval, etc.
+    For example, in order to determine which sense of a given word is being
+    used in a particular context, the sense having the highest relatedness
+    with its context word senses is most likely to be the sense being used.
+    Similarly, in information retrieval, retrieving documents containing
+    highly related concepts are more likely to have higher precision and
+    recall values.
 
     A command line interface to these modules is also present in the
     package. The simple, user-friendly interface returns the relatedness
@@ -56,7 +55,6 @@ DESCRIPTION
     utilities.
 
 SEMANTIC RELATEDNESS
-
     We observe that humans find it extremely easy to say if two words are
     related and if one word is more related to a given word than another.
     For example, if we come across two words -- 'car' and 'bicycle', we know
@@ -76,25 +74,22 @@ SEMANTIC RELATEDNESS
     installed on the system before these modules are installed.
 
 CONTENTS
-
     The package contains the semantic relatedness modules, some support Perl
     utilities and some sample configuration files, data files and programs.
 
   Modules
-
     All the modules that will be installed in the Perl system directory are
     present in the '/lib' directory tree of the package. These include the
     semantic relatedness modules -- jcn.pm, res.pm, lin.pm, lch.pm, hso.pm,
-    lesk.pm, vector.pm, wup.pm, path.pm and random.pm -- present in the
-    /lib/WordNet/Similarity subdirectory and the supporting modules
-    get_wn_info.pm and string_compare.pm. There also exists a
+    lesk.pm, vector.pm, vector_pairs.pm, wup.pm, path.pm and random.pm --
+    present in the /lib/WordNet/Similarity subdirectory and the supporting
+    modules get_wn_info.pm and string_compare.pm. There also exists a
     WordNet/Similarity.pm module that currently serves as a base class for
     all the relatedness modules and contains Perl documentation. All these
     modules, once installed in the Perl system directory, can be directly
     used by Perl programs.
 
   Supporting Utilities
-
     The '/utils' subdirectory of the package contains supporting Perl
     programs. 'similarity.pl' is a command-line interface to the relatedness
     modules. A number of Perl programs, that generate information content
@@ -104,15 +99,13 @@ CONTENTS
     (/usr/bin, /usr/local/bin, etc) are in your path.
 
   Samples
-
     If you downloaded this package as a tar-gzipped file from the web, you
-    will find a '/samples' subdirectory in the package.  There is a separate
-    README in that directory.  The directory contains sample configuration
+    will find a '/samples' subdirectory in the package. There is a separate
+    README in that directory. The directory contains sample configuration
     files for the modules, sample programs showing usage of the modules and
     sample data files (e.g., relation files).
 
 SOFTWARE COPYRIGHT AND LICENSE
-
     Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, and Jason
     Michelizzi
 
@@ -123,18 +116,17 @@ SOFTWARE COPYRIGHT AND LICENSE
 
     This program is distributed in the hope that it will be useful, but
     WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    General Public License for more details.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+    Public License for more details.
 
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+    59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
     Note: The text of the GNU General Public License is provided in the file
     'GPL.txt' that you should have received with this distribution.
 
 ACKNOWLEDGEMENTS
-
     We would like to thank the following for their support and contribution
     towards the development of this package. We thank Jason Rennie for his
     QueryData package, the WordNet guys at Princeton for WordNet, Resnik,
@@ -144,10 +136,9 @@ ACKNOWLEDGEMENTS
     module.
 
 REFERENCES
-
     1   Wu Z. and Palmer M. 1994. Verb Semantics and Lexical Selection. In
         Proceedings of the 32nd Annual Meeting of the Association for
-        Computational Linguistics.  Las Cruces, New Mexico.
+        Computational Linguistics. Las Cruces, New Mexico.
 
     2   Resnik P. 1995. Using information content to evaluate semantic
         similarity. In Proceedings of the 14th International Joint
@@ -205,13 +196,11 @@ REFERENCES
         Minnesota, Duluth, 2003.
 
 SEE ALSO
-
     <http://groups.yahoo.com/group/wn-similarity>,
     <http://search.cpan.org/dist/WordNet-Similarity>,
     <http://wn-similarity.sourceforge.net>
 
 AUTHORS
-
      Siddharth Patwardhan, University of Utah
      sidd at cs.utah.edu
 
@@ -225,7 +214,6 @@ AUTHORS
      mich0212 at d.umn.edu
 
 DOCUMENTATION COPYRIGHT AND LICENSE
-
     Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, and Jason
     Michelizzi
 

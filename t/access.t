@@ -5,7 +5,7 @@
 
 ##################### We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..11\n"; }
+BEGIN { $| = 1; print "1..12\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use WordNet::Similarity;
 use WordNet::QueryData 1.30;
@@ -18,11 +18,11 @@ use WordNet::Similarity::lesk;
 use WordNet::Similarity::path;
 use WordNet::Similarity::random;
 use WordNet::Similarity::vector_pairs;
+use WordNet::Similarity::vector;
 use WordNet::Similarity::wup;
 use WordNet::Similarity::ICFinder;
 use WordNet::Similarity::PathFinder;
 use WordNet::Similarity::DepthFinder;
-use WordNet::Similarity::LCSFinder;
 $loaded = 1;
 print "ok 1\n";
 
@@ -222,5 +222,25 @@ if($vector)
 else
 {
     print "not ok 11\n";
+}
+
+########### Load real vector
+
+$vector = WordNet::Similarity::vector->new($wn);
+if($vector)
+{
+    ($err, $errString) = $vector->getError();
+    if($err)
+    {
+        print "not ok 12\n";
+    }
+    else
+    {
+        print "ok 12\n";
+    }
+}
+else
+{
+    print "not ok 12\n";
 }
 

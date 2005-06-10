@@ -1,5 +1,5 @@
-# WordNet::Similarity.pm version 0.13
-# (Last updated $Id: Similarity.pm,v 1.34 2005/05/08 03:31:12 tpederse Exp $)
+# WordNet::Similarity.pm version 0.14
+# (Last updated $Id: Similarity.pm,v 1.37 2005/06/09 20:29:54 jmichelizzi Exp $)
 #
 # Module containing the version information and pod
 # for the WordNet::Similarity package.
@@ -115,7 +115,7 @@ our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.13';
+$VERSION = '0.14';
 
 # a hash to contain the module-specific configuration options.
 our %config_options;
@@ -1106,7 +1106,7 @@ WordNet::Similarity::lin(3), WordNet::Similarity::lch(3),
 WordNet::Similarity::hso(3), WordNet::Similarity::lesk(3),
 WordNet::Similarity::wup(3), WordNet::Similarity::edge(3),
 WordNet::Similarity::random(3), WordNet::Similarity::ICFinder(3),
-WordNet::Similarity::PathFinder(3), WordNet::Similarity::LCSFinder(3),
+WordNet::Similarity::PathFinder(3)
 WordNet::QueryData(3)
 
 http://www.cs.utah.edu/~sidd

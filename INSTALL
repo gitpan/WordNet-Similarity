@@ -159,14 +159,14 @@ DESCRIPTION
      wget http://www.cogsci.princeton.edu/2.0/WordNet-2.0.tar.gz
      wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.37.tar.gz
      wget http://search.cpan.org/CPAN/authors/id/J/JA/JASONM/Text-Similarity-0.02.tar.gz
-     wget http://search.cpan.org/CPAN/authors/id/T/TP/TPEDERSE/WordNet-Similarity-0.13.tar.gz
+     wget http://search.cpan.org/CPAN/authors/id/T/TP/TPEDERSE/WordNet-Similarity-0.14.tar.gz
 
     Then unpack each one:
 
      tar -zxvf WordNet-2.0.tar.gz
      tar -zxvf WordNet-QueryData-1.37.tar.gz
      tar -zxvf Text-Similarity-0.02.tar.gz
-     tar -zxvf WordNet-Similarity-0.13.tar.gz
+     tar -zxvf WordNet-Similarity-0.14.tar.gz
 
     Install WordNet:
 
@@ -221,7 +221,7 @@ DESCRIPTION
      make install
      exit
 
-     cd /tmp/WordNet-Similarity-0.13
+     cd /tmp/WordNet-Similarity-0.14
      perl Makefile.PL
      make
      make test

@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# PathFinder.t version 0.07
+# PathFinder.t version 0.14
 # (Updated 2/10/2004 -- Jason)
 #
 # Copyright (C) 2004
@@ -44,12 +44,12 @@ BEGIN {
 use Test::More tests => $num_tests;
 
 BEGIN {use_ok 'WordNet::QueryData'}
-BEGIN {use_ok 'WordNet::Similarity::LCSFinder'}
+BEGIN {use_ok 'WordNet::Similarity::PathFinder'}
 
 my $wn = WordNet::QueryData->new;
 ok ($wn) or diag "Failed to load WordNet::QueryData";
 
-my $lf = WordNet::Similarity::LCSFinder->new ($wn);
+my $lf = WordNet::Similarity::PathFinder->new ($wn);
 ok ($lf) or diag "Failed to create WordNet::Similarity::PathFinder module";
 my ($err, $errstr) = $lf->getError ();
 is ($err, 0) or diag ($errstr);

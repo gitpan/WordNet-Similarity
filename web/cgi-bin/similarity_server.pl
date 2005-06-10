@@ -129,14 +129,14 @@ unlink $leskcfg;
 
 my $vectorcfg = "vector$$.cfg";
 open VFH, '>', $vectorcfg or die "Cannot open $vectorcfg for writing: $!";
-print VFH "WordNet::Similarity::vector\n";
+print VFH "WordNet::Similarity::vector_pairs\n";
 print VFH "stop::$stoplist\n" if -e 'stoplist.txt';
 print VFH "stem::1\n";
 print VFH "compounds::$compfile\n";
 print VFH "vectordb::$wordvectors\n";
 close VFH;
 
-our $vector = WordNet::Similarity::vector->new ($wn, $vectorcfg);
+our $vector = WordNet::Similarity::vector_pairs->new ($wn, $vectorcfg);
 unlink $vectorcfg;
 
 

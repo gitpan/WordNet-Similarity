@@ -7,6 +7,20 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
+  Version 0.14 (Released 6/9/2005)
+    *   06/08/05
+
+        (1) Re-introduced the previous (non-pairwise-comparison) vector.
+            (Sid)
+
+        (2) Updated documentation and test cases to support the new vector
+            measure. (Sid)
+
+        (3) Added default relation file for new vector measure. (Sid)
+
+        (4) Expunged erroneous references to LCSFinder, esp. in test
+            scripts. (JM)
+
   Version 0.13 (Released 5/9/2005)
     *   04/21/05
 

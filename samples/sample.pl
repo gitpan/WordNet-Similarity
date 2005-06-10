@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl 
 
 use strict;
 use warnings;
@@ -24,6 +24,8 @@ use WordNet::Similarity::lin;
 
 use WordNet::Similarity::hso;
 use WordNet::Similarity::lesk;
+
+use WordNet::Similarity::vector; 
 use WordNet::Similarity::vector_pairs; 
 
 # Get the concepts.
@@ -67,6 +69,13 @@ die "Unable to create lin object.\n" if(!defined $lin);
 die $errString if($error > 1);
 print STDERR "done.\n";
 
+print STDERR "Creating wup object... ";
+my $wup = WordNet::Similarity::wup->new($wn, "config-files/config-wup.conf");
+die "Unable to create wup object.\n" if(!defined $wup);
+($error, $errString) = $wup->getError();
+die $errString if($error > 1);
+print STDERR "done.\n";
+
 print STDERR "Creating lch object... ";
 my $lch = WordNet::Similarity::lch->new($wn, "config-files/config-lch.conf");
 die "Unable to create lch object.\n" if(!defined $lch);
@@ -102,6 +111,13 @@ die "Unable to create lesk object.\n" if(!defined $lesk);
 die $errString if($error > 1);
 print STDERR "done.\n";
 
+print STDERR "Creating vector object... ";
+my $vector = WordNet::Similarity::vector->new($wn, "config-files/config-vector.conf");
+die "Unable to create vector object.\n" if(!defined $vector);
+($error, $errString) = $vector->getError();
+die $errString if($error > 1);
+print STDERR "done.\n";
+
 print STDERR "Creating vector_pairs object... ";
 my $vector_pairs = WordNet::Similarity::vector_pairs->new($wn, "config-files/config-vector_pairs.conf");
 die "Unable to create vector_pairs object.\n" if(!defined $vector_pairs);
@@ -132,6 +148,13 @@ die $errString if($error > 1);
 
 print "LIN Similarity = $value\n";
 print "LIN ErrorString = $errString\n" if $error;
+
+$value = $wup->getRelatedness($wps1, $wps2);
+($error, $errString) = $wup->getError();
+die $errString if($error > 1);
+
+print "WUP Similarity = $value\n";
+print "WUP ErrorString = $errString\n" if $error;
 
 $value = $lch->getRelatedness($wps1, $wps2);
 ($error, $errString) = $lch->getError();
@@ -169,6 +192,13 @@ die $errString if($error > 1);
 
 print "LESK Similarity = $value\n";
 print "LESK ErrorString = $errString\n" if $error;
+
+$value = $vector->getRelatedness($wps1, $wps2);
+($error, $errString) = $vector->getError();
+die $errString if($error > 1);
+
+print "VECTOR Similarity = $value\n";
+print "VECTOR ErrorString = $errString\n" if $error;
 
 $value = $vector_pairs->getRelatedness($wps1, $wps2);
 ($error, $errString) = $vector_pairs->getError();
