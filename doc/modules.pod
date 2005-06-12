@@ -11,7 +11,7 @@ present in the '/lib' directory tree of the package. These include the
 semantic relatedness modules -- jcn.pm, res.pm, lin.pm, lch.pm, hso.pm,
 lesk.pm, vector_pairs.pm, wup.pm, path.pm and random.pm -- present in the 
 /lib/WordNet/Similarity subdirectory and the supporting modules
-PathFinder, ICFinder, DepthFinder, LCSFinder, get_wn_info.pm, and
+PathFinder, ICFinder, DepthFinder, GlossFinder, et_wn_info.pm, and
 string_compare.pm. There also exists a WordNet/Similarity.pm module that
 currently serves as a base class for all the relatedness modules and
 contains Perl documentation. All these modules, once installed
@@ -19,7 +19,7 @@ in the Perl system directory, can be directly used by Perl programs.
 
 A UML diagram showing how all the classes are organized is available from
 
-http://www.d.umn.edu/~tpederse/Docs/wn-similarity-v0.07-uml.pdf
+http://www.d.umn.edu/~tpederse/Docs/wn-similarity-v0.13-uml.pdf
 
 =head2 Using the relatedness modules
 

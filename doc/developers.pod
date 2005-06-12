@@ -54,12 +54,20 @@ be useful.
     sub getTaxonomyDepth
     sub getTaxonomyRoot
 
-If you want to find LCSs (Least Common Subsumers), the
-WordNet::Similarity::LCSFinder module has useful methods:
+If you want to find LCSs (Least Common Subsumers), there are three
+different ways of doing so, depending upon whether you want
+to use path length, depth, or information content.  The three
+methods for finding LCSs are:
 
     sub getLCSbyPath
     sub getLCSbyDepth
     sub getLCSbyIC
+
+They are found in WordNet::Similarity::PathFinder,
+WordNet::Similarity::DepthFinder, and WordNet::Similarity::ICFinder.
+
+For writing a measure that uses glosses (like vector, vector_pairs, and
+lesk), the WordNet::Similarity::GlossFinder module may be useful.
 
 The documentation for the respective modules has detailed descriptions
 of how each methods works, what parameters each one expects, etc.
@@ -185,7 +193,7 @@ L<intro.pod> L<config.pod> L<modules.pod>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003 Siddharth Patwardhan, Ted Pedersen, and Jason Michelizzi
+Copyright (C) 2003-2005 Siddharth Patwardhan, Ted Pedersen, and Jason Michelizzi
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2
 or any later version published by the Free Software Foundation;

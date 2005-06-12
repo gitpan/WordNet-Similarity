@@ -1,6 +1,6 @@
 =head1 NAME
 
-Revision History for WordNet::Similarity.
+CHANGES Revision history for WordNet-Similarity
 
 =head1 SYNOPSIS
 
@@ -9,6 +9,29 @@ from the Recently Completed Items in the file todo.pod when a new version
 is released. 
 
 =head1 DESCRIPTION
+
+=head2 Version 0.15 (Released June 12, 2005)
+
+=over
+
+=item *
+
+06/10/05
+
+=over
+
+=item (1)
+
+Fixed a minor bug in MANIFEST. (Sid)
+
+=item (2)
+
+Updated modules.pod and developers.pod to reflect new software 
+architecture. (Jason)
+
+=back
+
+=back
 
 =head2 Version 0.14 (Released 6/9/2005)
 

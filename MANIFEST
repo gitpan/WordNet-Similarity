@@ -13,7 +13,6 @@ INSTALL
 lib/get_wn_info.pm
 lib/stem.pm
 lib/vectorFile.pm
-lib/WordNet/ic-semcor.dat
 lib/WordNet/lesk-relation.dat
 lib/WordNet/Similarity.pm
 lib/WordNet/Similarity/DepthFinder.pm
@@ -31,8 +30,6 @@ lib/WordNet/Similarity/res.pm
 lib/WordNet/Similarity/vector.pm
 lib/WordNet/Similarity/vector_pairs.pm
 lib/WordNet/Similarity/wup.pm
-lib/WordNet/synsetdepths-2.0.dat
-lib/WordNet/treedepths-2.0.dat
 lib/WordNet/vector-pairs-relation.dat
 lib/WordNet/vector-relation.dat
 Makefile.PL

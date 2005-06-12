@@ -1,5 +1,5 @@
 NAME
-    Revision History for WordNet::Similarity.
+    CHANGES Revision history for WordNet-Similarity
 
 SYNOPSIS
     A list of changes to the WordNet::Similarity package. These are copied
@@ -7,6 +7,14 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
+  Version 0.15 (Released June 12, 2005)
+    *   06/10/05
+
+        (1) Fixed a minor bug in MANIFEST. (Sid)
+
+        (2) Updated modules.pod and developers.pod to reflect new software
+            architecture. (Jason)
+
   Version 0.14 (Released 6/9/2005)
     *   06/08/05
 
