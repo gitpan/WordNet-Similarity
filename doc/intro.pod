@@ -142,6 +142,8 @@ QueryData package, the WordNet guys at Princeton for WordNet, Resnik,
 Hirst, St-Onge, Jiang, Conrath, Lin, Wu, Palmer, Leacock, and Chodorow
 for their algorithms and work on the relatedness measures. We also thank
 Bano (Satanjeev Banerjee) for his work on the adapted gloss overlap module.
+We are grateful to Wybo Wiersma for contributing his optimizations to the 
+GlossFinder code.
 
 =head1 REFERENCES
 

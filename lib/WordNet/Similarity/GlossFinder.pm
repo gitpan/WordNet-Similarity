@@ -1,4 +1,4 @@
-# WordNet::Similarity::GlossFinder version 0.01
+# WordNet::Similarity::GlossFinder version 0.02
 # (Last updated $Id: GlossFinder.pm,v 1.3 2005/03/19 11:13:41 sidz1979 Exp $)
 #
 # Module containing gloss-finding code for the various measures of semantic
@@ -51,7 +51,7 @@ use get_wn_info;
 
 our @ISA = qw/WordNet::Similarity/;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 WordNet::Similarity::addConfigOption("relation", 0, "p", undef);
 WordNet::Similarity::addConfigOption("stop", 0, "p", undef);
@@ -121,6 +121,7 @@ sub configure
 
     # Call the configure method in parent (WordNet::Similarity)
     $self->SUPER::configure(@_);
+    $self->{maxCache} = 5000;
     
     # Initialize the compound hash and stop list.
     $self->{compoundHash} = {};
@@ -236,6 +237,36 @@ sub configure
 
     # Load the relations
     $self->_loadRelationFile();
+
+    # Initialize traces for relations...
+    $self->{relationTraces} = [];
+    my $i = 0;
+    while(defined $self->{functions}->[$i])
+    {
+	my $functionsString = "";
+        my $weight = $self->{weights}->[$i];
+	
+	# see if any traces reqd. if so, create the functions string
+	# however don't send it to the trace string immediately - will
+	# print it only if there are any overlaps for this rel pair
+        $functionsString = "Functions: ";
+        my $j = 0;
+        while(defined $self->{functions}->[$i]->[0]->[$j])
+        {
+            $functionsString .= ($self->{functions}->[$i]->[0]->[$j])." ";
+            $j++;
+        }
+
+        $functionsString .= "- ";
+        $j = 0;
+        while(defined $self->{functions}->[$i]->[1]->[$j])
+        {
+            $functionsString .= ($self->{functions}->[$i]->[1]->[$j])." ";
+            $j++;
+        }
+        push(@{$self->{relationTraces}}, $functionsString);
+        $i++;
+    }
 }
 
 =item $self->getSuperGlosses($wps1, $wps2)
@@ -262,90 +293,86 @@ sub getSuperGlosses
     my $rArray = [];
     my $gwi = $self->{gwi};
 
-    # we shall put the first synset in a "set" of itself, and the
-    # second synset in another "set" of itself. These sets may
-    # increase in size as the functions are applied (since some
-    # relations have a one to many mapping).
+    # NOTE: Thanks to Wybo Wiersma for providing the following (faster)
+    #       super-gloss code.
 
-    # initialize the first set with the first synset
-    my @firstSet = ();
-    push @firstSet, $wps1;
+    # check if the supergloss of the left word is in the cache.
+    # If it is not, add it.
+    if(!defined($self->{cache}->[0]->{$wps1}))
+    {
+        push(@{$self->{cachelist}->[0]}, $wps1);
 
-    # initialize the second set with the second synset
-    my @secondSet = ();
-    push @secondSet, $wps2;
+        # Remove the oldest cache-entry if there's no more room
+        if(scalar(@{$self->{cachelist}->[0]}) > $self->{maxCache})
+        {
+            my $todel = shift(@{$self->{cachelist}->[0]});
+            delete ($self->{cache}->[0]->{$todel});
+        }
+        
+        $self->{cache}->[0]->{$wps1} = $self->_getSuperGlosses($wps1, $gwi, 0);
+    }
+    
+    # check if the supergloss of the right word is in the cache.
+    # If it is not, add it.
+    if(!defined($self->{cache}->[1]->{$wps2}))
+    {
+        push(@{$self->{cachelist}->[1]}, $wps2);
+
+        # Remove the oldest cache-entry if there's no more room
+        if(scalar(@{$self->{cachelist}->[1]}) > $self->{maxCache})
+        {
+            my $todel = shift(@{$self->{cachelist}->[1]});
+            delete ($self->{cache}->[1]->{$todel});
+        }
+        
+        $self->{cache}->[1]->{$wps2} = $self->_getSuperGlosses($wps2, $gwi, 1);
+    }
+    
+    my $i = 0;
+    my @retArray = ();
+    while(defined $self->{functions}->[$i])
+    {
+        my $firstString = $self->{cache}->[0]->{$wps1}->[$i];
+        my $secondString = $self->{cache}->[1]->{$wps2}->[$i];
+        my $weight = $self->{weights}->[$i];
+        my $relTrace = $self->{relationTraces}->[$i];
+        push(@retArray, [($firstString, $secondString, $weight, $relTrace)]);
+        $i++;
+    }
+
+    return \@retArray;
+}
+
+sub _getSuperGlosses()
+{
+    my $self = shift;
+    my ($wps, $gwi, $zron) = @_;
+    my @stringArray;
 
     # and now go thru the functions array, get the strings
     my $i = 0;
     while(defined $self->{functions}->[$i])
     {
-	my $functionsString = "";
-	my $funcStringPrinted = 0;
-	my $functionsScore = 0;
-        my $weight = $self->{weights}->[$i];
-	
-	# see if any traces reqd. if so, create the functions string
-	# however don't send it to the trace string immediately - will
-	# print it only if there are any overlaps for this rel pair
-	if($self->{'trace'})
-	{
-	    $functionsString = "Functions: ";
-	    my $j = 0;
-	    while(defined $self->{functions}->[$i]->[0]->[$j])
-	    {
-		$functionsString .= ($self->{functions}->[$i]->[0]->[$j])." ";
-		$j++;
-	    }
-
-	    $functionsString .= "- ";
-	    $j = 0;
-	    while(defined $self->{functions}->[$i]->[1]->[$j])
-	    {
-		$functionsString .= ($self->{functions}->[$i]->[1]->[$j])." ";
-		$j++;
-	    }
-	}
-	
 	# now get the string for the first set of synsets
-	my @arguments = @firstSet;
+	my @arguments = ();
+	push(@arguments, $wps);
 	
 	# apply the functions to the arguments, passing the output of
 	# the inner functions to the inputs of the outer ones
 	my $j = 0;
-	#no strict;
-
-	while(defined $self->{functions}->[$i]->[0]->[$j])
+	while(defined $self->{functions}->[$i]->[$zron]->[$j])
 	{
-	    my $fn = $self->{functions}->[$i]->[0]->[$j];
+	    my $fn = $self->{functions}->[$i]->[$zron]->[$j];
 	    @arguments = $gwi->$fn(@arguments);
 	    $j++;
 	}
 	
 	# finally we should have one cute little string!
-	my $firstString = $arguments[0];
-	
-	# next do all this for the string for the second set
-	@arguments = @secondSet;
-	
-	$j = 0;
-	while(defined $self->{functions}->[$i]->[1]->[$j])
-	{
-	    my $fn = $self->{functions}->[$i]->[1]->[$j];
-	    @arguments = $gwi->$fn(@arguments);
-	    $j++;
-	}
-	
-        # we get another string here
-	my $secondString = $arguments[0];
-	
-	# so those are the two strings for this relation pair
-        # add them to the return array
-	push(@{$rArray}, [($firstString, $secondString, $weight, $functionsString)]);
-	
+        push(@stringArray, $arguments[0]);
 	$i++;
     }
 
-    return $rArray;
+    return \@stringArray;
 }
 
 =item $self->compoundify($block)

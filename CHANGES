@@ -7,6 +7,28 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
+  Version 0.16
+    *   12/01/05
+
+        (1) Added Wybo Wiersma's super-gloss caching code to GlossFinder.pm.
+            (Sid)
+
+        (2) Updated documentation to reflect above changes. (Sid)
+
+  Version 0.15 (Re-released Dec 11, 2005)
+    *   12/11/05
+
+        (1) tar file unpacked as WordNet-Similarity for June 12, v 0.15, now
+            unpacks as WordNet-Similarity-0.15, which is consistent with all
+            previous versions.
+
+        (2) Similarity.pm version was shown as 0.14, is now 0.15. Our
+            general convention for modules is that their version number only
+            change when the module itself changes, so the module version
+            number can tell you when was the last time a module changed.
+            However, for Similarity.pm this is needlessly confusing, so it
+            will always carry the same version number as the release.
+
   Version 0.15 (Released June 12, 2005)
     *   06/10/05
 
