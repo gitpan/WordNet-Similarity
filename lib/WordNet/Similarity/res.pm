@@ -1,5 +1,5 @@
-# WordNet::Similarity::res.pm version 1.01
-# (Last updated $Id: res.pm,v 1.20 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::res.pm version 0.13
+# (Last updated $Id: res.pm,v 1.18 2005/04/20 01:13:59 jmichelizzi Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Resnik (1995).
@@ -48,7 +48,7 @@ use WordNet::Similarity::ICFinder;
 
 our @ISA = qw/WordNet::Similarity::ICFinder/;
 
-our $VERSION = '1.01';
+our $VERSION = '0.13';
 
 # The 'new' method for this class is supplied by WordNet::Similarity
 
@@ -275,7 +275,7 @@ perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
 http://www.cs.utah.edu/~sidd
 
-http://wordnet.princeton.edu
+http://www.cogsci.princeton.edu/~wn
 
 http://www.ai.mit.edu/~jrennie/WordNet
 
@@ -283,18 +283,19 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Ted Pedersen, University of Minnesota Duluth
-  tpederse at d.umn.edu
-
   Siddharth Patwardhan, University of Utah, Salt Lake City
   sidd at cs.utah.edu
 
   Jason Michelizzi, University of Minnesota Duluth
   mich0212 at d.umn.edu
 
+  Ted Pedersen, University of Minnesota Duluth
+  tpederse at d.umn.edu
+
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan and Jason Michelizzi
+Copyright (C) 2003-2004, Siddharth Patwardhan, Jason Michelizzi, and Ted
+Pedersen
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

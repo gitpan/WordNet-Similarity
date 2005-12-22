@@ -1,18 +1,18 @@
-# vectorFile.pm version 1.01
-# (Last updated $Id: vectorFile.pm,v 1.4 2005/12/11 22:37:02 sidz1979 Exp $)
+# vectorFile.pm version 0.01
+# (Last updated $Id: vectorFile.pm,v 1.2 2004/10/23 07:22:52 sidz1979 Exp $)
 #
 # Package used by WordNet::Similarity::vector module that
 # computes semantic relatedness of word senses in WordNet
 # using gloss vectors. This module provides a read/write
 # interface into the word vectors file.
 #
-# Copyright (c) 2005,
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse at d.umn.edu
+# Copyright (c) 2004,
 #
 # Siddharth Patwardhan, University of Utah, Salt Lake City
 # sidd at cs.utah.edu
+#
+# Ted Pedersen, University of Minnesota, Duluth
+# tpederse at d.umn.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -45,7 +45,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.01';
+$VERSION = '0.01';
 
 # Read the word vectors from a file.
 sub readVectors

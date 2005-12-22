@@ -1,5 +1,5 @@
-# WordNet::Similarity::lesk.pm version 1.01
-# (Last updated $Id: lesk.pm,v 1.24 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::lesk.pm version 0.13
+# (Last updated $Id: lesk.pm,v 1.20 2005/03/24 22:51:45 sidz1979 Exp $)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using an
@@ -55,7 +55,7 @@ use File::Spec;
 use WordNet::Similarity::GlossFinder;
 
 our @ISA = qw(WordNet::Similarity::GlossFinder);
-our $VERSION = '1.01';
+our $VERSION = '0.13';
 
 WordNet::Similarity::addConfigOption ("normalize", 0, "i", 0);
 
@@ -195,25 +195,18 @@ sub getRelatedness
 	$self->{traceString} .= "Synset 2: $wps2\n";
     }
     
-    # NOTE: Thanks to Wybo Wiersma for contributing optimizations
-    #       in the following code.
-
     # Get the gloss strings from the get_wn_info module
-    my ($firstStringArray, $secondStringArray, $weightsArray, $functionsStringArray) = $self->getSuperGlosses($wps1, $wps2);
+    my $glossList = $self->getSuperGlosses($wps1, $wps2);
     my $score = 0;
-    for(my $i = 0; $i < scalar(@{$weightsArray}); $i++)
+    foreach my $glossPair (@{$glossList})
     {
         my $functionsScore = 0;
         my $funcStringPrinted = 0;
-
+        my ($firstString, $secondString, $weight, $functionsString) = @{$glossPair};
+        
 	# so those are the two strings for this relation pair. get the
 	# string overlaps
-	my ($overlaps, $wc1, $wc2);
-        if(defined($firstStringArray->[$i]) && defined($secondStringArray->[$i])
-           && $firstStringArray->[$i] ne "" && $secondStringArray->[$i] ne "")
-        {                                              
-            ($overlaps, $wc1, $wc2) = $self->{finder}->getOverlaps($firstStringArray->[$i], $secondStringArray->[$i]);
-        }
+	my ($overlaps, $wc1, $wc2) = $self->{finder}->getOverlaps($firstString, $secondString);
         
 	my $overlapsTraceString = "";
 	my $key;
@@ -242,7 +235,7 @@ sub getRelatedness
 	}
 	
 	# weight functionsScore with weight of this function
-	$functionsScore *= $weightsArray->[$i];
+	$functionsScore *= $weight;
 	
 	# add to main score for this sense
 	$score += $functionsScore;
@@ -251,7 +244,7 @@ sub getRelatedness
 	# and overlapsTraceString to trace string, if trace string requested
 	if($self->{trace} == 1 && $overlapsTraceString ne "")
 	{
-	    $self->{traceString} .= "".($functionsStringArray->[$i]).": $functionsScore\n";
+	    $self->{traceString} .= "$functionsString: $functionsScore\n";
 	    $funcStringPrinted = 1;
 
 	    $self->{traceString} .= "Overlaps: $overlapsTraceString\n";
@@ -262,12 +255,12 @@ sub getRelatedness
 	{
 	    if(!$funcStringPrinted)
 	    {
-		$self->{traceString} .= "".($functionsStringArray->[$i])."\n";
+		$self->{traceString} .= "$functionsString\n";
 		$funcStringPrinted = 1;
 	    }
 
-	    $self->{traceString} .= "String 1: \"".($firstStringArray->[$i])."\"\n";
-	    $self->{traceString} .= "String 2: \"".($secondStringArray->[$i])."\"\n";
+	    $self->{traceString} .= "String 1: \"$firstString\"\n";
+	    $self->{traceString} .= "String 2: \"$secondString\"\n";
 	}
     }
 
@@ -478,7 +471,7 @@ perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
 http://www.cs.utah.edu/~sidd
 
-http://wordnet.princeton.edu
+http://www.cogsci.princeton.edu/~wn
 
 http://www.ai.mit.edu/~jrennie/WordNet
 
@@ -486,11 +479,11 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
- Ted Pedersen, University of Minnesota Duluth
- tpederse at d.umn.edu
-
  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
  banerjee+ at cs.cmu.edu
+
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse at d.umn.edu
 
  Siddharth Patwardhan, University of Utah, Salt Lake City
  sidd at cs.utah.edu
@@ -504,7 +497,8 @@ e-mail "S<tpederse at d.umn.edu>".
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan
+Copyright (C) 2003-2004, Satanjeev Banerjee, Ted Pedersen and Siddharth
+Patwardhan
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

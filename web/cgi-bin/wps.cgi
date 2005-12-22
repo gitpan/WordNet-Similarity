@@ -90,11 +90,11 @@ word sense belongs.
 
 =head1 AUTHORS
 
- Ted Pedersen, University of Minnesota Duluth
- tpederse at d.umn.edu
-
  Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
+ mich0212 @ d.umn.edu
+
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse @ d.umn.edu
 
 =head1 BUGS
 
@@ -102,7 +102,7 @@ None known.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, Ted Pedersen and Jason Michelizzi
+Copyright (C) 2004, Jason Michelizzi and Ted Pedersen
 
 This program is free software; you may redistribute and/or modify it under the
 terms of the GNU General Public License, version 2 or, at your option, any

@@ -19,7 +19,7 @@ my @measures;
 
 BEGIN {
   @measures = qw/res lin jcn path lch wup/;
-  $numtests = 10 + 14 * scalar (@measures);
+  $numtests = 9 + 14 * scalar (@measures);
 }
 
 use Test::More tests => $numtests;
@@ -35,9 +35,6 @@ BEGIN {use_ok ('WordNet::Similarity::wup')}
 
 my $wn = new WordNet::QueryData;
 ok ($wn);
-
-my $wnver = $wn->version();
-ok ($wnver);
 
 # array of temporary file names
 my @tempfiles;
@@ -76,39 +73,18 @@ foreach my $measure (@measures) {
   # entity#n#1 and event#n#1 are the root nodes of different noun taxonomies
   # When the root node is "turned off", they will have undefined relatedness
   $score = $module->getRelatedness ('entity#n#1', 'event#n#1');
-  SKIP:
-  {
-    skip("Unknown WordNet version.", 4) unless($wnver eq '2.1' || $wnver eq '2.0' || $wnver eq '1.7.1');
-    if($wnver eq '2.0' || $wnver eq '1.7.1')
-    {
-      is (($module->getError())[0], 1);
-      ok ($score < 0);
-    }
-    if($wnver eq '2.1')
-    {
-      is (($module->getError())[0], 0);
-      ok ($score >= 0);
-    }
-
-    if($wnver eq '2.0' || $wnver eq '1.7.1')
-    {
-      # carry#v#30 is a troponym (hyponym) of grow#v#7 => they should always
-      # have a non-negative relatedness
-      $score = $module->getRelatedness ('grow#v#7', 'carry#v#30');
-    }
-    if($wnver eq '2.1')
-    {
-      # carry#v#31 is a troponym (hyponym) of grow#v#7 => they should always
-      # have a non-negative relatedness
-      $score = $module->getRelatedness ('grow#v#7', 'carry#v#31');
-    }
-    is (($module->getError())[0], 0);
-    ok ($score >= 0);
-  }
+  is (($module->getError())[0], 1);
+  ok ($score < 0);
 
   # recognize#v#3 and cultivate#v#1 are roots of different verb taxonomies
   $score = $module->getRelatedness ('recognize#v#3', 'cultivate#v#1');
   is (($module->getError())[0], 1);
   ok ($score < 0);
+
+  # carry#v#30 is a troponym (hyponym) of grow#v#7 => they should always
+  # have a non-negative relatedness
+  $score = $module->getRelatedness ('grow#v#7', 'carry#v#30');
+  is (($module->getError())[0], 0);
+  ok ($score >= 0);
 }
 

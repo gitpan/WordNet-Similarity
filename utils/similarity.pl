@@ -1,13 +1,12 @@
-#! /usr/local/bin/perl -w
+#!/usr/local/bin/perl -w
 #
-# similarity.pl version 1.01
-# (Last updated $Id: similarity.pl,v 1.17 2005/12/11 22:37:02 sidz1979 Exp $)
+# similarity.pl version 0.12
+# (Last updated $Id: similarity.pl,v 1.14 2005/04/21 18:28:34 jmichelizzi Exp $)
 #
 # This program is a command line interface to WordNet::Similarity
 #
 # Complete documentation is available at the end of this file, or
 # via perldoc similarity.pl
-#
 # ---------------------------------------------------------------------
 
 use strict;
@@ -19,7 +18,7 @@ use strict;
 #  {
 
 # Include the QueryData package.
-use WordNet::QueryData 1.39;
+use WordNet::QueryData 1.30;
 
 # Include library to get Command-Line options.
 use Getopt::Long;
@@ -541,8 +540,8 @@ sub showHelp
     print "              file with pairs of words separated by newlines, and the\n";
     print "              words of each pair separated by a space.\n";
     print "--wnpath      Option to specify the path of the WordNet data files\n";
-    print "              as PATH. (Defaults to /usr/local/WordNet-2.1/dict on Unix\n";
-    print "              systems and C:\\WordNet\\2.1\\dict on Windows systems)\n";
+    print "              as PATH. (Defaults to /usr/local/WordNet-2.0/dict on Unix\n";
+    print "              systems and C:\\WordNet\\2.0\\dict on Windows systems)\n";
     print "--simpath     If the relatedness module to be used, is locally installed,\n";
     print "              then SIMPATH can be used to indicate the location of the local\n";
     print "              install of the measure.\n";
@@ -564,7 +563,7 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "similarity.pl  version 1.01\n";
+    print "similarity.pl  version 0.12\n";
 
     # 12/8/2003 JM (#3)
     # Print version of module if the --type option was given.
@@ -576,7 +575,7 @@ sub showVersion
       print "$opt_type  version ".$opt_type->VERSION()."\n";
     }
 
-    print "Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee and Jason Michelizzi.\n";
+    print "Copyright (c) 2004, Siddharth Patwardhan & Ted Pedersen.\n";
 }
 
 __END__
@@ -652,7 +651,7 @@ B<--file>=I<filename>
 
 B<--wnpath>=I<path>
     looks for WordNet in I<path>. Usual values are
-    /usr/local/WordNet/2.1/dict and C:\WordNet\2.1\dict.
+    /usr/local/WordNet/2.0/dict and C:\WordNet\2.0\dict.
 
 B<--simpath>=I<path>
     look the relatedness module in I<path>.  This is useful if
@@ -666,17 +665,10 @@ B<--version>
 
 =head1 AUTHORS
 
- Ted Pedersen, University of Minnesota Duluth
- tpederse at d.umn.edu
-
- Siddharth Patwardhan, University of Utah, Salt Lake City
- sidd at cs.utah.edu
-
- Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
- banerjee+ at cs.cmu.edu
-
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
+ Siddharth Patwardhan <sidd at cs.utah.edu>
+ Ted Pedersen <tpederse at d.umn.edu>
+ Satanjeev Banerjee <satanjeev at cmu.edu>
+ Jason Michelizzi <mich0212 at d.umn.edu>
 
 =head1 BUGS
 
@@ -686,16 +678,16 @@ perl(1)
 
 WordNet::Similarity(3)
 
-http://wordnet.princeton.edu
+http://www.cogsci.princeton.edu/~wn/
 
 http://wn-similarity.sourceforge.net
 
-http://groups.yahoo.com/group/wn-similarity
+http://groups.yahoo.com/group/wn-similarity/
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev
-Banerjee and Jason Michelizzi
+Copyright (c) 2004 Siddharth Patwardhan, Ted Pedersen, Satanjeev
+Banerjee, and Jason Michelizzi
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the

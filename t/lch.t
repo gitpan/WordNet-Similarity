@@ -93,12 +93,10 @@ else
 
 ############ GetRelatedness of same synset.
 
-$value1 = $lch->getRelatedness("object#n#1", "object#n#1");
-$value2 = $lch->getRelatedness("entity#n#1", "entity#n#1");
-if($value1 && $value1 =~ /[0-9]+(\.[0-9]+)?/
-   && $value2 && $value2 =~ /[0-9]+(\.[0-9]+)?/)
+$value = $lch->getRelatedness("object#n#1", "object#n#1");
+if($value && $value =~ /[0-9]+(\.[0-9]+)?/)
 {
-    if(($value1 - $value2) < 0.0001)
+    if(($value+log(1/36)) < 0.0001)
     {
 	print "ok 5\n";
     }
@@ -114,7 +112,7 @@ else
 
 ############ getRelatedness of badly formed synset.
 ## (Tried getRelatedness of unknown synsets... "hjxlq#n#1", "pynbr#n#2"...
-##  QueryData complains... can't trap that error myself.)       '
+##  QueryData complains... can't trap that error myself.)
 
 if(defined $lch->getRelatedness("hjxlq#n", "pynbr#n"))
 {
@@ -158,4 +156,3 @@ else
 {
     print "ok 8\n";
 }
-

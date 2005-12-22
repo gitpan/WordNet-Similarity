@@ -1,5 +1,5 @@
-# WordNet::Similarity::wup.pm version 1.01
-# (Last updated $Id: wup.pm,v 1.26 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::wup.pm version 0.13
+# (Last updated $Id: wup.pm,v 1.24 2005/04/20 01:14:00 jmichelizzi Exp $)
 #
 # Semantic Similarity Measure package implementing the semantic
 # relatedness measure described by Wu & Palmer (1994) as revised
@@ -53,7 +53,7 @@ use WordNet::Similarity::DepthFinder;
 
 our @ISA = qw/WordNet::Similarity::DepthFinder/;
 
-our $VERSION = '1.01';
+our $VERSION = '0.13';
 
 =item $wup->getRelatedness ($synset1, $synset2)
 
@@ -291,24 +291,25 @@ http://www.d.umn.edu/~mich0212/
 
 http://www.d.umn.edu/~tpederse/similarity.html
 
-http://wordnet.princeton.edu
+http://www.cogsci.princeton.edu/~wn/
 
 http://www.ai.mit.edu/people/jrennie/WordNet/
 
 =head1 AUTHORS
 
-  Ted Pedersen, University of Minnesota Duluth
-  tpederse at d.umn.edu
-
   Jason Michelizzi, University of Minnesota Duluth
   mich0212 at d.umn.edu
+
+  Ted Pedersen, University of Minnesota Duluth
+  tpederse at d.umn.edu
 
   Siddharth Patwardhan, University of Utah, Salt Lake City
   sidd at cs.utah.edu
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005, Ted Pedersen, Jason Michelizzi and Siddharth Patwardhan
+Copyright (C) 2003-2004 by Jason Michelizzi, Ted Pedersen, and Siddharth
+Patwardhan
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

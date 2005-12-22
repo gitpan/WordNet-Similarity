@@ -101,6 +101,7 @@ mammothermography#n#1 Khoikhoin#n#1
 Gorgoniacea#n#1 portion#n#2
 Medicaid#n#1 put_back#v#2
 concertina#n#2 quietus#n#1
+gall#n#2 acidulated#a#1
 aleph#n#1 waist#n#2
 hull#n#1 chronoscope#n#1
 written_assignment#n#1 Marcel_Lajos_Breuer#n#1

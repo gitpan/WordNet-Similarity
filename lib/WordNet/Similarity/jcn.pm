@@ -1,5 +1,5 @@
-# WordNet::Similarity::jcn.pm version 1.01
-# (Last updated $Id: jcn.pm,v 1.22 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::jcn.pm version 0.13
+# (Last updated $Id: jcn.pm,v 1.20 2005/04/20 01:13:59 jmichelizzi Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Jiang and Conrath (1997).
@@ -64,7 +64,7 @@ our (@ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 @EXPORT = ();
 
-our $VERSION = '1.01';
+our $VERSION = '0.13';
 
 # the 'new' method is supplied by WordNet::Similarity
 
@@ -396,7 +396,7 @@ perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
 http://www.cs.utah.edu/~sidd
 
-http://wordnet.princeton.edu
+http://www.cogsci.princeton.edu/~wn
 
 http://www.ai.mit.edu/~jrennie/WordNet
 
@@ -404,18 +404,19 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Ted Pedersen, University of Minnesota Duluth
-  tpederse at d.umn.edu
-
   Siddharth Patwardhan, University of Utah
   sidd at cs.utah.edu
 
   Jason Michelizzi, University of Minnesota Duluth
   mich0212 at d.umn.edu
 
+  Ted Pedersen, University of Minnesota Duluth
+  tpederse at d.umn.edu
+
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan and Jason Michelizzi
+Copyright (c) 2003-2004, Siddharth Patwardhan, Jason Michelizzi, and
+Ted Pedersen
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

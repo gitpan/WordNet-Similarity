@@ -1,7 +1,7 @@
-#! /usr/local/bin/perl -w
+#!/usr/local/bin/perl -w
 #
-# treebankFreq.pl version 1.01
-# (Last updated $Id: treebankFreq.pl,v 1.11 2005/12/11 22:37:02 sidz1979 Exp $)
+# treebankFreq.pl version 0.12
+# (Last updated $Id: treebankFreq.pl,v 1.8 2004/10/29 19:25:42 sidz1979 Exp $)
 #
 # This program reads the Treebank Corpus and computes the frequency counts
 # for each synset in WordNet. These frequency counts are used by
@@ -9,7 +9,7 @@
 # content of concepts. The output is generated in a format as required
 # by the WordNet::Similarity modules for computing semantic relatedness.
 #
-# Copyright (c) 2005
+# Copyright (c) 2004
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
@@ -34,7 +34,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 #
-# -----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 # Variable declarations
 my $wn;
@@ -116,8 +116,8 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-2.0/dict";
 }
 
 
@@ -354,7 +354,7 @@ sub compoundify
 
     while($firstPointer <= $#wordsArray)
     {
-	$secondPointer = (($firstPointer + 5 < $#wordsArray)?($firstPointer + 5):($#wordsArray));
+	$secondPointer = $#wordsArray;
 	$done = 0;
 	while($secondPointer > $firstPointer && !$done)
 	{
@@ -468,7 +468,7 @@ sub getHyponymOffsets
 	return [@retVal];
     }
     $wordForm = $wn->getSense($offset, $pos);
-    @hyponyms = $wn->querySense($wordForm, "hypos");
+    @hyponyms = $wn->querySense($wordForm, "hypo");
     if(!@hyponyms || $#hyponyms < 0)
     {
 	return undef;
@@ -498,7 +498,7 @@ sub createTopHash
 	{
 	    if(!$wpsOffset{$wn->offset($wps)})
 	    {
-		($upper) = $wn->querySense($wps, "hypes");
+		($upper) = $wn->querySense($wps, "hype");
 		if(!$upper)
 		{
 		    $topHash{"n"}{$wn->offset($wps)} = 1;	
@@ -514,7 +514,7 @@ sub createTopHash
 	{
 	    if(!$wpsOffset{$wn->offset($wps)})
 	    {
-		($upper) = $wn->querySense($wps, "hypes");
+		($upper) = $wn->querySense($wps, "hype");
 		if(!$upper)
 		{
 		    $topHash{"v"}{$wn->offset($wps)} = 1;
@@ -572,8 +572,8 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "treebankFreq.pl version 1.01\n";
-    print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan.\n";
+    print "treebankFreq.pl version 0.12\n";
+    print "Copyright (c) 2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
 
 __END__
@@ -609,7 +609,7 @@ B<--stopfile>=I<filename>
 B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
-    /usr/local/WordNet-2.1/dict)
+    /usr/local/WordNet-2.0/dict)
 
 B<--resnik>
 

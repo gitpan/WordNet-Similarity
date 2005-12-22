@@ -1,17 +1,15 @@
-# get_wn_info.pm version 1.01
-# (Last updated $Id: get_wn_info.pm,v 1.10 2005/12/11 22:37:02 sidz1979 Exp $)
+# get_wn_info.pm version 0.12
+# (Last updated $Id: get_wn_info.pm,v 1.6 2004/10/27 15:24:56 jmichelizzi Exp $)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
 # using gloss overlaps.
 #
-# Copyright (c) 2005,
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse at d.umn.edu
-#
+# Copyright (c) 2003,
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
 # banerjee+ at cs.cmu.edu
+# Ted Pedersen, University of Minnesota, Duluth
+# tpederse at d.umn.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -29,8 +27,6 @@
 # The Free Software Foundation, Inc., 
 # 59 Temple Place - Suite 330, 
 # Boston, MA  02111-1307, USA.
-#
-# ------------------------------------------------------------------
 
 package get_wn_info;
 
@@ -47,7 +43,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.01';
+$VERSION = '0.12';
 
 # function to set up the wordnet object and the various boundary indices
 sub new
@@ -66,7 +62,7 @@ sub new
     $self->{'wn'} = $wn;
 
     # check WordNet::QueryData version
-    $wn->VERSION(1.39);
+    $wn->VERSION(1.30);
 
     # check if stemming called for 
     $stemmingReqd = shift;
@@ -88,8 +84,6 @@ sub new
     return $self;
 }
 
-# NOTE: Thanks to Wybo Wiersma for contributing optimizations
-#       in the following code.
 
 # function to take a set of synsets and to return their
 # hypernyms. both input and output will be arrays of fully qualified
@@ -98,37 +92,41 @@ sub hype
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
+    my %hypernymHash = ();
 
     # check if this is a request for the input-output types of this
     # function
-    return(1, 1) if(defined($outprep));
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
 
-    my %newsynsetsh;
-    foreach my $syns (keys %{$synsetsh})
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Return error code instead of "exit"
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the hypernyms
-	my @hypernyms = $wn->querySense($syns, "hypes");
+	my @hypernyms = $wn->querySense($synsets[$i], "hype");
 	
 	# put the hypernyms in a hash. this way we will avoid multiple
 	# copies of the same hypernym
 	my $temp;
 	foreach $temp (@hypernyms)
 	{
-	    $newsynsetsh{$temp} = 1;
+	    $hypernymHash{$temp} = 1;
 	}
     }
     
-    # return the hypernyms in an hash ref 
-    return(\%newsynsetsh);
+    # return the hypernyms in an array 
+    return(sort keys %hypernymHash);
 }
 
 # function to take a set of synsets and to return their
@@ -138,25 +136,29 @@ sub hypo
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
+    my %hyponymHash = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return(1, 1) if(defined($outprep));
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
     
-    my %hyponymHash;
-    foreach my $syns (keys %{$synsetsh})
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the hyponyms
-	my @hyponyms = $wn->querySense($syns, "hypos");
+	my @hyponyms = $wn->querySense($synsets[$i], "hypo");
 	
 	# put the hyponyms in a hash. this way we will avoid multiple
 	# copies of the same hyponym
@@ -167,8 +169,8 @@ sub hypo
 	}
     }
     
-    # return the hyponyms in an hash ref
-    return(\%hyponymHash);
+    # return the hyponyms in an array 
+    return(sort keys %hyponymHash);
 }
 
 # function to take a set of synsets and to return their
@@ -178,28 +180,32 @@ sub holo
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my %holonymHash = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return(1, 1) if(defined($outprep));
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
 
-    foreach my $syns (keys %{$synsetsh})
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the holonyms
-	my @holonyms = $wn->querySense($syns, "holo");
+	my @holonyms = $wn->querySense($synsets[$i], "holo");
 	
 	# put the holonyms in a hash. this way we will avoid multiple
-        # copies of the same holonym
+		# copies of the same holonym
 	my $temp;
 	foreach $temp (@holonyms)
 	{
@@ -207,8 +213,8 @@ sub holo
 	}
     }
     
-    # return the holonyms in an hash ref 
-    return(\%holonymHash);
+    # return the holonyms in an array 
+    return(sort keys %holonymHash);
 }
 
 # function to take a set of synsets and to return their
@@ -218,25 +224,29 @@ sub mero
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my %meronymHash = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return (1, 1) if(defined($outprep));
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
     
-    foreach my $syns (keys %{$synsetsh})
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the meronyms
-	my @meronyms = $wn->querySense($syns, "mero");
+	my @meronyms = $wn->querySense($synsets[$i], "mero");
 	
 	# put the meronyms in a hash. this way we will avoid multiple
 	# copies of the same meronym
@@ -247,8 +257,8 @@ sub mero
 	}
     }
     
-    # return the meronyms in an hash ref 
-    return(\%meronymHash);
+    # return the meronyms in an array 
+    return(sort keys %meronymHash);
 }
 
 # function to take a set of synsets and to return their
@@ -258,24 +268,29 @@ sub attr
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my %attrHash = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return (1, 1) if(defined($outprep));
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
     
-    foreach my $syns (keys %{$synsetsh})
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the attrs
-	my @attrs = $wn->querySense($syns, "attr");
+	my @attrs = $wn->querySense($synsets[$i], "attr");
 	
 	# put the attrs in a hash. this way we will avoid multiple
 	# copies of the same attr
@@ -286,8 +301,8 @@ sub attr
 	}
     }
     
-    # return the attrs in an hash ref 
-    return(\%attrHash);
+    # return the attrs in an array 
+    return(sort keys %attrHash);
 }
 
 # function to take a set of synsets and to return their also-see
@@ -297,24 +312,29 @@ sub also
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my %alsoSeeHash = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return (1, 1) if(defined($outprep));
-
-    foreach my $syns (keys %{$synsetsh})
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
+    
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the also see synsets 
-	my @alsoSees = $wn->queryWord($syns, "also");
+	my @alsoSees = $wn->queryWord($synsets[$i], "also");
 	
 	# put the synsets in a hash. this way we will avoid multiple
 	# copies of the same synset
@@ -325,8 +345,8 @@ sub also
 	}
     }
     
-    # return the synsets in an hash ref 
-    return(\%alsoSeeHash);
+    # return the synsets in an array 
+    return(sort keys %alsoSeeHash);
 }
 
 # function to take a set of words and to return their derived forms. 
@@ -336,27 +356,25 @@ sub deri
 {
     my $self = shift;
     my $wn = $self->{wn};
-    my ($wordsh, $outprep) = @_;
+    my @words = @_;
     my %deriHash = ();
 
-    return (1, 1) if(defined($outprep));
+    if ($#words == 0 and $words[0] eq '0') {
+	return (1, 1);
+    }
 
-    foreach my $word (keys %{$wordsh}) 
-    {
-        # TODO: Replace error message and exit with return error code.
-	if($word !~ m/\#\w+\#\d+/) 
-        {
-	    print STDERR "$word is not in WORD#POS#SENSE format!\n";
+    for my $i (0..$#words) {
+	unless ($words[$i] =~ m/\#\w+\#\d+/) {
+	    print STDERR "$words[$i] is not in WORD#POS#SENSE format!\n";
 	    exit 1;
 	}
-	my @deris = $wn->queryWord($word, "deri");
+	my @deris = $wn->queryWord ($words[$i], "deri");
 
-	foreach my $temp (@deris) 
-        {
+	foreach my $temp (@words) {
 	    $deriHash{$temp} = 1;
 	}
     }
-    return(\%deriHash);
+    return sort (keys %deriHash);
 }
 
 # function to take a set of synsets and to return their domain
@@ -366,27 +384,26 @@ sub domn
 {
     my $self = shift;
     my $wn = $self->{wn};
-    my ($wordsh, $outprep) = @_;
+    my @words = @_;
     my %domnHash = ();
 
-    return(1, 1) if(defined($outprep));
+    if ($#words == 0 and $words[0] eq '0') {
+	return (1, 1);
+    }
 
-    foreach my $word (keys %{$wordsh})
-    {
-        # TODO: Replace error message and exit with return error code.
-	if($word !~ m/\#\w+\#\d+/)
-        {
-	    print STDERR "$word is not in WORD#POS#SENSE format!\n";
+    for my $i (0..$#words) {
+	unless ($words[$i] =~ m/\#\w+\#\d+/) {
+	    print STDERR "$words[$i] is not in WORD#POS#SENSE format!\n";
 	    exit 1;
 	}
-	my @domns = $wn->queryWord($word, "domn");
+	my @domns = $wn->queryWord ($words[$i], "deri");
 
-	foreach my $temp (@domns) 
-        {
+	foreach my $temp (@words) {
 	    $domnHash{$temp} = 1;
 	}
     }
-    return (\%domnHash);
+    return sort (keys %domnHash);
+
 }
 
 # function to take a set of synsets and to return their domain term
@@ -396,27 +413,25 @@ sub domt
 {
     my $self = shift;
     my $wn = $self->{wn};
-    my ($wordsh, $outprep) = @_;
+    my @words = @_;
     my %domtHash = ();
 
-    return (1, 1) if(defined($outprep));
+    if ($#words == 0 and $words[0] eq '0') {
+	return (1, 1);
+    }
 
-    foreach my $word (keys %{$wordsh})
-    {
-        # TODO: Replace error message and exit with return error code.
-	if($word != m/\#\w+\#\d+/)
-        {
-	    print STDERR "$word is not in WORD#POS#SENSE format!\n";
+    for my $i (0..$#words) {
+	unless ($words[$i] =~ m/\#\w+\#\d+/) {
+	    print STDERR "$words[$i] is not in WORD#POS#SENSE format!\n";
 	    exit 1;
 	}
-	my @domts = $wn->queryWord ($word, "domt");
+	my @domts = $wn->queryWord ($words[$i], "deri");
 
-	foreach my $temp (@domts)
-        {
+	foreach my $temp (@words) {
 	    $domtHash{$temp} = 1;
 	}
     }
-    return (\%domtHash);
+    return sort (keys %domtHash);
 
 }
 
@@ -427,25 +442,29 @@ sub sim
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my %simHash = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return (1, 1) if(defined($outprep));
-
-    foreach my $syns (keys %{$synsetsh})
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
+    
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the sim synsets 
-	my @sims = $wn->querySense($syns, "sim");
+	my @sims = $wn->querySense($synsets[$i], "sim");
 	
 	# put the synsets in a hash. this way we will avoid multiple
 	# copies of the same synset
@@ -456,8 +475,8 @@ sub sim
 	}
     }
     
-    # return the synsets in an hash ref 
-    return(\%simHash);
+    # return the synsets in an array 
+    return(sort keys %simHash);
 }
 
 # function to take a set of synsets and to return their entailment
@@ -467,25 +486,29 @@ sub enta
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my %entailsHash = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return (1, 1) if(defined($outprep));
-
-    foreach my $syns (keys %{$synsetsh})
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
+    
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the entails synsets
-	my @entails = $wn->querySense($syns, "enta");
+	my @entails = $wn->querySense($synsets[$i], "enta");
 	
 	# put the entails synsets in a hash. this way we will avoid
 	# multiple copies of the same entails synset
@@ -496,8 +519,8 @@ sub enta
 	}
     }
     
-    # return the causs in an hash ref 
-    return(\%entailsHash);
+    # return the causs in an array 
+    return(sort keys %entailsHash);
 }
 
 # function to take a set of synsets and to return their cause
@@ -507,25 +530,29 @@ sub caus
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my %causeHash = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return(1, 1) if(defined($outprep));
-
-    foreach my $syns (keys %{$synsetsh})
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
+    
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the cause synsets
-	my @cause = $wn->querySense($syns, "caus");
+	my @cause = $wn->querySense($synsets[$i], "caus");
 	
 	# put the cause synsets in a hash. this way we will avoid
 	# multiple copies of the same cause synset
@@ -536,8 +563,8 @@ sub caus
 	}
     }
     
-    # return the causs in an hash ref 
-    return(\%causeHash);
+    # return the causs in an array 
+    return(sort keys %causeHash);
 }
 
 # function to take a set of synsets and to return their participle
@@ -547,25 +574,29 @@ sub part
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my %partHash = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return(1, 1) if(defined($outprep));
-
-    foreach my $syns (keys %{$synsetsh})
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
+    
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the part synsets
-	my @part = $wn->queryWord($syns, "part");
+	my @part = $wn->queryWord($synsets[$i], "part");
 	
 	# put the part synsets in a hash. this way we will avoid
 	# multiple copies of the same part synset
@@ -576,8 +607,8 @@ sub part
 	}
     }
     
-    # return the causs in an hash ref 
-    return(\%partHash);
+    # return the causs in an array 
+    return(sort keys %partHash);
 }
 
 # function to take a set of synsets and to return their pertainym
@@ -587,25 +618,29 @@ sub pert
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my %pertHash = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return (1, 1) if(defined($outprep));
-
-    foreach my $syns (keys %{$synsetsh})
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 1);
+    }
+    
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the pert synsets
-	my @pert = $wn->queryWord($syns, "pert");
+	my @pert = $wn->queryWord($synsets[$i], "pert");
 	
 	# put the pert synsets in a hash. this way we will avoid
 	# multiple copies of the same pert synset
@@ -616,8 +651,8 @@ sub pert
 	}
     }
     
-    # return the causs in an hash ref 
-    return(\%pertHash);
+    # return the causs in an array 
+    return(sort keys %pertHash);
 }
 
 # function to take a set of synsets and to return the concatenation of
@@ -627,28 +662,30 @@ sub glos
     my $self = shift;
     my $wn = $self->{'wn'};
     my $stemmer = $self->{'stemmer'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my $returnString = "";
     
     # check if this is a request for the input-output types of this
     # function
-    return (1, 2) if(defined($outprep));
-
-    my @synshkeys = keys %{$synsetsh};
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 2);
+    }
+    
     my $i = 0;
-    foreach my $syns (@synshkeys)
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the glos
 	my $glosString;
-	($glosString) = $wn->querySense($syns, "glos");
+	($glosString) = $wn->querySense($synsets[$i], "glos");
 	
 	# regularize the glos
 	$glosString =~ s/\".*//;
@@ -668,7 +705,7 @@ sub glos
 	$glosString = lc $glosString;
 
 	# stem the glos if asked for 
-	$glosString = $stemmer->stemString($glosString, 1) if($self->{stem});
+	$glosString = $stemmer->stemString($glosString, 1) if ($self->{stem});
 	
 	$glosString =~ s/^\s*/ /;
 	$glosString =~ s/\s*$/ /;
@@ -677,13 +714,12 @@ sub glos
 	$returnString .= $glosString;
 	
 	# put in boundary if more glosses coming!
-	if($i < $#synshkeys) 
+	if ($i < $#synsets) 
 	{ 
 	    my $boundary = sprintf("GGG%05dGGG", $self->{'glosBoundaryIndex'});
 	    $returnString .= $boundary;
 	    ($self->{'glosBoundaryIndex'})++;
 	}
-        $i++;
     }
     
     # and we are done!
@@ -697,32 +733,36 @@ sub example
     my $self = shift;
     my $wn = $self->{'wn'};
     my $stemmer = $self->{'stemmer'};    
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my @exampleStrings = ();
     
     # check if this is a request for the input-output types of this
     # function
-    return (1, 2) if(defined($outprep));
-
-    # first get all the example strings into an array
-    foreach my $syns (keys %{$synsetsh})
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 2);
+    }
+    
+    # first get all the example strings into an array 
+    my $i = 0;
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the glos
 	my $exampleString;
-	($exampleString) = $wn->querySense($syns, "glos");
+	($exampleString) = $wn->querySense($synsets[$i], "glos");
 	
 	# check if this has any examples
-	if($exampleString !~ /\"/) {next;}
+	if ($exampleString !~ /\"/) { next; }
 	
-	while($exampleString =~ /\"([^\"]*)\"/g)
+	while ($exampleString =~ /\"([^\"]*)\"/g)
 	{
 	    push @exampleStrings, $1;
 	}
@@ -732,8 +772,7 @@ sub example
     # string. separate examples with the example boundary
     
     my $returnString = "";
-    my $i;
-    for ($i = 0; $i <= $#exampleStrings; $i++)
+    foreach ($i = 0; $i <= $#exampleStrings; $i++)
     {
 	# preprocess
 
@@ -754,8 +793,8 @@ sub example
 	$exampleStrings[$i] = lc($exampleStrings[$i]);
 	
 	# stem if so required
-	$exampleStrings[$i] = $stemmer->stemString($exampleStrings[$i], 1)
-	    if($self->{'stem'});
+	$exampleStrings[$i] = $stemmer->stemString($exampleStrings[$i], 1) 
+	    if ($self->{'stem'});
 	
 	$exampleStrings[$i] =~ s/^\s*/ /;
 	$exampleStrings[$i] =~ s/\s*$/ /;
@@ -764,7 +803,7 @@ sub example
 	$returnString .= $exampleStrings[$i];
 		
 	# put in boundary if more examples coming!
-	if($i < $#exampleStrings)
+	if ($i < $#exampleStrings)
 	{ 
 	    my $boundary = sprintf("EEE%05dEEE", $self->{'exampleBoundaryIndex'});
 	    $returnString .= $boundary;
@@ -782,26 +821,32 @@ sub syns
 {
     my $self = shift;
     my $wn = $self->{'wn'};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my $returnString = "";
     
     # check if this is a request for the input-output types of this
     # function
-    return (1, 2) if(defined($outprep));
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 2);
+    }
+    
+    my $i = 0;
 
     my %synonymHash = ();
-    foreach my $syns (keys %{$synsetsh})
+    
+    for (; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($syns !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$syns is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the words
-	my @synsetWords = $wn->querySense($syns, "syns");
+	my @synsetWords = $wn->querySense($synsets[$i], "syns");
 	
 	# for each word, remove the POS and SENSE, and put only the
 	# word in a hash
@@ -817,19 +862,19 @@ sub syns
     my @synonymArray = sort keys %synonymHash;
     
     # concatenate them, using the synonym boundary
-    for(my $i = 0; $i <= $#synonymArray; $i++)
+    for ($i = 0; $i <= $#synonymArray; $i++)
     {
 	$synonymArray[$i] =~ s/ /_/g;
 	$returnString .= " $synonymArray[$i] ";
 	
 	# put in boundary if more examples coming!
-	if($i < $#synonymArray) 
+	if ($i < $#synonymArray) 
 	{ 
 	    my $boundary = sprintf("SSS%05dSSS", $self->{synonymBoundaryIndex});
 	    $returnString .= $boundary;
 	    ($self->{synonymBoundaryIndex})++;
 	}
-    }
+    }	
     
     # and we are done!
     return($returnString);
@@ -842,27 +887,29 @@ sub glosexample
     my $self = shift;
     my $wn = $self->{wn};
     my $stemmer = $self->{stemmer};
-    my ($synsetsh, $outprep) = @_;
+    my @synsets = @_;
     my $returnString = "";
     
     # check if this is a request for the input-output types of this
     # function
-    return (1, 2) if(defined($outprep));
-
-    my @synshkeys = keys %{$synsetsh};
-    for(my $i = 0; $i < scalar(@synshkeys); $i++)
+    if ($#synsets == 0 && $synsets[0] eq '0')
+    {
+	# ah!
+	return(1, 2);
+    }
+    
+    for (my $i = 0; $i <= $#synsets; $i++)
     {
 	# check if in word-pos-sense format
-        # TODO: Replace error message and exit with return error code.
-	if($synshkeys[$i] !~ /\#\w\#\d+/)
+	if ($synsets[$i] !~ /\#\w\#\d+/)
 	{
-	    print STDERR "$synshkeys[$i] is not in WORD\#POS\#SENSE format!\n";
+	    print STDERR "$synsets[$i] is not in WORD\#POS\#SENSE format!\n";
 	    exit;
 	}
 	
 	# get the glos
 	my $glosString;
-	($glosString) = $wn->querySense($synshkeys[$i], "glos");
+	($glosString) = $wn->querySense($synsets[$i], "glos");
 	
 	# regularize the glos
 	###$glosString =~ s/\'//g;
@@ -881,7 +928,7 @@ sub glosexample
 	$glosString = lc $glosString;
 
 	# stem the glos if asked for 
-	$glosString = $stemmer->stemString($glosString, 1) if($self->{stem});
+	$glosString = $stemmer->stemString($glosString, 1) if ($self->{stem});
 	
 	$glosString =~ s/^\s*/ /;
 	$glosString =~ s/\s*$/ /;
@@ -890,7 +937,7 @@ sub glosexample
 	$returnString .= $glosString;
 	
 	# put in boundary if more glosses coming!
-	if($i < $#synshkeys) 
+	if ($i < $#synsets) 
 	{ 
 	    my $boundary = sprintf("XXX%05dXXX", $self->{glosBoundaryIndex});
 	    $returnString .= $boundary;

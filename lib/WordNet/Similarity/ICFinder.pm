@@ -1,5 +1,5 @@
-# WordNet::Similarity::ICFinder.pm version 1.01
-# (Last updated $Id: ICFinder.pm,v 1.14 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::ICFinder.pm version 0.13
+# (Last updated $Id: ICFinder.pm,v 1.12 2005/04/20 01:13:59 jmichelizzi Exp $)
 #
 # A generic (and abstract) information content measure--this is not a
 # real measure.  The res, lin, and jcn measures inherit from this class.
@@ -96,7 +96,7 @@ use WordNet::Similarity::PathFinder;
 
 our @ISA = qw/WordNet::Similarity::PathFinder/;
 
-our $VERSION = '1.01';
+our $VERSION = '0.13';
 
 WordNet::Similarity::addConfigOption ('infocontent', 0, 'p', undef);
 
@@ -535,14 +535,14 @@ __END__
 
 =head1 AUTHORS
 
-  Ted Pedersen, University of Minnesota Duluth
-  tpederse at d.umn.edu
-
   Jason Michelizzi, Univeristy of Minnesota Duluth
   mich0212 at d.umn.edu
 
   Siddharth Patwardhan, University of Utah, Salt Lake City
   sidd at cs.utah.edu
+
+  Ted Pedersen, University of Minnesota Duluth
+  tpederse at d.umn.edu
 
 =head1 BUGS
 
@@ -560,7 +560,7 @@ WordNet::Similarity::jcn(3)
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, Ted Pedersen, Jason Michelizzi and Siddharth Patwardhan
+Copyright (c) 2004, Jason Michelizzi, Siddharth Patwardhan, and Ted Pedersen
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

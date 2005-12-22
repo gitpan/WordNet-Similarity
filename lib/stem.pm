@@ -1,17 +1,15 @@
-# stem.pm version 1.01
-# (Last updated $Id: stem.pm,v 1.6 2005/12/11 22:37:02 sidz1979 Exp $)
+# stem.pm version 0.03
+# (Last updated $Id: stem.pm,v 1.4 2004/10/27 14:58:12 jmichelizzi Exp $)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
 # using gloss overlaps.
 #
-# Copyright (c) 2005,
-#
-# Ted Pedersen, University of Minnesota Duluth
-# tpederse at d.umn.edu
-#
+# Copyright (c) 2003,
 # Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
 # banerjee+ at cs.cmu.edu
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -29,8 +27,6 @@
 # The Free Software Foundation, Inc., 
 # 59 Temple Place - Suite 330, 
 # Boston, MA  02111-1307, USA.
-#
-# ------------------------------------------------------------------
 
 package stem;
 
@@ -48,7 +44,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.01';
+$VERSION = '0.03';
 
 # function to set up the wordnet object.
 sub new

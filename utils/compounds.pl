@@ -1,12 +1,12 @@
-#! /usr/local/bin/perl -w
+#!/usr/local/bin/perl -w
 #
-# compounds.pl version 1.01
-# (Last updated $Id: compounds.pl,v 1.9 2005/12/11 22:37:02 sidz1979 Exp $)
+# compounds.pl version 0.12
+# (Last updated $Id: compounds.pl,v 1.7 2004/10/29 19:25:42 sidz1979 Exp $)
 #
 # Program to generate a list of all compound words
 # present in WordNet.
 #
-# Copyright (c) 2005
+# Copyright (c) 2004
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
@@ -36,7 +36,7 @@
 #    59 Temple Place - Suite 330,
 #    Boston, MA  02111-1307, USA.
 #
-# -----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 use Getopt::Long;
 
@@ -77,8 +77,8 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-2.0/dict";
 }
 
 open(NIDX, $wnUnixPath."/index.noun") || open(NIDX, $wnPCPath."\\noun.idx") || die "Unable to open index file.\n";
@@ -173,8 +173,8 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "compounds.pl version 1.01\n";
-    print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.\n";
+    print "compounds.pl version 0.12\n";
+    print "Copyright (c) 2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
 
 __END__
@@ -197,21 +197,18 @@ and writes the resultant list to the standard output.
 B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
-    /usr/local/WordNet-2.1/dict)
+    /usr/local/WordNet-2.0/dict)
 
 =head1 AUTHORS
 
- Ted Pedersen, University of Minnesota Duluth
- tpederse at d.umn.edu
-
  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
- banerjee+ at cs.cmu.edu
+ banerjee+ @ cs.cmu.edu
 
  Siddharth Patwardhan, University of Utah, Salt Lake City
- sidd at cs.utah.edu
+ sidd @ cs.utah.edu
 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse @ d.umn.edu
 
 =head1 BUGS
 
@@ -219,7 +216,7 @@ None
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.
+Copyright (c) 2004, Satanjeev Banerjee, Siddharth Patwardhan, and Ted Pedersen.
 
 This program is free software; you may redistribute and/or modify it
 under the terms of the GNU General Public License; either version 2 of

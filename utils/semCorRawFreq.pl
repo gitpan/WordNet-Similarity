@@ -1,7 +1,7 @@
-#! /usr/local/bin/perl -w
+#!/usr/local/bin/perl -w
 #
-# semCorRawFreq.pl version 1.01
-# (Last updated $Id: semCorRawFreq.pl,v 1.8 2005/12/11 22:37:02 sidz1979 Exp $)
+# semCorRawFreq.pl version 0.12
+# (Last updated $Id: semCorRawFreq.pl,v 1.6 2004/10/29 19:25:42 sidz1979 Exp $)
 #
 # This program reads SemCor files and computes the frequency
 # counts for each synset in WordNet, ignoring the sense tags
@@ -12,7 +12,7 @@
 # by the WordNet::Similarity modules for computing semantic 
 # relatedness.
 #
-# Copyright (c) 2005
+# Copyright (c) 2004
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
@@ -36,9 +36,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# -----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 use strict;
+
 use File::Find;
 
 # Variable declarations
@@ -128,8 +129,8 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-2.0/dict";
 }
 
 
@@ -385,7 +386,7 @@ sub getHyponymOffsets
 	return [@retVal];
     }
     my $wordForm = $wn->getSense($offset, $pos);
-    my @hyponyms = $wn->querySense($wordForm, "hypos");
+    my @hyponyms = $wn->querySense($wordForm, "hypo");
     if(!@hyponyms || $#hyponyms < 0)
     {
 	return undef;
@@ -415,7 +416,7 @@ sub createTopHash
 	{
 	    if(!$wpsOffset{$wn->offset($wps)})
 	    {
-		($upper) = $wn->querySense($wps, "hypes");
+		($upper) = $wn->querySense($wps, "hype");
 		if(!$upper)
 		{
 		    $topHash{"n"}{$wn->offset($wps)} = 1;	
@@ -431,7 +432,7 @@ sub createTopHash
 	{
 	    if(!$wpsOffset{$wn->offset($wps)})
 	    {
-		($upper) = $wn->querySense($wps, "hypes");
+		($upper) = $wn->querySense($wps, "hype");
 		if(!$upper)
 		{
 		    $topHash{"v"}{$wn->offset($wps)} = 1;
@@ -529,8 +530,8 @@ EOU
 # Subroutine to print the version information
 sub printVersion
 {
-    print "semCorRawFreq.pl version 1.01\n";
-    print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan.\n";
+    print "semCorRawFreq.pl version 0.12\n";
+    print "Copyright (c) 2004 Ted Pedersen, Satanjeev Banerjee & Siddharth Patwardhan.\n";
 }
 
 __END__
@@ -568,7 +569,7 @@ B<--resnik>
 B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
-    /usr/local/WordNet-2.1/dict)
+    /usr/local/WordNet-2.0/dict)
 
 B<--smooth>=I<SCHEME>
 

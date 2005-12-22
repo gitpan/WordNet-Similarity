@@ -51,8 +51,8 @@ ok ($wnver);
 
 SKIP:
 {
-  unless ($wnver eq '2.1' or $wnver eq '2.0' or $wnver eq '1.7.1') {
-    skip ("Unknown version of WordNet: $wnver", 5)
+  unless ($wnver eq '2.0' or $wnver eq '1.7.1') {
+    skip ("Unknown version of WordNet: $wnver", 4)
   }
 
   for (1..$#depths) {
@@ -62,29 +62,7 @@ SKIP:
 
     my ($pos, $offset, $depth) = split /\s+/, $line;
 
-    if ($wnver eq '2.1') {
-      # entity#n#1
-      if (($pos eq 'n') and (0 + '00001740' == $offset)) {
-	is ($depth, 18);
-      }
-      # hold#v#3
-      elsif (($pos eq 'v') and (0 + '01205350' == $offset)) {
-	is ($depth, 5);
-      }
-      # move#v#3
-      elsif (($pos eq 'v') and (0 + '01814387' == $offset)) {
-	is ($depth, 6);
-      }
-      # express_emotion#v#1
-      elsif (($pos eq 'v') and (0 + '01785325' == $offset)) {
-	is ($depth, 3);
-      }
-      # touch#v#1
-      elsif (($pos eq 'v') and (0 + '01194934' == $offset)) {
-        is ($depth, 7);
-      }
-    }
-    elsif ($wnver eq '2.0') {
+    if ($wnver eq '2.0') {
       # event#n#1
       if (($pos eq 'n') and (0 + '00025950' == $offset)) {
 	is ($depth, 9);

@@ -1,5 +1,5 @@
-# WordNet::Similarity::vector_pairs.pm version 1.01
-# (Last updated $Id: vector_pairs.pm,v 1.6 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::vector_pairs.pm version 0.13
+# (Last updated $Id: vector_pairs.pm,v 1.3 2005/06/08 17:11:12 sidz1979 Exp $)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using a
@@ -71,7 +71,7 @@ use File::Spec;
 use vars qw($VERSION @ISA);
 
 @ISA = qw(WordNet::Similarity::GlossFinder);
-$VERSION = '1.01';
+$VERSION = '0.13';
 
 WordNet::Similarity::addConfigOption("vectordb", 0, "p", undef);
 
@@ -281,15 +281,12 @@ sub getRelatedness
     my $i = 0;
     
     # Get the gloss strings from the get_wn_info module
-    my ($firstStringArray, $secondStringArray, $weightsArray, $functionsStringArray) = $self->getSuperGlosses($wps1, $wps2);
-    for($i = 0; $i < scalar(@{$weightsArray}); $i++)
+    my $glossList = $self->getSuperGlosses($wps1, $wps2);
+    foreach my $glossPair (@{$glossList})
     {
         my $functionsScore = 0;
         my $funcStringPrinted = 0;
-        my $firstString = $firstStringArray->[$i];
-        my $secondString = $secondStringArray->[$i];
-        my $weight = $weightsArray->[$i];
-        my $functionsString = $functionsStringArray->[$i];
+        my ($firstString, $secondString, $weight, $functionsString) = @{$glossPair};
         
 	# so those are the two strings for this relation pair. Get the vectors
         # Preprocess...
@@ -658,7 +655,7 @@ perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
 http://www.cs.utah.edu/~sidd
 
-http://wordnet.princeton.edu
+http://www.cogsci.princeton.edu/~wn
 
 http://www.ai.mit.edu/~jrennie/WordNet
 
@@ -666,11 +663,11 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
- Ted Pedersen, University of Minnesota, Duluth
- tpederse at d.umn.edu
-
  Siddharth Patwardhan, University of Utah, Salt Lake City
  sidd at cs.utah.edu
+
+ Ted Pedersen, University of Minnesota, Duluth
+ tpederse at d.umn.edu
 
  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
  banerjee+ at cs.cmu.edu
@@ -682,7 +679,8 @@ send an e-mail to "S<tpederse at d.umn.edu>".
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan and Satanjeev Banerjee
+Copyright (C) 2003-2004, Siddharth Patwardhan, Ted Pedersen and Satanjeev
+Banerjee
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

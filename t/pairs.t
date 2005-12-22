@@ -39,7 +39,7 @@ my $num_tests;
 
 BEGIN {
   @measures = qw/hso jcn lch lesk lin path res wup/;
-  $num_tests = 15 + (5 + 109) * scalar @measures;
+  $num_tests = 15 + (5 + 110) * scalar @measures;
 }
 
 use Test::More tests => $num_tests;
