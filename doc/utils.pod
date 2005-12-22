@@ -674,8 +674,8 @@ show version information
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, and Jason
-Michelizzi
+Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee,
+and Jason Michelizzi
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2

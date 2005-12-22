@@ -8,7 +8,7 @@
 BEGIN { $| = 1; print "1..12\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use WordNet::Similarity;
-use WordNet::QueryData 1.30;
+use WordNet::QueryData 1.39;
 use WordNet::Similarity::jcn;
 use WordNet::Similarity::res;
 use WordNet::Similarity::lin;

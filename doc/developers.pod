@@ -181,11 +181,17 @@ measures of relatedness!
 
 =head1 AUTHORS
 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
-
  Ted Pedersen, University of Minnesota Duluth
  tpederse at d.umn.edu
+
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
+
+ Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+ banerjee+ at cs.cmu.edu
+
+ Jason Michelizzi, University of Minnesota Duluth
+ mich0212 at d.umn.edu
 
 =head1 SEE ALSO
 
@@ -193,7 +199,7 @@ L<intro.pod> L<config.pod> L<modules.pod>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2005 Siddharth Patwardhan, Ted Pedersen, and Jason Michelizzi
+Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee and Jason Michelizzi
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2
 or any later version published by the Free Software Foundation;

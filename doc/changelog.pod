@@ -10,7 +10,58 @@ is released.
 
 =head1 DESCRIPTION
 
-=head2 Version 0.16
+=head2 Version 1.01
+
+=over
+
+=item *
+
+12/09/05
+
+=over
+
+=item (1)
+
+Modified get_wn_info.pm with Wybo Wiersma's changes. (Sid)
+
+=item (2)
+
+Modified lesk.pm, vector.pm and vector_pairs.pm to be compatible with above
+changes. (Sid)
+
+=back
+
+=item *
+
+12/07/05
+
+=over
+
+=item (1)
+
+Updated all utilities to use WordNet 2.1 (WordNet::QueryData 1.39 or above). (Sid)
+
+=item (2)
+
+Updated all modules and test cases for WordNet 2.1. (Sid)
+
+=back
+
+=item *
+
+12/05/05
+
+=over
+
+=item (1)
+
+Changed order of authors in package documentation. (Sid)
+
+=back
+
+=back
+
+=head2 Version 0.16 (Released 12/12/2005)
 
 =over
 
@@ -32,36 +83,35 @@ Updated documentation to reflect above changes. (Sid)
 
 =back
 
-=head2 Version 0.15 (Re-released Dec 11, 2005)
+=head2 Version 0.15 (Re-released 12/11/2005)
 
-=over 
+=over
 
 =item *
 
 12/11/05
 
-=over 
+=over
 
-=item (1) 
+=item (1)
 
-tar file unpacked as WordNet-Similarity for June 12, v 0.15, now
-unpacks as WordNet-Similarity-0.15, which is consistent with all
-previous versions. 
+tar file unpacked as WordNet-Similarity for June 12, v 0.15, now unpacks as
+WordNet-Similarity-0.15, which is consistent with all previous versions.
+(Ted)
 
-=item (2) 
+=item (2)
 
-Similarity.pm version was shown as 0.14, is now 0.15. Our general
-convention for modules is that their version number only change
-when the module itself changes, so the module version number can
-tell you when was the last time a module changed. However, for
-Similarity.pm this is needlessly confusing, so it will always
-carry the same version number as the release. 
-
-=back
+Similarity.pm version was shown as 0.14, is now 0.15. Our general convention
+for modules is that their version number only change when the module itself
+changes, so the module version number can tell you when was the last time a
+module changed. However, for Similarity.pm this is needlessly confusing, so
+it will always carry the same version number as the release. (Ted)
 
 =back
 
-=head2 Version 0.15 (Released June 12, 2005)
+=back
+
+=head2 Version 0.15 (Released 6/12/2005)
 
 =over
 
@@ -1711,11 +1761,11 @@ parameters are passed to the modules through 'configuration files'.
 
 =head1 AUTHORS
 
-  Siddharth Patwardhan, University of Utah, Salt Lake City
-  sidd at cs.utah.edu
-
   Ted Pedersen, University of Minnesota Duluth
   tpederse at d.umn.edu
+  
+  Siddharth Patwardhan, University of Utah, Salt Lake City
+  sidd at cs.utah.edu
 
   Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
   banerjee+ at cs.cmu.edu
@@ -1733,8 +1783,8 @@ todo.pod
 
 =head1 COPYRIGHT
 
-Copyright (C) 2003-2005 Siddharth Patwardhan, Ted Pedersen, Satanjeev
-Banerjee, and Jason Michelizzi
+Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee 
+and Jason Michelizzi
 
 Permission is granted to copy, distribute and/or modify this  document  
 under the terms of the GNU Free Documentation License, Version 1.2 or  any  

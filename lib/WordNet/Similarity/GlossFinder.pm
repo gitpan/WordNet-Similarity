@@ -1,5 +1,5 @@
-# WordNet::Similarity::GlossFinder version 0.02
-# (Last updated $Id: GlossFinder.pm,v 1.3 2005/03/19 11:13:41 sidz1979 Exp $)
+# WordNet::Similarity::GlossFinder version 1.01
+# (Last updated $Id: GlossFinder.pm,v 1.7 2005/12/11 22:37:02 sidz1979 Exp $)
 #
 # Module containing gloss-finding code for the various measures of semantic
 # relatedness (lesk, vector).
@@ -51,7 +51,7 @@ use get_wn_info;
 
 our @ISA = qw/WordNet::Similarity/;
 
-our $VERSION = '0.02';
+our $VERSION = '1.01';
 
 WordNet::Similarity::addConfigOption("relation", 0, "p", undef);
 WordNet::Similarity::addConfigOption("stop", 0, "p", undef);
@@ -328,19 +328,7 @@ sub getSuperGlosses
         $self->{cache}->[1]->{$wps2} = $self->_getSuperGlosses($wps2, $gwi, 1);
     }
     
-    my $i = 0;
-    my @retArray = ();
-    while(defined $self->{functions}->[$i])
-    {
-        my $firstString = $self->{cache}->[0]->{$wps1}->[$i];
-        my $secondString = $self->{cache}->[1]->{$wps2}->[$i];
-        my $weight = $self->{weights}->[$i];
-        my $relTrace = $self->{relationTraces}->[$i];
-        push(@retArray, [($firstString, $secondString, $weight, $relTrace)]);
-        $i++;
-    }
-
-    return \@retArray;
+    return ($self->{cache}->[0]->{$wps1}, $self->{cache}->[1]->{$wps2}, $self->{weights}, $self->{relationTraces});
 }
 
 sub _getSuperGlosses()
@@ -354,8 +342,9 @@ sub _getSuperGlosses()
     while(defined $self->{functions}->[$i])
     {
 	# now get the string for the first set of synsets
-	my @arguments = ();
-	push(@arguments, $wps);
+        my %seth = ();
+        $seth{$wps} = 1;
+	my @arguments = \%seth;
 	
 	# apply the functions to the arguments, passing the output of
 	# the inner functions to the inputs of the outer ones
@@ -561,8 +550,8 @@ sub _loadRelationFile
 				return;
 			    }
 			    
-			    ($input, $dummy) = $gwi->$fn2(0);
-			    ($dummy, $output) = $gwi->$fn3(0);
+			    ($input, $dummy) = $gwi->$fn2($dummy, 1);
+			    ($dummy, $output) = $gwi->$fn3($dummy, 1);
 			    
                             if($input != $output)
                             {
@@ -579,7 +568,7 @@ sub _loadRelationFile
 			# if the output of the outermost function is synset array (1)
 			# wrap a glos around it
 			my $xfn = $functionArray[0];
-			($dummy, $output) = $gwi->$xfn(0);
+			($dummy, $output) = $gwi->$xfn($dummy, 1);
 			if($output == 1)
 			{
 			    $self->{functions}->[$index]->[$l]->[$j++] = "glos";
@@ -706,11 +695,11 @@ that it is more efficient (faster) to use wps strings internally.
 
 =head1 AUTHORS
 
- Siddharth Patwardhan, University of Utah, Salt Lake City
- sidd at cs.utah.edu
-
  Ted Pedersen, University of Minnesota Duluth
  tpederse at d.umn.edu
+
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
 
 =head1 BUGS
 
@@ -724,7 +713,7 @@ WordNet::Similarity::lesk(3)
 
 =head1 COPYRIGHT
 
-Copyright (C) 2004, Siddharth Patwardhan & Ted Pedersen
+Copyright (c) 2005, Ted Pedersen and Siddharth Patwardhan
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free

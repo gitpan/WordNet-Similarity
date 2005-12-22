@@ -7,7 +7,26 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
-  Version 0.16
+  Version 1.01
+    *   12/09/05
+
+        (1) Modified get_wn_info.pm with Wybo Wiersma's changes. (Sid)
+
+        (2) Modified lesk.pm, vector.pm and vector_pairs.pm to be compatible
+            with above changes. (Sid)
+
+    *   12/07/05
+
+        (1) Updated all utilities to use WordNet 2.1 (WordNet::QueryData
+            1.39 or above). (Sid)
+
+        (2) Updated all modules and test cases for WordNet 2.1. (Sid)
+
+    *   12/05/05
+
+        (1) Changed order of authors in package documentation. (Sid)
+
+  Version 0.16 (Released 12/12/2005)
     *   12/01/05
 
         (1) Added Wybo Wiersma's super-gloss caching code to GlossFinder.pm.
@@ -15,21 +34,21 @@ DESCRIPTION
 
         (2) Updated documentation to reflect above changes. (Sid)
 
-  Version 0.15 (Re-released Dec 11, 2005)
+  Version 0.15 (Re-released 12/11/2005)
     *   12/11/05
 
         (1) tar file unpacked as WordNet-Similarity for June 12, v 0.15, now
             unpacks as WordNet-Similarity-0.15, which is consistent with all
-            previous versions.
+            previous versions. (Ted)
 
         (2) Similarity.pm version was shown as 0.14, is now 0.15. Our
             general convention for modules is that their version number only
             change when the module itself changes, so the module version
             number can tell you when was the last time a module changed.
             However, for Similarity.pm this is needlessly confusing, so it
-            will always carry the same version number as the release.
+            will always carry the same version number as the release. (Ted)
 
-  Version 0.15 (Released June 12, 2005)
+  Version 0.15 (Released 6/12/2005)
     *   06/10/05
 
         (1) Fixed a minor bug in MANIFEST. (Sid)
@@ -894,11 +913,11 @@ DESCRIPTION
             'configuration files'.
 
 AUTHORS
-      Siddharth Patwardhan, University of Utah, Salt Lake City
-      sidd at cs.utah.edu
-
       Ted Pedersen, University of Minnesota Duluth
       tpederse at d.umn.edu
+  
+      Siddharth Patwardhan, University of Utah, Salt Lake City
+      sidd at cs.utah.edu
 
       Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
       banerjee+ at cs.cmu.edu
@@ -913,8 +932,8 @@ SEE ALSO
     todo.pod
 
 COPYRIGHT
-    Copyright (C) 2003-2005 Siddharth Patwardhan, Ted Pedersen, Satanjeev
-    Banerjee, and Jason Michelizzi
+    Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev
+    Banerjee and Jason Michelizzi
 
     Permission is granted to copy, distribute and/or modify this document
     under the terms of the GNU Free Documentation License, Version 1.2 or

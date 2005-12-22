@@ -106,8 +106,8 @@ CONTENTS
     sample data files (e.g., relation files).
 
 SOFTWARE COPYRIGHT AND LICENSE
-    Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, and Jason
-    Michelizzi
+    Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev
+    Banerjee, and Jason Michelizzi
 
     This suite of programs is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as published
@@ -202,21 +202,21 @@ SEE ALSO
     <http://wn-similarity.sourceforge.net>
 
 AUTHORS
-     Siddharth Patwardhan, University of Utah
-     sidd at cs.utah.edu
-
      Ted Pedersen, University of Minnesota Duluth
      tpederse at d.umn.edu
 
-     Satanjeev Banerjee, Carnegie Mellon University
+     Siddharth Patwardhan, University of Utah, Salt Lake City
+     sidd at cs.utah.edu
+
+     Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
      banerjee+ at cs.cmu.edu
 
      Jason Michelizzi, University of Minnesota Duluth
      mich0212 at d.umn.edu
 
 DOCUMENTATION COPYRIGHT AND LICENSE
-    Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, and Jason
-    Michelizzi
+    Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev
+    Banerjee, and Jason Michelizzi
 
     Permission is granted to copy, distribute and/or modify this document
     under the terms of the GNU Free Documentation License, Version 1.2 or

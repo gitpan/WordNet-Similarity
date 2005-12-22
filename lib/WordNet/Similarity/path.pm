@@ -1,5 +1,5 @@
-# WordNet::Similarity::path.pm version 0.10
-# (Last updated $Id: path.pm,v 1.16 2004/10/23 07:23:05 sidz1979 Exp $)
+# WordNet::Similarity::path.pm version 1.01
+# (Last updated $Id: path.pm,v 1.18 2005/12/11 22:37:02 sidz1979 Exp $)
 #
 # N.B., this module was formerly named edge.pm
 #
@@ -59,7 +59,7 @@ use constant MAX_DIST => 100;
 
 our @ISA = qw(WordNet::Similarity::PathFinder);
 
-our $VERSION = '0.10';
+our $VERSION = '1.01';
 
 =item $path->getRelatedness()
 
@@ -310,7 +310,7 @@ perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
 http://www.cs.utah.edu/~sidd
 
-http://www.cogsci.princeton.edu/~wn
+http://wordnet.princeton.edu
 
 http://www.ai.mit.edu/~jrennie/WordNet
 
@@ -318,14 +318,14 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse at d.umn.edu
+
  Siddharth Patwardhan, University of Utah, Salt Lake City
  sidd at cs.utah.edu
 
  Jason Michelizzi, University of Minnesota Duluth
  mich0212 at d.umn.edu
-
- Ted Pedersen, University of Minnesota Duluth
- tpederse at d.umn.edu
 
 =head1 BUGS
 
@@ -335,8 +335,7 @@ To report bugs, go to L<http://groups.yahoo.com/group/wn-similarity>.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2004, Siddharth Patwardhan, Jason Michelizzi, and Ted
-Pedersen
+Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan and Jason Michelizzi
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

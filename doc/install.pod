@@ -17,16 +17,12 @@ install.pod - how to install WordNet::Similarity
 
 =head2 Prerequisites
 
-You need to have WordNet (version 1.7.1 or 2.0), WordNet::QueryData
-(version 1.38), and Text::OverlapFinder installed. Please note
-that this version of WordNet-Similarity DOES NOT support WordNet 2.1
-or WordNet::QueryData 1.39 as yet. 
+You need to have WordNet (version 2.1) installed, WordNet::QueryData
+(version 1.39 or later), and Text::Similarity installed.
 
-WordNet is available at http://www.cogsci.princeton.edu/~wn/ and 
-WordNet::QueryData is available from
-http://search.cpan.org/dist/WordNet-QueryData/.  Text::OverlapFinder
-is distributed with the Text-Similarity package and is available
-from http://search.cpan.org/dist/Text-Similarity/.
+WordNet is available at http://wordnet.princeton.edu, WordNet::QueryData
+is available from http://search.cpan.org/dist/WordNet-QueryData, and
+Text::Similarity is available from http://search.cpan.org/dist/Text-Similarity.
 
 You should set the WNHOME environment variable to the location where you
 have WordNet installed; see the WordNet::QueryData documentation for more
@@ -47,7 +43,7 @@ The usual way to install the package is to run the following commands:
 If you can't set the WNHOME environment variable, you can use the WNHOME
 option when running S<perl Makefile.PL>.  For example,
 
- perl Makefile.PL WNHOME=/usr/local/WordNet-2.0
+ perl Makefile.PL WNHOME=/usr/local/WordNet-2.1
 
 You will often need root access/superuser priviledges to run S<make install>.
 The module can also be installed locally.  To do a local install, you need
@@ -67,7 +63,7 @@ in /home/sid/lib.  In either case the executable scripts will be
 installed in /home/sid/bin and the man pages will be installed in
 home/sid/share.
 
-Warning: do not put a dash or hyphen in front of PREFIX or LIB.
+Warning: do not put a dash or hyphen in front of PREFIX, LIB or WNHOME.
 
 In your perl programs that you may write using the modules, you may need
 to add a line like so
@@ -136,29 +132,31 @@ you would need to explicitly invoke them as 'perl similarity.pl ... ' or
 
 WordNet: All the measures are based on WordNet. WordNet must be
 installed on your system. WordNet is freely downloadable from
-http://www.cogsci.princeton.edu/~wn/. WordNet version 2.0 was used during
-the development and testing of the package; however, it should work with
-previous versions of WordNet as well. The WordNet::QueryData Perl module is
-used to access WordNet. This module requires that an environment variable
-'WNHOME', containing the path to the WordNet files, be set up. For further
-details, please see the WordNet::QueryData documentation.
+http://wordnet.princeton.edu. WordNet version 2.1 was used during
+the development and testing of the package. Unfortunately, due to major
+changes in WordNet (and WordNet::QueryData) from version 2.0 to 2.1, this
+version of WordNet::Similarity supports only WordNet 2.1 (or later).
+The WordNet::QueryData Perl module is used to access WordNet. This module
+requires that an environment variable 'WNHOME', containing the path to the
+WordNet files, be set up. For further details, please see the
+WordNet::QueryData documentation.
 
 =item 3.
 
 WordNet::QueryData: This is the Perl interface to WordNet written by
 Jason Rennie. QueryData should be accessible on the @INC path of Perl. (Can
-be freely downloaded from http://search.cpan.org/dist/WordNet-QueryData/).
-QueryData 1.38 was used during the development. Also we observed that that
+be freely downloaded from http://search.cpan.org/dist/WordNet-QueryData).
+QueryData 1.39 was used during the development. Also we observed that that
 due to some major changes in QueryData from its previous versions, this
-software does not work with the some earlier versions of QueryData. If you
-have an earlier version of QueryData (1.29 or earlier) you may need to upgrade
+software does not work with the earlier versions of QueryData. If you have
+an earlier version of QueryData (1.38 or earlier) you may need to upgrade
 QueryData.
 
 =item 4.
 
-Text::OverlapFinder: This module is used by the WordNet::Similarity::lesk
-measure for finding runs of word overlaps in glosses.  The Text::OverlapFinder
-module can be downloaded from http://search.cpan.org/dist/Text-Similarity/.
+Text::Similarity: This module is used by the WordNet::Similarity::lesk
+measure for finding runs of word overlaps in glosses.  The Text::Similarity
+module can be downloaded from http://search.cpan.org/dist/Text-Similarity.
 
 =back
 
@@ -175,56 +173,30 @@ run these tests, run 'make test_all'.
 The following procedure will work on most Linux systems.
 
  cd /tmp
- wget http://www.cogsci.princeton.edu/2.0/WordNet-2.0.tar.gz
- wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.38.tar.gz
+ wget http://wordnet.princeton.edu/2.1/WordNet-2.1.tar.gz
+ wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.39.tar.gz
  wget http://search.cpan.org/CPAN/authors/id/J/JA/JASONM/Text-Similarity-0.02.tar.gz
- wget http://search.cpan.org/CPAN/authors/id/T/TP/TPEDERSE/WordNet-Similarity-0.16.tar.gz
+ wget http://search.cpan.org/CPAN/authors/id/T/TP/TPEDERSE/WordNet-Similarity-1.01.tar.gz
 
 Then unpack each one:
 
- tar -zxvf WordNet-2.0.tar.gz
- tar -zxvf WordNet-QueryData-1.38.tar.gz
+ tar -zxvf WordNet-2.1.tar.gz
+ tar -zxvf WordNet-QueryData-1.39.tar.gz
  tar -zxvf Text-Similarity-0.02.tar.gz
- tar -zxvf WordNet-Similarity-0.16.tar.gz
+ tar -zxvf WordNet-Similarity-1.01.tar.gz
 
 Install WordNet:
 
- cd WordNet-2.0
-
-Unfortunately, you have to manually edit the Makefile yourself, but you
-probably only need to make one change. Open the Makefile with your
-favorite text editor (emacs, for example):
-
- emacs Makefile
-
-Then find the section that looks like this:
-
- PLATFORM = solaris
- #PLATFORM = irix
- #PLATFORM = linux
-
-If you are using Linux, comment out the first line and uncomment the last
-line so that it looks like this:
-
- #PLATFORM = solaris
- #PLATFORM = irix
- PLATFORM = linux
-
-Exit the editor.
-
-Then just type:
-
- make BinWorld
-
-You will need root privileges to install. 
-
+ cd /tmp/WordNet-2.1
+ ./configure
+ make
  su
  make install
  exit
 
-Installing QueryData and Similarity is much easier:
+Installing QueryData and Similarity:
 
- cd /tmp/WordNet-QueryData-1.38
+ cd /tmp/WordNet-QueryData-1.39
  perl Makefile.PL
  make
  make test
@@ -240,7 +212,7 @@ Installing QueryData and Similarity is much easier:
  make install
  exit
 
- cd /tmp/WordNet-Similarity-0.16
+ cd /tmp/WordNet-Similarity-1.01
  perl Makefile.PL
  make
  make test
@@ -250,14 +222,17 @@ Installing QueryData and Similarity is much easier:
 
 =head1 AUTHORS
 
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse at d.umn.edu
+
  Siddharth Patwardhan, University of Utah, Salt Lake City
  sidd at cs.utah.edu
 
+ Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+ banerjee+ at cs.cmu.edu
+
  Jason Michelizzi, University of Minnesota Duluth
  mich0212 at d.umn.edu
-
- Ted Pedersen, University of Minnesota Duluth
- tpederse at d.umn.edu
 
 =head1 SEE ALSO
 
@@ -265,8 +240,8 @@ intro.pod modules.pod
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2004 Siddharth Patwardhan, Ted Pedersen, and Jason
-Michelizzi
+Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee, 
+and Jason Michelizzi
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2

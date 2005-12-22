@@ -1,7 +1,7 @@
-#!/usr/local/bin/perl -w
+#! /usr/local/bin/perl -w
 #
-# semCorFreq.pl version 0.12
-# (Last updated $Id: semCorFreq.pl,v 1.5 2004/10/29 19:25:42 sidz1979 Exp $)
+# semCorFreq.pl version 1.01
+# (Last updated $Id: semCorFreq.pl,v 1.7 2005/12/11 22:37:02 sidz1979 Exp $)
 #
 # A helper tool perl program for WordNet::Similarity. This 
 # program is used to generate the frequency count data
@@ -13,16 +13,16 @@
 # files which are used by the Jiang Conrath, Resnik and Lin 
 # measures to calculate the information content of a synset in 
 # WordNet. The output is generated in a format as required by
-# the WordNet::Similarity modules (ver 0.01) for computing
-# semantic relatedness.
+# the WordNet::Similarity modules for computing semantic
+# relatedness.
 #
-# Copyright (c) 2004,
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd at cs.utah.edu
+# Copyright (c) 2005,
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -102,8 +102,8 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.0/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
+    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
 }
 
 
@@ -348,7 +348,7 @@ sub createTopHash
 	{
 	    if(!$wpsOffset{$wn->offset($wps)})
 	    {
-		($upper) = $wn->querySense($wps, "hype");
+		($upper) = $wn->querySense($wps, "hypes");
 		if(!$upper)
 		{
 		    $topHash{"n"}{$wn->offset($wps)} = 1;	
@@ -364,7 +364,7 @@ sub createTopHash
 	{
 	    if(!$wpsOffset{$wn->offset($wps)})
 	    {
-		($upper) = $wn->querySense($wps, "hype");
+		($upper) = $wn->querySense($wps, "hypes");
 		if(!$upper)
 		{
 		    $topHash{"v"}{$wn->offset($wps)} = 1;
@@ -395,7 +395,7 @@ sub getHyponymOffsets
 	return [@retVal];
     }
     $wordForm = $wn->getSense($offset, $pos);
-    @hyponyms = $wn->querySense($wordForm, "hypo");
+    @hyponyms = $wn->querySense($wordForm, "hypos");
     if(!@hyponyms || $#hyponyms < 0)
     {
 	return undef;
@@ -444,8 +444,8 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "semCorFreq.pl version 0.12\n";
-    print "Copyright (c) 2004, Siddharth Patwardhan & Ted Pedersen.\n";
+    print "semCorFreq.pl version 1.01\n";
+    print "Copyright (c) 2005, Ted Pedersen and Siddharth Patwardhan.\n";
 }
 
 __END__
@@ -467,7 +467,7 @@ B<--outfile>=I<filename>
 B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
-    /usr/local/WordNet-2.0/dict)
+    /usr/local/WordNet-2.1/dict)
 
 B<--smooth>=I<SCHEME>
 
