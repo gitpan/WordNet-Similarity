@@ -1,11 +1,13 @@
-#!/usr/local/bin/perl
+#! /usr/local/bin/perl -w
 
-# wnDepths.pl version 0.07
-# (Last updated $Id: wnDepths.pl,v 1.21 2004/10/29 19:25:42 sidz1979 Exp $)
+# wnDepths.pl version 1.02
+# (Last updated $Id: wnDepths.pl,v 1.27 2006/01/15 23:48:32 sidz1979 Exp $)
 
 # A program to generate a list of the depths of the top-level nodes
 # in the WordNet IS-A taxonomies.  The program can also produce a
 # file with the depth of each synset.
+#
+# --------------------------------------------------------------------
 
 use strict;
 use warnings;
@@ -69,8 +71,8 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.0/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
+    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
 }
 
 # I think the actual OS name for most versions of Windows is 'MSWin32',
@@ -130,7 +132,7 @@ if ($opt_verbose) {
   print "Offsets of top-level verbs\n", join (", ", keys (%{$top_level{v}})),
 	  "\n";
 
-  print "There are", scalar (keys (%{$top_level{v}})), " top-level verbs.\n";
+  print "There are ", scalar (keys (%{$top_level{v}})), " top-level verbs.\n";
 }
 
 # determine WordNet version
@@ -345,7 +347,7 @@ sub findWPSDepths {
   my $wps = shift;
   defined $wpsDepths{$wps} and return @{$wpsDepths{$wps}};
 
-  my @hypernyms = $wn->querySense ($wps, "hype");
+  my @hypernyms = $wn->querySense ($wps, "hypes");
 
   unless (scalar @hypernyms > 0) {
     $wpsDepths{$wps} = [[1, $wps]];
@@ -405,8 +407,8 @@ sub showHelp {
   showUsage ();
   print "Options:\n";
   print "\t--wnpath=PATH    PATH is the path to WordNet.  The default is\n";
-  print "\t                 /usr/local/WordNet-2.0/dict on Unix and\n";
-  print "\t                 C:\\WordNet\\2.0\\dict on Windows\n";
+  print "\t                 /usr/local/WordNet-2.1/dict on Unix and\n";
+  print "\t                 C:\\WordNet\\2.1\\dict on Windows\n";
   print "\t--outfile=FILE   File to which the maximum depths of the taxon-\n";
   print "\t                 omies should be output.\n";
   print "\t--depthfile=FILE File to which the depth of every synset should\n";
@@ -419,8 +421,8 @@ sub showHelp {
 }
 
 sub showVersion {
-  print "wnDepths.pl version 0.07\n";
-  print "Copyright (C) 2003-2004, Jason Michelizzi and Ted Pedersen\n\n";
+  print "wnDepths.pl version 1.01\n";
+  print "Copyright (c) 2005, Ted Pedersen, Jason Michelizzi and Siddharth Patwardhan\n\n";
   print "This program comes with ABSOLUTELY NO WARRANTY.  This program\n";
   print "is free software, and you are welcome to redistribute it under\n";
   print "certain conditions.  See the file GPL.txt for warranty and\n";
@@ -450,8 +452,8 @@ likely has other uses as well.
 
 B<--wnpath>=I<path>
 
-The path to WordNet data files.  The default is /usr/local/WordNet-2.0/dict on
-Unix and C:\WordNet\2.0\dict on Windows.
+The path to WordNet data files.  The default is /usr/local/WordNet-2.1/dict on
+Unix and C:\WordNet\2.1\dict on Windows.
 
 B<--outfile>=I<file>
 
@@ -482,32 +484,35 @@ Show version information.
 
 =head1 AUTHORS
 
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse at d.umn.edu
+
  Jason Michelizzi, University of Minnesota Duluth
  mich0212 at d.umn.edu
 
- Ted Pedersen, University of Minnesota Duluth
- tpederse at d.umn.edu
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
 
 =head1 BUGS
 
 None.
 
-To report a bug, go to http://groups.yahoo.com/group/wn-similarity/ or
+To report a bug, go to http://groups.yahoo.com/group/wn-similarity or
 send an e-mail to "S<tpederse at d.umn.edu>".
 
 =head1 SEE ALSO
 
 WordNet::Similarity(3)
 
-http://www.cogsci.princeton.edu/~wn/
+http://wordnet.princeton.edu
 
 http://wn-similarity.sourceforge.net
 
-http://groups.yahoo.com/group/wn-similarity/
+http://groups.yahoo.com/group/wn-similarity
 
 =head1 COPYRIGHT
 
-Copyright (C) 2004, Jason Michelizzi and Ted Pedersen
+Copyright (c) 2005, Ted Pedersen, Jason Michelizzi and Siddharth Patwardhan
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

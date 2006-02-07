@@ -1,5 +1,5 @@
-# WordNet::Similarity::vector.pm version 0.14
-# (Last updated $Id: vector.pm,v 1.17 2005/06/08 17:11:11 sidz1979 Exp $)
+# WordNet::Similarity::vector.pm version 1.01
+# (Last updated $Id: vector.pm,v 1.20 2005/12/11 22:37:02 sidz1979 Exp $)
 #
 # Module accepts two WordNet synsets and returns a floating point
 # number that indicates how similar those two synsets are, using a
@@ -55,7 +55,7 @@ use vars qw($VERSION @ISA);
 
 @ISA = qw(WordNet::Similarity);
 
-$VERSION = '0.14';
+$VERSION = '1.01';
 
 WordNet::Similarity::addConfigOption("relation", 0, "p", undef);
 WordNet::Similarity::addConfigOption("vectordb", 0, "p", undef);
@@ -360,8 +360,8 @@ sub initialize
 				return;
 			    }
 	
-			    ($input, $dummy) = $gwi->$fn2(0);
-			    ($dummy, $output) = $gwi->$fn3(0);
+			    ($input, $dummy) = $gwi->$fn2($dummy, 1);
+			    ($dummy, $output) = $gwi->$fn3($dummy, 1);
 	
 			    if($input != $output)
 			    {
@@ -378,7 +378,7 @@ sub initialize
 			# if the output of the outermost function is synset array (1)
 			# wrap a glosexample around it
 			my $xfn = $functionArray[0];
-			($dummy, $output) = $gwi->$xfn(0);
+			($dummy, $output) = $gwi->$xfn($dummy, 1);
 			if($output == 1)
 			{
 			    $self->{functions}->[$index]->[$j++] = "glosexample";
@@ -507,14 +507,6 @@ sub getRelatedness
     # increase in size as the functions are applied (since some
     # relations have a one to many mapping).
 
-    # initialize the first set with the first synset
-    my @firstSet = ();
-    push @firstSet, $wps1;
-
-    # initialize the second set with the second synset
-    my @secondSet = ();
-    push @secondSet, $wps2;
-
     # initialize the score
     my $score = 0;
 
@@ -544,7 +536,9 @@ sub getRelatedness
 	}
 	
 	# now get the string for the first set of synsets
-	my @arguments = @firstSet;
+        my %seth1 = ();
+        $seth1{$wps1} = 1;
+	my @arguments = \%seth1;
 	
 	# apply the functions to the arguments, passing the output of
 	# the inner functions to the inputs of the outer ones
@@ -562,7 +556,9 @@ sub getRelatedness
 	$firstString .= $arguments[0];
 	
 	# next do all this for the string for the second set
-	@arguments = @secondSet;
+        my %seth2 = ();
+        $seth2{$wps2} = 1;
+	@arguments = \%seth2;
 	
 	$j = 0;
 	while(defined $self->{functions}->[$i]->[$j])
@@ -1037,7 +1033,7 @@ perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
 http://www.cs.utah.edu/~sidd
 
-http://www.cogsci.princeton.edu/~wn
+http://wordnet.princeton.edu
 
 http://www.ai.mit.edu/~jrennie/WordNet
 
@@ -1045,11 +1041,11 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
- Siddharth Patwardhan, University of Utah, Salt Lake City
- sidd at cs.utah.edu
-
  Ted Pedersen, University of Minnesota, Duluth
  tpederse at d.umn.edu
+
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
 
  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
  banerjee+ at cs.cmu.edu
@@ -1061,8 +1057,7 @@ send an e-mail to "S<tpederse at d.umn.edu>".
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2004, Siddharth Patwardhan, Ted Pedersen and Satanjeev
-Banerjee
+Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan and Satanjeev Banerjee
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

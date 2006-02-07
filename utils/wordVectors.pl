@@ -1,12 +1,12 @@
-#!/usr/local/bin/perl -w
+#! /usr/local/bin/perl -w
 #
-# wordVectors.pl version 0.12
-# (Last updated $Id: wordVectors.pl,v 1.9 2004/10/29 19:25:42 sidz1979 Exp $)
+# wordVectors.pl version 1.01
+# (Last updated $Id: wordVectors.pl,v 1.13 2005/12/11 22:37:02 sidz1979 Exp $)
 #
 # Program to create word vectors (co-occurrence vectors) for all
 # words in WordNet glosses.
 #
-# Copyright (c) 2004
+# Copyright (c) 2005
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
@@ -30,8 +30,7 @@
 #    59 Temple Place - Suite 330, 
 #    Boston, MA  02111-1307, USA.
 #
-#
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 use Getopt::Long;
 use WordNet::QueryData;
@@ -159,8 +158,8 @@ else
     }
     else
     {
-	$wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
-	$wnUnixPath = "/usr/local/WordNet-2.0/dict";
+	$wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
+	$wnUnixPath = "/usr/local/WordNet-2.1/dict";
     }
 
     $wn = WordNet::QueryData->new;
@@ -229,11 +228,11 @@ foreach $fh (NIDX, VIDX, AIDX, RIDX)
 	}
 	$documentCount++;
 	print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
-	printf STDERR "%6d (of approximately 116000) done.", $documentCount;
+	printf STDERR "%6d (of approximately 118000) done.", $documentCount;
     }
 }
 print STDERR "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
-printf STDERR "%6d (of approximately 116000) done.", $documentCount;
+printf STDERR "%6d (of approximately 118000) done.", $documentCount;
 close(NIDX);
 close(VIDX);
 close(AIDX);
@@ -361,7 +360,7 @@ sub compoundify
     
     while($firstPointer <= $#wordsArray)
     {
-	$secondPointer = $#wordsArray;
+	$secondPointer = (($firstPointer + 5 < $#wordsArray)?($firstPointer + 5):($#wordsArray));
 	$done = 0;
 	while($secondPointer > $firstPointer && !$done)
 	{
@@ -508,8 +507,8 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "wordVectors.pl version 0.12\n";
-    print "Copyright (c) 2004 Siddharth Patwardhan & Ted Pedersen.\n";
+    print "wordVectors.pl version 1.01\n";
+    print "Copyright (c) 2005, Ted Pedersen and Siddharth Patwardhan.\n";
 }
 
 __END__

@@ -1,5 +1,5 @@
-# WordNet::Similarity::PathFinder version 0.14
-# (Last updated $Id: PathFinder.pm,v 1.33 2005/06/09 20:29:54 jmichelizzi Exp $)
+# WordNet::Similarity::PathFinder version 1.01
+# (Last updated $Id: PathFinder.pm,v 1.35 2005/12/11 22:37:02 sidz1979 Exp $)
 #
 # Module containing path-finding code for the various measures of semantic
 # relatedness.
@@ -78,7 +78,7 @@ use File::Spec;
 
 our @ISA = qw/WordNet::Similarity/;
 
-our $VERSION = '0.14';
+our $VERSION = '1.01';
 
 WordNet::Similarity::addConfigOption ('rootNode', 0, 'i', 1);
 
@@ -529,7 +529,7 @@ sub _getHypernymTrees
     }
   }
 
-  my @hypernyms = $wn->querySense($wordForm, "hype");
+  my @hypernyms = $wn->querySense($wordForm, "hypes");
   my @returnArray = ();
   if($#hypernyms < 0) {
     my @tmpArray = $synset;
@@ -797,14 +797,14 @@ that it is more efficient (faster) to use wps strings internally.
 
 =head1 AUTHORS
 
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse at d.umn.edu
+
  Jason Michelizzi, University of Minnesota Duluth
  mich0212 at d.umn.edu
 
  Siddharth Patwardhan, University of Utah, Salt Lake City
  sidd at cs.utah.edu
-
- Ted Pedersen, University of Minnesota Duluth
- tpederse at d.umn.edu
 
 =head1 BUGS
 
@@ -819,8 +819,7 @@ WordNet::Similarity::wup(3)
 
 =head1 COPYRIGHT
 
-Copyright (C) 2003-2004, Siddharth Patwardhan, Jason Michelizzi, and Ted
-Pedersen
+Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan and Jason Michelizzi
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free

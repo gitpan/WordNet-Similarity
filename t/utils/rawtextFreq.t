@@ -3,7 +3,7 @@
 # Before 'make install' is run this script should be runnable with
 # 'make test'.  After 'make install' it should work as 'perl rawtextFreq.t'
 
-# A script to test the rawtextFreq.pl utility.  We can't really test most
+# A script to test the rawtextFreq.pl utility.  We can't really test most '
 # of the other infocontent programs (*Freq.pl programs) because the users
 # are unlikely to have all or even some of the corpora.  For this test, we
 # just run the rawtextFreq.pl program using the GPL as input.
@@ -16,10 +16,10 @@ use Test::More tests => 29;
 BEGIN {use_ok 'File::Spec'}
 
 my $rawtextFreq = File::Spec->catfile ('utils', 'rawtextFreq.pl');
-# where's the null device?
+# where's the null device?           '
 my $devnull = File::Spec->devnull;
 my $corpus = 'GPL.txt';
-my $compfile = File::Spec->catfile ('samples', 'wn20compounds.txt');
+my $compfile = File::Spec->catfile ('samples', 'wn21compounds.txt');
 my $stopfile = File::Spec->catfile ('samples', 'stoplist.txt');
 
 ok (-e $devnull);
@@ -54,7 +54,12 @@ SKIP: {
   my $line = <FH>;
   my ($offsetpos, $freq, $isroot) = split qr/\s+/, $line;
 
-  if ($wnver eq '2.0') {
+  if ($wnver eq '2.1') {
+    is ($offsetpos, '1740n');
+    is ($freq, 5445);
+    ok ($isroot);
+  }
+  elsif ($wnver eq '2.0') {
     is ($offsetpos, '1740n');
     is ($freq, 1678);
     ok ($isroot);
@@ -97,7 +102,14 @@ SKIP: {
   my $line = <FH>;
   my ($offsetpos, $freq, $isroot) = split qr/\s+/, $line;
 
-  if ($wnver eq '2.0') {
+  if ($wnver eq '2.1') {
+    is ($offsetpos, '1740n');
+    # expected frequency is 1248.2174
+    cmp_ok ($freq, '>=', 1200.0);
+    cmp_ok ($freq, '<=', 1249.0);
+    ok ($isroot);
+  }
+  elsif ($wnver eq '2.0') {
     is ($offsetpos, '1740n');
     # expected frequency is 568.5933
     cmp_ok ($freq, '>=', 386.7);

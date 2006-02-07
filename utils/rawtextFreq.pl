@@ -1,7 +1,7 @@
-#!/usr/local/bin/perl -w
+#! /usr/local/bin/perl -w
 #
-# rawtextFreq.pl version 0.12
-# (Last updated $Id: rawtextFreq.pl,v 1.13 2004/10/29 19:25:42 sidz1979 Exp $)
+# rawtextFreq.pl version 1.01
+# (Last updated $Id: rawtextFreq.pl,v 1.16 2005/12/11 22:37:02 sidz1979 Exp $)
 #
 # This program reads raw text and computes the frequency counts
 # for each synset in WordNet. These frequency counts are used by
@@ -10,7 +10,7 @@
 # required by the WordNet::Similarity modules for computing
 # semantic relatedness.
 #
-# Copyright (c) 2004
+# Copyright (c) 2005
 #
 # Ted Pedersen, University of Minnesota, Duluth
 # tpederse at d.umn.edu
@@ -37,9 +37,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-#-----------------------------------------------------------------------------
-use strict;
+# -----------------------------------------------------------------------------
 
+use strict;
 use File::Find;
 
 # Variable declarations
@@ -166,8 +166,8 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.0\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.0/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
+    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
 }
 
 # Load up WordNet
@@ -364,7 +364,7 @@ sub compoundify
 
     while($firstPointer <= $#wordsArray)
     {
-	$secondPointer = $#wordsArray;
+	$secondPointer = (($firstPointer + 5 < $#wordsArray)?($firstPointer + 5):($#wordsArray));
 	$done = 0;
 	while($secondPointer > $firstPointer && !$done)
 	{
@@ -488,7 +488,7 @@ sub getHyponymOffsets
 	return [@retVal];
     }
     $wordForm = $wn->getSense($offset, $pos);
-    @hyponyms = $wn->querySense($wordForm, "hypo");
+    @hyponyms = $wn->querySense($wordForm, "hypos");
     if(!@hyponyms || $#hyponyms < 0)
     {
 	return undef;
@@ -637,8 +637,8 @@ EOT
 # Subroutine to print the version information
 sub printVersion
 {
-    print "rawtextFreq.pl version 0.12\n";
-    print "Copyright (c) 2004 Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan & Jason Michelizzi.\n";
+    print "rawtextFreq.pl version 1.01\n";
+    print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.\n";
 }
 
 __END__
@@ -675,7 +675,7 @@ B<--stopfile>=I<filename>
 B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
-    /usr/local/WordNet-2.0/dict)
+    /usr/local/WordNet-2.1/dict)
 
 B<--resnik>
 
@@ -715,17 +715,17 @@ B<--infile>=I<PATTERN>
 
 =head1 AUTHORS
 
- Siddharth Patwardhan, University of Utah, Salt Lake City
- sidd @ cs.utah.edu
-
  Ted Pedersen, University of Minnesota, Duluth
- tpederse @ d.umn.edu
+ tpederse at d.umn.edu
 
  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
- banerjee+ @ cs.cmu.edu
+ banerjee+ at cs.cmu.edu
+
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
 
  Jason Michelizzi, University of Minnesota, Duluth
- mich0212 @ d.umn.edu
+ mich0212 at d.umn.edu
 
 =head1 BUGS
 
@@ -733,8 +733,7 @@ None.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2004, Siddharth Patwardhan, Ted Pedersen, Satanjeev
-Banerjee, and Jason Michelizzi
+Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

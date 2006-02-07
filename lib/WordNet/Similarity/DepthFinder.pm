@@ -1,5 +1,5 @@
-# WordNet::Similarity::DepthFinder version 0.13
-# (Last updated $Id: DepthFinder.pm,v 1.13 2005/04/20 01:13:46 jmichelizzi Exp $)
+# WordNet::Similarity::DepthFinder version 1.01
+# (Last updated $Id: DepthFinder.pm,v 1.15 2005/12/11 22:37:02 sidz1979 Exp $)
 #
 # Module containing code to find the depths of (noun and verb) synsets in
 # the WordNet 'is-a' taxonomies
@@ -52,7 +52,7 @@ use WordNet::Similarity::PathFinder;
 
 our @ISA = qw/WordNet::Similarity::PathFinder/;
 
-our $VERSION = '0.13';
+our $VERSION = '1.01';
 
 WordNet::Similarity::addConfigOption ("taxonomyDepthsFile", 1, "p", undef);
 WordNet::Similarity::addConfigOption ("synsetDepthsFile", 1, "p", undef);
@@ -450,11 +450,11 @@ __END__
 
 =head1 AUTHORS
 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
-
  Ted Pedersen, University of Minnesota Duluth
  tpederse at d.umn.edu
+
+ Jason Michelizzi, University of Minnesota Duluth
+ mich0212 at d.umn.edu
 
 =head1 BUGS
 
@@ -471,7 +471,7 @@ WordNet::Similarity::lch(3)
 
 =head1 COPYRIGHT
 
-Copyright (C) 2004, Jason Michelizzi and Ted Pedersen
+Copyright (c) 2005, Ted Pedersen and Jason Michelizzi
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free

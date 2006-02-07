@@ -56,7 +56,7 @@ is ($err, 0) or diag "$errstr";
 my $score = $module->getRelatedness ('tree#n#1', 'shrub#n#1');
 ($err, $errstr) = $module->getError();
 is ($err, 0);
-is ($score, 4852);
+ok ($score > 4800);
 # was 4963 before Text::OverlapFinder was integrated
 # would be 4909 without stemming
 

@@ -1,5 +1,5 @@
-# WordNet::Similarity::random.pm version 0.10
-# (Last updated $Id: random.pm,v 1.11 2004/10/23 07:23:05 sidz1979 Exp $)
+# WordNet::Similarity::random.pm version 1.01
+# (Last updated $Id: random.pm,v 1.13 2005/12/11 22:37:02 sidz1979 Exp $)
 #
 # Random semantic distance generator module.
 
@@ -56,7 +56,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.07';
+$VERSION = '1.01';
 
 WordNet::Similarity::addConfigOption ('maxrand', 1, 'f', 1.0);
 
@@ -244,7 +244,7 @@ perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
 
 http://www.cs.utah.edu/~sidd
 
-http://www.cogsci.princeton.edu/~wn
+http://wordnet.princeton.edu
 
 http://www.ai.mit.edu/~jrennie/WordNet
 
@@ -252,11 +252,11 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 AUTHORS
 
-  Siddharth Patwardhan, University of Utah, Salt Lake City
-  sidd at cs.utah.edu
-
   Ted Pedersen, University of Minnesota Duluth
   tpederse at d.umn.edu
+
+  Siddharth Patwardhan, University of Utah, Salt Lake City
+  sidd at cs.utah.edu
 
 =head1 BUGS
 
@@ -267,7 +267,7 @@ or e-mail "S<tpederse at d.umn.edu>".
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2004, Siddharth Patwardhan and Ted Pedersen
+Copyright (c) 2005, Ted Pedersen and Siddharth Patwardhan
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

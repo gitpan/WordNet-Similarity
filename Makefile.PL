@@ -1,15 +1,15 @@
 # This -*- perl -*- script writes the Makefile for WordNet::Similarity
-# (Last updated $Id: Makefile.PL,v 1.30 2005/06/09 17:06:25 sidz1979 Exp $)
+# (Last updated $Id: Makefile.PL,v 1.33 2005/09/17 11:00:39 sidz1979 Exp $)
 #
 # Generates the Makefile for the WordNet::Similarity CPAN modules. Requires
-# WordNet::QueryData (1.30 or above) be installed and be accessible via the
+# WordNet::QueryData (1.39 or above) be installed and be accessible via the
 # @INC list of paths. The WordNet data files also need to be accessed. The
 # WordNet home directory is determined from the WNHOME environment variable
-# (e.g. /usr/local/WordNet-2.0). If the WNHOME environment variable does not
+# (e.g. /usr/local/WordNet-2.1). If the WNHOME environment variable does not
 # exist, the WordNet home directory can be specified to Makefile.PL via the
 # WNHOME option. Example usage:
 #
-# perl Makefile.PL WNHOME=/usr/local/wordnet17
+# perl Makefile.PL WNHOME=/usr/local/wordnet21
 #
 # ----------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ END
     {
         print STDERR <<'EONL'
 The installation of WordNet::Similarity requires that WordNet and
-the WordNet::QueryData module (ver 1.30 or above) be installed on
+the WordNet::QueryData module (ver 1.39 or above) be installed on
 this machine and that the module be accessible via the @INC perl
 library paths.  Make sure these are installed before installing
 WordNet::Similarity.
@@ -40,7 +40,7 @@ environment variable has not been set, either set it, or specify the
 location of your WordNet installation using the WNHOME option.
 
   Example usage:
-  perl Makefile.PL WNHOME=/usr/local/WordNet-1.7.1
+  perl Makefile.PL WNHOME=/usr/local/WordNet-2.1
 
 EOT
     }
@@ -63,9 +63,10 @@ my %posMap;
 my %topHash;
 
 # Authors' names and email addresses
-my $author1 = "Siddharth Patwardhan <sidd at cs.utah.edu>";
-my $author2 = "Ted Pedersen <tpederse at d.umn.edu>";
-my $author3 = "Jason Michelizzi <mich0212 at d.umn.edu>";
+my $author1 = "Ted Pedersen <tpederse at d.umn.edu>";
+my $author2 = "Siddharth Patwardhan <sidd at cs.utah.edu>";
+my $author3 = "Satanjeev Banerjee <banerjee+ at cs.cmu.edu>";
+my $author4 = "Jason Michelizzi <mich0212 at d.umn.edu>";
 
 # tdp 12/16/03 renamed semCor1.7Freq.pl as semCorRaw.pl, and
 # semTagFreq.pl as semCorFreq.pl
@@ -103,7 +104,7 @@ foreach my $arg (@tmpArgs)
 # Write out the make file
 WriteMakefile(
               'NAME'         => 'WordNet::Similarity',
-              'PREREQ_PM'    => {'WordNet::QueryData' => '1.30',
+              'PREREQ_PM'    => {'WordNet::QueryData' => '1.39',
                                  'Text::Similarity'   => '0.02'},
               'CONFIGURE'    => \&configSub,
               'VERSION_FROM' => 'lib/WordNet/Similarity.pm', # finds $VERSION
@@ -112,7 +113,7 @@ WriteMakefile(
               'clean'        => {'FILES' => 'lib/WordNet/ic-semcor.dat lib/WordNet/wordvectors.dat lib/WordNet/*depths-*.dat'},
               ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
                ('ABSTRACT_FROM'   => 'lib/WordNet/Similarity.pm', # retrieve abstract from module
-                'AUTHOR'          => '$author1, $author2, $author3') : ())
+                'AUTHOR'          => '$author1, $author2, $author3, $author4') : ())
               );
 
 my $wnver = $wn->version();
@@ -205,8 +206,8 @@ EOFST
     }
     else
     {
-	$wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\2.0";
-	$wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-2.0";
+	$wnPCPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "C:\\Program Files\\WordNet\\2.1";
+	$wnUnixPath = (defined $ENV{"WNHOME"}) ? $ENV{"WNHOME"} : "/usr/local/WordNet-2.1";
 	$wnPCPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnPCPath."\\dict";
 	$wnUnixPath = (defined $ENV{"WNSEARCHDIR"}) ? $ENV{"WNSEARCHDIR"} : $wnUnixPath."/dict";
     }
@@ -359,7 +360,7 @@ EOFST
         # Generate wordvectors file:
         #
         system ($^X, "-Ilib", "utils/wordVectors.pl", 
-                "--compfile=samples/wn20compounds.txt",
+                "--compfile=samples/wn21compounds.txt",
                 "--stopfile=samples/stoplist.txt",
                 "--chigh=1000", "--clow=5", 
                 "--wnpath=$wndictpath", $wvfile);

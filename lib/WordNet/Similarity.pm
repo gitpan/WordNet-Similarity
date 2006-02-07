@@ -1,8 +1,9 @@
-# WordNet::Similarity.pm version 0.15
-# (Last updated $Id: Similarity.pm,v 1.37 2005/06/09 20:29:54 jmichelizzi Exp $)
+# WordNet::Similarity.pm version 1.01
+# (Last updated $Id: Similarity.pm,v 1.38 2005/09/17 10:44:13 sidz1979 Exp $)
 #
 # Module containing the version information and pod
-# for the WordNet::Similarity package.
+# for the WordNet::Similarity package, and all measures are
+# derived from this class.
 
 package WordNet::Similarity;
 
@@ -115,7 +116,7 @@ our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '0.15';
+$VERSION = '1.01';
 
 # a hash to contain the module-specific configuration options.
 our %config_options;
@@ -1080,17 +1081,17 @@ traces are turned off.
 
 =head1 AUTHORS
 
+  Ted Pedersen, University of Minnesota Duluth
+  tpederse at d.umn.edu
+
   Siddharth Patwardhan, University of Utah, Salt Lake City
   sidd at cs.utah.edu
-
-  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-  satanjee+ at cs.cmu.edu
 
   Jason Michelizzi, Univeristy of Minnesota Duluth
   mich0212 at d.umn.edu
 
-  Ted Pedersen, University of Minnesota Duluth
-  tpederse at d.umn.edu
+  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+  satanjee+ at cs.cmu.edu
 
 =head1 BUGS
 
@@ -1111,7 +1112,7 @@ WordNet::QueryData(3)
 
 http://www.cs.utah.edu/~sidd
 
-http://www.cogsci.princeton.edu/~wn
+http://wordnet.princeton.edu
 
 http://www.ai.mit.edu/~jrennie/WordNet
 
@@ -1120,8 +1121,7 @@ http://groups.yahoo.com/group/wn-similarity
 
 =head1 COPYRIGHT
 
-Copyright (C) 2003-2004, Siddharth Patwardhan, Jason Michelizzi, Satanjeev
-Banerjee, and Ted Pedersen
+Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Jason Michelizzi and Satanjeev Banerjee
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free

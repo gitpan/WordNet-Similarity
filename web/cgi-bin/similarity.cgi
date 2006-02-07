@@ -666,9 +666,9 @@ sub showPageEnd
 {
     print <<'ENDOFPAGE';
 <div class="footer">
-Created by Jason Michelizzi and Ted Pedersen
-<br />E-mail: mich0212 (at) d (dot) umn (dot) edu
- or tpederse (at) d (dot) umn (dot) edu
+Created by Ted Pedersen and Jason Michelizzi
+<br />E-mail: tpederse (at) d (dot) umn (dot) edu 
+ or mich0212 (at) d (dot) umn (dot) edu
 </div>
 </body>
 </html>
@@ -691,11 +691,11 @@ script and that one.
 
 =head1 AUTHORS
 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 @ d.umn.edu
-
  Ted Pedersen, University of Minnesota Duluth
- tpederse @ d.umn.edu
+ tpederse at d.umn.edu
+
+ Jason Michelizzi, University of Minnesota Duluth
+ mich0212 at d.umn.edu
 
 =head1 BUGS
 
@@ -703,7 +703,7 @@ None known.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2004, Jason Michelizzi and Ted Pedersen
+Copyright (c) 2005, Ted Pedersen and Jason Michelizzi
 
 This program is free software; you may redistribute and/or modify it under
 the terms of the GNU General Public License version 2 or, at your option, any
