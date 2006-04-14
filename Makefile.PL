@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for WordNet::Similarity
-# (Last updated $Id: Makefile.PL,v 1.33 2005/09/17 11:00:39 sidz1979 Exp $)
+# (Last updated $Id: Makefile.PL,v 1.34 2006/02/19 19:11:09 sidz1979 Exp $)
 #
 # Generates the Makefile for the WordNet::Similarity CPAN modules. Requires
 # WordNet::QueryData (1.39 or above) be installed and be accessible via the
@@ -76,7 +76,7 @@ my $author4 = "Jason Michelizzi <mich0212 at d.umn.edu>";
 my $short_tests = 't/access.t t/res.t t/lin.t t/jcn.t t/path.t t/lch.t';
 $short_tests .= ' t/wup.t t/lesk.t t/vector_pairs.t t/vector.t t/hso.t t/random.t t/config/rootnode.t';
 my $long_tests = 't/*.t t/config/*.t t/utils/*.t';
-my $basic_tests = 't/random.t t/hso.t t/path.t t/lesk.t';
+my $basic_tests = 't/random.t t/hso.t t/path.t t/lesk.t t/pod.t t/pod-coverage.t';
 my $stage2_tests = 't/lch.t t/wup.t t/config/rootnode.t t/res.t t/jcn.t t/lin.t';
 my $stage3_tests = 't/vector_pairs.t t/vector.t';
 my $stage_all = 't/access.t';

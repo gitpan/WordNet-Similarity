@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# similarity.pl version 1.01
-# (Last updated $Id: similarity.pl,v 1.17 2005/12/11 22:37:02 sidz1979 Exp $)
+# similarity.pl version 1.03
+# (Last updated $Id: similarity.pl,v 1.19 2006/04/05 20:15:41 sidz1979 Exp $)
 #
 # This program is a command line interface to WordNet::Similarity
 #
@@ -509,7 +509,7 @@ sub showHelp
     print "               'WordNet::Similarity::edge'   Simple edge-counts (inverted).\n";
     print "               'WordNet::Similarity::hso'    The Hirst St. Onge measure.\n";
     print "               'WordNet::Similarity::lch'    The Leacock Chodorow measure.\n";
-    print "               'WordNet::Similarity::lesk'   Adapted Lesk measure.\n";
+    print "               'WordNet::Similarity::lesk'   Extended Gloss Overlaps measure.\n";
     print "               'WordNet::Similarity::lin'    The Lin measure.\n";
     print "               'WordNet::Similarity::jcn'    The Jiang Conrath measure.\n";
     print "               'WordNet::Similarity::random' A random measure.\n";
@@ -564,7 +564,7 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "similarity.pl  version 1.01\n";
+    print "similarity.pl  version 1.03\n";
 
     # 12/8/2003 JM (#3)
     # Print version of module if the --type option was given.
@@ -609,9 +609,9 @@ work are denoted with a *):
    (4) Lin (1998) *
    (5) Hirst St-Onge (1998) *
    (6) Wu and Palmer (1994)
-   (7) Adapted Lesk (Banerjee & Pedersen, 2003)
+   (7) Extended Gloss Overlaps (Banerjee & Pedersen, 2003)
    (8) Edge Counting 
-   (9) Vector (Patwardhan, 2003)
+   (9) Gloss Vector (Patwardhan, 2003)
    (10) Random
 
 =head1 OPTIONS
@@ -622,12 +622,12 @@ B<--type>=I<type>
     WordNet::Similarity::edge - simple edge counting
     WordNet::Similarity::hso - Hirst & St-Onge (1998)
     WordNet::Similarity::lch - Leacock & Chodorow (1998)
-    WordNet::Similarity::lesk - Adapted Lesk (Pedersen & Banerjee 2003)
+    WordNet::Similarity::lesk - Extended Gloss Overlaps (Pedersen & Banerjee 2003)
     WordNet::Similarity::lin - Lin (1998)
     WordNet::Similarity::jcn - Jiang & Conrath (1997)
     WordNet::Similarity::random - returns random numbers
     WordNet::Similarity::res - Resnik (1995)
-    WordNet::Similarity::vector - context vector (Patwardhan 2003)
+    WordNet::Similarity::vector - Gloss Vector (Patwardhan 2003)
     WordNet::Similarity::wup - Wu & Palmer (1994)
 
 B<--config>=I<configfile>

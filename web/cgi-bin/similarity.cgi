@@ -194,7 +194,7 @@ elsif ($word1 and $word2) {
 	# terminate all messages with CRLF (best to avoid \r\n because the
 	# meaning of \r and \n varies from platform to platform
 	if ($measure eq 'all') {
-	    foreach my $m (qw/hso lch lesk lin jcn path res vector_pairs wup/) {
+	    foreach my $m (qw/hso lch lesk lin jcn path res vector vector_pairs wup/) {
 		print Server +("r $word1 $word2 $m $trace $gloss $syns $root",
 			       "\015\012");
 	    }
@@ -605,13 +605,14 @@ EOT
     my @measures = (['all', 'Use all measures'],
 		    ['hso', 'Hirst &amp; St-Onge'],
 		    ['lch', 'Leacock &amp; Chodorow'],
-		    ['lesk', 'Adapted Lesk'],
+		    ['lesk', 'Extended Gloss Overlaps'],
 		    ['lin', 'Lin'],
 		    ['jcn', 'Jiang &amp; Conrath'],
 		    ['path', 'Path length'],
 		    ['random', 'Random numbers'],
 		    ['res', 'Resnik'],
-		    ['vector_pairs', 'Context vector'],
+                    ['vector', 'Gloss Vector'],
+		    ['vector_pairs', 'Gloss Vector (pairwise)'],
 		    ['wup', 'Wu &amp; Palmer']);
 
     foreach (@measures) {

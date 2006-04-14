@@ -66,7 +66,7 @@ relatedness. The following strings are defined.
   WordNet::Similarity::res          The Resnik measure.
   WordNet::Similarity::lin          The Lin measure.
   WordNet::Similarity::hso          The Hirst St-Onge measure.
-  WordNet::Similarity::lesk         Adapted gloss overlap measure.
+  WordNet::Similarity::lesk         Extended gloss overlap measure.
   WordNet::Similarity::vector       Gloss Vector measure.
   WordNet::Similarity::vector_pairs Gloss Vector measure (pairwise).
   WordNet::Similarity::random       A random-number "measure".
@@ -286,7 +286,7 @@ traces.
 =item (5)
 
 Displaying the relatedness between the verb form of 'talk' and all
-parts of speech of 'speaker', with traces using the adapted gloss
+parts of speech of 'speaker', with traces using the extended gloss
 overlap measure.
 
 similarity.pl --type WordNet::Similarity::lesk --trace speaker talk#v
@@ -670,7 +670,7 @@ show this help message
 
 show version information
 
-=cut
+=back
 
 =head1 COPYRIGHT AND LICENSE
 

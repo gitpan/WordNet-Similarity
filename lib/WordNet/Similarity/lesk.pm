@@ -1,5 +1,5 @@
-# WordNet::Similarity::lesk.pm version 1.02
-# (Last updated $Id: lesk.pm,v 1.26 2006/02/07 02:52:11 sidz1979 Exp $)
+# WordNet::Similarity::lesk.pm version 1.03
+# (Last updated $Id: lesk.pm,v 1.28 2006/04/05 20:12:55 sidz1979 Exp $)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using an
@@ -55,7 +55,7 @@ use File::Spec;
 use WordNet::Similarity::GlossFinder;
 
 our @ISA = qw(WordNet::Similarity::GlossFinder);
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 WordNet::Similarity::addConfigOption ("normalize", 0, "i", 0);
 
@@ -132,6 +132,17 @@ sub initialize
     $self->{finder} = Text::OverlapFinder->new (@finder_args);
 }
 
+=item $lesk->traceOptions()
+
+This method is internally called to determine the extra options
+specified by this measure (apart from the default options specified
+in the WordNet::Similarity base class).
+
+Parameters: none.
+
+Returns: none.
+
+=cut 
 
 # 12/5/03 JM (#1)
 # show all config options specific to this module
@@ -144,8 +155,8 @@ sub traceOptions
 
 =item $lesk->getRelatedness
 
-Computes the relatedness of two word senses using the Adapted Lesk
-Algorithm.
+Computes the relatedness of two word senses using the Extended Gloss
+Overlaps algorithm.
 
 Parameters: two word senses in "word#pos#sense" format.
 

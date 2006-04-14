@@ -1,5 +1,5 @@
-# WordNet::Similarity::lch.pm version 1.01
-# (Last update $Id: lch.pm,v 1.22 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::lch.pm version 1.03
+# (Last update $Id: lch.pm,v 1.23 2006/02/19 19:11:09 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Leacock and Chodorow (1998).
@@ -45,13 +45,23 @@ of this scaled value.
 =cut
 
 use strict;
-
 use Exporter;
 use WordNet::Similarity::DepthFinder;
 
 our @ISA = qw/WordNet::Similarity::DepthFinder/;
 
-our $VERSION = '1.01';
+our $VERSION = '1.03';
+
+=item $lch->setPosList()
+
+This method is internally called to determine the parts of speech
+this measure is capable of dealing with.
+
+Parameters: none.
+
+Returns: none.
+
+=cut
 
 sub setPosList
 {

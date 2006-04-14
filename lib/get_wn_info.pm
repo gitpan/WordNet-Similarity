@@ -1,5 +1,5 @@
-# get_wn_info.pm version 1.01
-# (Last updated $Id: get_wn_info.pm,v 1.10 2005/12/11 22:37:02 sidz1979 Exp $)
+# get_wn_info.pm version 1.03
+# (Last updated $Id: get_wn_info.pm,v 1.11 2006/02/19 19:11:09 sidz1979 Exp $)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
@@ -34,6 +34,32 @@
 
 package get_wn_info;
 
+=head1 NAME
+
+get_wn_info - Provides access to glosses related to a concept in WordNet
+
+=head1 SYNOPSIS
+
+  use get_wn_info;
+
+  my $gwn = get_wn_info->new($wn, 0);
+
+  my $hypHash = $gwn->hype($synsHash, 0);
+
+  my $holHash = $gwn->holo($synsHash, 0);
+
+=head1 DESCRIPTION
+
+This module provides a layer between the user and the WordNet::QueryData
+module, by providing easy access to glosses and synsets related to 
+particular concpets in WordNet.
+
+=head2 Methods
+
+=over
+
+=cut
+
 use stem;
 use strict;
 use Exporter;
@@ -47,7 +73,17 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.01';
+$VERSION = '1.03';
+
+=item new
+
+Creates a new get_wn_info object.
+
+Parameters: $wn, $stemFlag
+
+Returns: $gwn
+
+=cut
 
 # function to set up the wordnet object and the various boundary indices
 sub new
@@ -87,6 +123,16 @@ sub new
 
     return $self;
 }
+
+=item hype
+
+Returns the hypernyms of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $hypeHash
+
+=cut
 
 # NOTE: Thanks to Wybo Wiersma for contributing optimizations
 #       in the following code.
@@ -131,6 +177,16 @@ sub hype
     return(\%newsynsetsh);
 }
 
+=item hypo
+
+Returns the hyponyms of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $hypoHash
+
+=cut
+
 # function to take a set of synsets and to return their
 # hyponyms. both input and output will be arrays of fully qualified
 # WordNet senses (in WORD#POS#SENSE format).
@@ -170,6 +226,16 @@ sub hypo
     # return the hyponyms in an hash ref
     return(\%hyponymHash);
 }
+
+=item holo
+
+Returns the holonyms of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $holoHash
+
+=cut
 
 # function to take a set of synsets and to return their
 # holonyms. both input and output will be arrays of fully qualified
@@ -211,6 +277,16 @@ sub holo
     return(\%holonymHash);
 }
 
+=item mero
+
+Returns the meronyms of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $meroHash
+
+=cut
+
 # function to take a set of synsets and to return their
 # meronyms. both input and output will be arrays of fully qualified
 # WordNet senses (in WORD#POS#SENSE format).
@@ -251,6 +327,16 @@ sub mero
     return(\%meronymHash);
 }
 
+=item attr
+
+Returns the attributes of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $attrHash
+
+=cut
+
 # function to take a set of synsets and to return their
 # attributes. both input and output will be arrays of fully qualified
 # WordNet senses (in WORD#POS#SENSE format).
@@ -289,6 +375,16 @@ sub attr
     # return the attrs in an hash ref 
     return(\%attrHash);
 }
+
+=item also
+
+Returns the also-see of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $alsoHash
+
+=cut
 
 # function to take a set of synsets and to return their also-see
 # synsets. both input and output will be arrays of fully qualified
@@ -329,6 +425,16 @@ sub also
     return(\%alsoSeeHash);
 }
 
+=item deri
+
+Returns the derived forms of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $deriHash
+
+=cut
+
 # function to take a set of words and to return their derived forms. 
 # both input and output will be arrays of fully qualified
 # WordNet senses (in WORD#POS#SENSE format).
@@ -358,6 +464,16 @@ sub deri
     }
     return(\%deriHash);
 }
+
+=item domn
+
+Returns the domains of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $domnHash
+
+=cut
 
 # function to take a set of synsets and to return their domain
 # synsets. both input and output will be arrays of fully qualified
@@ -389,6 +505,16 @@ sub domn
     return (\%domnHash);
 }
 
+=item domt
+
+Returns the domain terms of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $domtHash
+
+=cut
+
 # function to take a set of synsets and to return their domain term
 # synsets. both input and output will be arrays of fully qualified
 # WordNet senses (in WORD#POS#SENSE format).
@@ -419,6 +545,16 @@ sub domt
     return (\%domtHash);
 
 }
+
+=item sim
+
+Returns the similar-to synsets.
+
+Parameters: $synsHash, $ipType
+
+Returns: $simHash
+
+=cut
 
 # function to take a set of synsets and to return their similar-to
 # synsets. both input and output will be arrays of fully qualified
@@ -460,6 +596,16 @@ sub sim
     return(\%simHash);
 }
 
+=item enta
+
+Returns the entailment of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $entaHash
+
+=cut
+
 # function to take a set of synsets and to return their entailment
 # synsets. both input and output will be arrays of fully qualified
 # WordNet senses (in WORD#POS#SENSE format).
@@ -499,6 +645,16 @@ sub enta
     # return the causs in an hash ref 
     return(\%entailsHash);
 }
+
+=item caus
+
+Returns the cause of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $causHash
+
+=cut
 
 # function to take a set of synsets and to return their cause
 # synsets. both input and output will be arrays of fully qualified
@@ -540,6 +696,16 @@ sub caus
     return(\%causeHash);
 }
 
+=item part
+
+Returns the participles of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $partHash
+
+=cut
+
 # function to take a set of synsets and to return their participle
 # synsets. both input and output will be arrays of fully qualified
 # WordNet senses (in WORD#POS#SENSE format).
@@ -580,6 +746,16 @@ sub part
     return(\%partHash);
 }
 
+=item pert
+
+Returns the pertainyms of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $pertHash
+
+=cut
+
 # function to take a set of synsets and to return their pertainym
 # synsets. both input and output will be arrays of fully qualified
 # WordNet senses (in WORD#POS#SENSE format).
@@ -619,6 +795,16 @@ sub pert
     # return the causs in an hash ref 
     return(\%pertHash);
 }
+
+=item glos
+
+Returns the gloss of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $glossString
+
+=cut
 
 # function to take a set of synsets and to return the concatenation of
 # their glosses
@@ -689,6 +875,16 @@ sub glos
     # and we are done!
     return($returnString);
 }
+
+=item example
+
+Returns the example of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $example
+
+=cut
 
 # function to take a set of synsets and to return the concatenation of
 # their example strings
@@ -776,6 +972,16 @@ sub example
     return($returnString);
 }
 
+=item syns
+
+Returns the words in the synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $wordString
+
+=cut
+
 # function to take a set of synsets and to return the concatenation of
 # all the words in them. repeated words are returned only once. 
 sub syns
@@ -834,6 +1040,18 @@ sub syns
     # and we are done!
     return($returnString);
 }
+
+=item glosexample
+
+Returns the gloss and example of a synset.
+
+Parameters: $synsHash, $ipType
+
+Returns: $glosExampleString
+
+=back
+
+=cut
 
 # function to take a set of synsets and to return the concatenation of
 # their glosses (including the examples)
@@ -903,3 +1121,59 @@ sub glosexample
 }
 
 1;
+
+__END__
+
+=head1 SEE ALSO
+
+perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
+
+http://www.cs.utah.edu/~sidd
+
+http://wordnet.princeton.edu
+
+http://www.ai.mit.edu/~jrennie/WordNet
+
+http://groups.yahoo.com/group/wn-similarity
+
+=head1 AUTHORS
+
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse at d.umn.edu
+
+ Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+ banerjee+ at cs.cmu.edu
+
+=head1 BUGS
+
+None.
+
+To report bugs, go to http://groups.yahoo.com/group/wn-similarity/ or
+e-mail "S<tpederse at d.umn.edu>".
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2005, Ted Pedersen and Satanjeev Banerjee
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to
+
+   The Free Software Foundation, Inc.,
+   59 Temple Place - Suite 330,
+   Boston, MA  02111-1307, USA.
+
+Note: a copy of the GNU General Public License is available on the web
+at L<http://www.gnu.org/licenses/gpl.txt> and is included in this
+distribution as GPL.txt.
+
+=cut

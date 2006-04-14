@@ -1,5 +1,5 @@
-# WordNet::Similarity::hso.pm version 1.01
-# (Last updated $Id: hso.pm,v 1.13 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::hso.pm version 1.03
+# (Last updated $Id: hso.pm,v 1.14 2006/02/19 19:11:09 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Hirst and St-Onge (1998).
@@ -58,7 +58,18 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-our $VERSION = '1.01';
+our $VERSION = '1.03';
+
+=item $hso->setPosList()
+
+This method is internally called to determine the parts of speech
+this measure is capable of dealing with.
+
+Parameters: none.
+
+Returns: none.
+
+=cut
 
 sub setPosList
 {
@@ -228,12 +239,12 @@ sub getRelatedness
     return 16;
   }
 
-  my @horiz1 = &getHorizontalOffsetsPOS($self->{wn}, $offset1);
-  my @upward1 = &getUpwardOffsetsPOS($self->{wn}, $offset1);
-  my @downward1 = &getDownwardOffsetsPOS($self->{wn}, $offset1);
-  my @horiz2 = &getHorizontalOffsetsPOS($self->{wn}, $offset2);
-  my @upward2 = &getUpwardOffsetsPOS($self->{wn}, $offset2);
-  my @downward2 = &getDownwardOffsetsPOS($self->{wn}, $offset2);
+  my @horiz1 = &_getHorizontalOffsetsPOS($self->{wn}, $offset1);
+  my @upward1 = &_getUpwardOffsetsPOS($self->{wn}, $offset1);
+  my @downward1 = &_getDownwardOffsetsPOS($self->{wn}, $offset1);
+  my @horiz2 = &_getHorizontalOffsetsPOS($self->{wn}, $offset2);
+  my @upward2 = &_getUpwardOffsetsPOS($self->{wn}, $offset2);
+  my @downward2 = &_getDownwardOffsetsPOS($self->{wn}, $offset2);
 
   # [trace]
   if($self->{trace}) {
@@ -265,7 +276,7 @@ sub getRelatedness
   }
   # [/trace]
 
-  if(&isIn($offset1, @horiz2) || &isIn($offset2, @horiz1)) {
+  if(&_isIn($offset1, @horiz2) || &_isIn($offset2, @horiz1)) {
     # [trace]
     if($self->{trace}) {
       $self->{traceString} .= "Strong Rel (Horizontal Match) : \n";
@@ -286,7 +297,7 @@ sub getRelatedness
   }
 
   if($word1 =~ /$word2/ || $word2 =~ /$word1/) {
-    if(&isIn($offset1, @upward2) || &isIn($offset1, @downward2)) {
+    if(&_isIn($offset1, @upward2) || &_isIn($offset1, @downward2)) {
       # [trace]
       if($self->{trace}) {
 	$self->{traceString} .= "Strong Rel (Compound Word Match) : \n";
@@ -302,7 +313,7 @@ sub getRelatedness
       return 16;
     }
 
-    if(&isIn($offset2, @upward1) || &isIn($offset2, @downward1)) {
+    if(&_isIn($offset2, @upward1) || &_isIn($offset2, @downward1)) {
       # [trace]
       if($self->{trace}) {
 	$self->{traceString} .= "Strong Rel (Compound Word Match) : \n";
@@ -331,7 +342,7 @@ sub getRelatedness
 # INPUT PARAMS  : $wn      .. WordNet::QueryData object.
 #                 $offset  .. An offset-pos (e.g. 637554v)
 # RETURN VALUES : @offsets .. Array of offset-pos (e.g. 736438n)
-sub getHorizontalOffsetsPOS
+sub _getHorizontalOffsetsPOS
 {
     my $wn;
     my $offset;
@@ -379,7 +390,7 @@ sub getHorizontalOffsetsPOS
 # INPUT PARAMS  : $wn       .. WordNet::QueryData object.
 #                 $offset   .. OffsetPOS of the synset.
 # RETURN VALUES : @offsets  .. Array of offsetPOSs.
-sub getUpwardOffsetsPOS
+sub _getUpwardOffsetsPOS
 {
     my $wn;
     my $offset;
@@ -424,7 +435,7 @@ sub getUpwardOffsetsPOS
 # INPUT PARAMS  : $wn       .. WordNet::QueryData object.
 #                 $offset   .. OffsetPOS of the synset.
 # RETURN VALUES : @offsets  .. Array of offsetPOSs.
-sub getDownwardOffsetsPOS
+sub _getDownwardOffsetsPOS
 {
     my $wn;
     my $offset;
@@ -470,7 +481,7 @@ sub getDownwardOffsetsPOS
 # INPUT PARAMS  : $offset, @offsets .. The offset and the set of
 #                                      offsets.
 # RETURN VALUES : 0 or 1.
-sub isIn
+sub _isIn
 {
   my $op1;
   my @op2;
@@ -545,9 +556,9 @@ sub _medStrong
     }
     if($state == 0)
     {
-	@horiz = &getHorizontalOffsetsPOS($self->{'wn'}, $from);
-	@upward = &getUpwardOffsetsPOS($self->{'wn'}, $from);
-	@downward = &getDownwardOffsetsPOS($self->{'wn'}, $from);
+	@horiz = &_getHorizontalOffsetsPOS($self->{'wn'}, $from);
+	@upward = &_getUpwardOffsetsPOS($self->{'wn'}, $from);
+	@downward = &_getDownwardOffsetsPOS($self->{'wn'}, $from);
 	$retU = 0;
 	foreach $synset (@upward)
 	{
@@ -572,9 +583,9 @@ sub _medStrong
     }
     if($state == 1)
     {
-	@horiz = &getHorizontalOffsetsPOS($self->{'wn'}, $from);
-	@upward = &getUpwardOffsetsPOS($self->{'wn'}, $from);
-	@downward = &getDownwardOffsetsPOS($self->{'wn'}, $from);
+	@horiz = &_getHorizontalOffsetsPOS($self->{'wn'}, $from);
+	@upward = &_getUpwardOffsetsPOS($self->{'wn'}, $from);
+	@downward = &_getDownwardOffsetsPOS($self->{'wn'}, $from);
 	$retU = 0;
 	foreach $synset (@upward)
 	{
@@ -599,8 +610,8 @@ sub _medStrong
     }
     if($state == 2)
     {
-	@horiz = &getHorizontalOffsetsPOS($self->{'wn'}, $from);
-	@downward = &getDownwardOffsetsPOS($self->{'wn'}, $from);
+	@horiz = &_getHorizontalOffsetsPOS($self->{'wn'}, $from);
+	@downward = &_getDownwardOffsetsPOS($self->{'wn'}, $from);
 	$retD = 0;
 	foreach $synset (@downward)
 	{
@@ -617,8 +628,8 @@ sub _medStrong
     }
     if($state == 3)
     {
-	@horiz = &getHorizontalOffsetsPOS($self->{'wn'}, $from);
-	@downward = &getDownwardOffsetsPOS($self->{'wn'}, $from);
+	@horiz = &_getHorizontalOffsetsPOS($self->{'wn'}, $from);
+	@downward = &_getDownwardOffsetsPOS($self->{'wn'}, $from);
 	$retD = 0;
 	foreach $synset (@downward)
 	{
@@ -635,7 +646,7 @@ sub _medStrong
     }
     if($state == 4)
     {
-	@downward = &getDownwardOffsetsPOS($self->{'wn'}, $from);
+	@downward = &_getDownwardOffsetsPOS($self->{'wn'}, $from);
 	$retD = 0;
 	foreach $synset (@downward)
 	{
@@ -646,8 +657,8 @@ sub _medStrong
     }
     if($state == 5)
     {
-	@horiz = &getHorizontalOffsetsPOS($self->{'wn'}, $from);
-	@downward = &getDownwardOffsetsPOS($self->{'wn'}, $from);
+	@horiz = &_getHorizontalOffsetsPOS($self->{'wn'}, $from);
+	@downward = &_getDownwardOffsetsPOS($self->{'wn'}, $from);
 	$retD = 0;
 	foreach $synset (@downward)
 	{
@@ -664,7 +675,7 @@ sub _medStrong
     }
     if($state == 6)
     {
-	@horiz = &getHorizontalOffsetsPOS($self->{'wn'}, $from);
+	@horiz = &_getHorizontalOffsetsPOS($self->{'wn'}, $from);
 	$retH = 0;
 	foreach $synset (@horiz)
 	{
@@ -675,7 +686,7 @@ sub _medStrong
     }
     if($state == 7)
     {
-	@downward = &getDownwardOffsetsPOS($self->{'wn'}, $from);
+	@downward = &_getDownwardOffsetsPOS($self->{'wn'}, $from);
 	$retD = 0;
 	foreach $synset (@downward)
 	{
@@ -688,6 +699,7 @@ sub _medStrong
 }
 
 1;
+
 __END__
 
 =back

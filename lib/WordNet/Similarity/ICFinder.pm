@@ -1,5 +1,5 @@
-# WordNet::Similarity::ICFinder.pm version 1.01
-# (Last updated $Id: ICFinder.pm,v 1.14 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::ICFinder.pm version 1.03
+# (Last updated $Id: ICFinder.pm,v 1.15 2006/04/14 07:58:26 sidz1979 Exp $)
 #
 # A generic (and abstract) information content measure--this is not a
 # real measure.  The res, lin, and jcn measures inherit from this class.
@@ -96,7 +96,7 @@ use WordNet::Similarity::PathFinder;
 
 our @ISA = qw/WordNet::Similarity::PathFinder/;
 
-our $VERSION = '1.01';
+our $VERSION = '1.03';
 
 WordNet::Similarity::addConfigOption ('infocontent', 0, 'p', undef);
 
@@ -127,26 +127,24 @@ then $mode must be 'offset'.
 
 sub probability {
   my $self = shift;
-  my $con = shift;
-  my $pos = shift;
+  my $wn = $self->{wn};
+  my ($offset, $pos, $mode) = @_;
+
+  $offset = $wn->offset($offset) if(defined($mode) && $mode eq 'wps');
+
   my $class = ref $self || $self;
 
   my $rootFreq = $self->{offsetFreq}->{$pos}->{0};
-  my $conFreq = $self->{offsetFreq}->{$pos}->{$con};
-  if($rootFreq && defined $conFreq) {
-    if($conFreq <= $rootFreq) {
-      return $conFreq / $rootFreq;
+  my $offFreq = $self->{offsetFreq}->{$pos}->{$offset};
+  if($rootFreq && defined $offFreq) {
+    if($offFreq <= $rootFreq) {
+      return $offFreq / $rootFreq;
     }
-    else {
-      $self->{errorString} .= "\nError (${class}::probability()) - ";
-      $self->{errorString} .= "Probability greater than 1? (Check information content file)";
-      $self->{error} = 2;
-      return 0;
-    }
+    $self->{errorString} .= "\nError (${class}::probability()) - ";
+    $self->{errorString} .= "Probability greater than 1? (Check information content file)";
+    $self->{error} = 2;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 
@@ -161,10 +159,13 @@ then $mode must be 'wps'; if $synset is an offset, then $mode must be
 sub IC
 {
   my $self = shift;
-  my $offset = shift;
-  my $pos = shift;
+  my $wn = $self->{wn};
+  my ($offset, $pos, $mode) = @_;
+
+  $offset = $wn->offset($offset) if(defined($mode) && $mode eq 'wps');
+
   if($pos =~ /[nv]/) {
-    my $prob = $self->probability($offset, $pos);
+    my $prob = $self->probability($offset, $pos, 'offset');
     return ($prob > 0) ? -log($prob) : 0;
   }
   return 0;

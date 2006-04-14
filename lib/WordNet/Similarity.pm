@@ -1,5 +1,5 @@
-# WordNet::Similarity.pm version 1.01
-# (Last updated $Id: Similarity.pm,v 1.38 2005/09/17 10:44:13 sidz1979 Exp $)
+# WordNet::Similarity.pm version 1.03
+# (Last updated $Id: Similarity.pm,v 1.40 2006/04/05 20:12:54 sidz1979 Exp $)
 #
 # Module containing the version information and pod
 # for the WordNet::Similarity package, and all measures are
@@ -80,7 +80,6 @@ The following function is defined:
 
 =cut
 
-
 use strict;
 use Carp;
 use Exporter;
@@ -90,11 +89,9 @@ use Exporter;
 #  print "Root: ".ROOT."\n";     # right
 #  m/ROOT/;                      # wrong!
 #  $pattern = ROOT; m/$pattern/; #okay
-use constant {
-  ROOT => "*Root*",
-  ROOT_N => "*Root*#n#1",
-  ROOT_V => "*Root*#v#1",
-};
+use constant ROOT => "*Root*";
+use constant ROOT_N => "*Root*#n#1";
+use constant ROOT_V => "*Root*#v#1";
 
 # JM 12/9/03
 # we would like this to be numeric
@@ -116,7 +113,7 @@ our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.01';
+$VERSION = '1.03';
 
 # a hash to contain the module-specific configuration options.
 our %config_options;
@@ -744,6 +741,17 @@ sub validateSynset
   return ($word, $pos, $sense, $offset);
 }
 
+=item $obj->getRelatedness($synset1, $synset2)
+
+parameters: synset1, synset2
+
+returns: a relatedness score
+
+This is a virtual method. It must be overridden by a module that
+is derived from this class. This method takes two synsets and 
+returns a numeric value as their score of relatedness.
+
+=cut
 
 sub getRelatedness {
   my $self = shift;
@@ -932,11 +940,11 @@ __END__
 This package consists of Perl modules along with supporting Perl programs
 that implement the semantic relatedness measures described by Leacock Chodorow
 (1998), Jiang Conrath (1997), Resnik (1995), Lin (1998), Wu Palmer (1993),
-Hirst St-Onge (1998) the adapted Lesk measure by Banerjee and Pedersen (2002)
-and a Context Vector measure recently introduced by Patwardhan and Pedersen.
-The package contains Perl modules designed as object classes with methods that 
-take as input two word senses. The semantic distance between these word 
-senses is returned by these methods. A quantitative measure of the degree 
+Hirst St-Onge (1998) the Extended Gloss Overlaps measure by Banerjee and 
+Pedersen (2002) and a Gloss Vector measure recently introduced by Patwardhan 
+and Pedersen. The package contains Perl modules designed as object classes with
+methods that take as input two word senses. The semantic distance between these
+word senses is returned by these methods. A quantitative measure of the degree 
 to which two word senses are related has wide ranging applications in 
 numerous areas, such as word sense disambiguation, information retrieval,
 etc. For example, in order to determine which sense of a given word is being 

@@ -10,7 +10,68 @@ is released.
 
 =head1 DESCRIPTION
 
-=head2 Version 1.02
+=head2 Version 1.03
+
+=over
+
+=item *
+
+04/14/06
+
+=over
+
+=item (1)
+
+Applied Ben Haskell's path to ICFinder.pm (to make the behaviour of the
+probability() and IC() functions consistent with their comments).
+
+=back
+
+=item *
+
+04/05/06
+
+=over
+
+=item (1)
+
+Updated the names for the Extended Gloss Overlaps measure and the Gloss
+Vector measure in the documentation. (Sid)
+
+=back
+
+=item *
+
+02/19/06
+
+=over
+
+=item (1)
+
+Updated PODs for all modules. (Sid)
+
+=item (2)
+
+Added tests for POD errors and for POD coverage. (Sid)
+
+=back
+
+=item *
+
+03/31/06
+
+=over
+
+=item (1)
+
+Changed "hash-style" constants (Perl v5.8) to single line constants (Perl v5.6)
+for compatibility with Perl v5.6.0. (Sid)
+
+=back
+
+=back
+
+=head2 Version 1.02 (Released 02/07/2006)
 
 =over
 

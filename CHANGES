@@ -7,7 +7,30 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
-  Version 1.02
+  Version 1.03
+    *   04/14/06
+
+        (1) Applied Ben Haskell's path to ICFinder.pm (to make the behaviour
+            of the probability() and IC() functions consistent with their
+            comments).
+
+    *   04/05/06
+
+        (1) Updated the names for the Extended Gloss Overlaps measure and
+            the Gloss Vector measure in the documentation. (Sid)
+
+    *   02/19/06
+
+        (1) Updated PODs for all modules. (Sid)
+
+        (2) Added tests for POD errors and for POD coverage. (Sid)
+
+    *   03/31/06
+
+        (1) Changed "hash-style" constants (Perl v5.8) to single line
+            constants (Perl v5.6) for compatibility with Perl v5.6.0. (Sid)
+
+  Version 1.02 (Released 02/07/2006)
     *   02/06/06
 
         (1) Added utility rankFormat.pl for ranking the output of

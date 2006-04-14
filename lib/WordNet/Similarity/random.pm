@@ -1,5 +1,5 @@
-# WordNet::Similarity::random.pm version 1.01
-# (Last updated $Id: random.pm,v 1.13 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::random.pm version 1.03
+# (Last updated $Id: random.pm,v 1.14 2006/02/19 19:11:09 sidz1979 Exp $)
 #
 # Random semantic distance generator module.
 
@@ -56,9 +56,20 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.01';
+$VERSION = '1.03';
 
 WordNet::Similarity::addConfigOption ('maxrand', 1, 'f', 1.0);
+
+=item $random->setPosList()
+
+This method is internally called to determine the parts of speech
+this measure is capable of dealing with.
+
+Parameters: none.
+
+Returns: none.
+
+=cut
 
 sub setPosList
 {
@@ -68,6 +79,17 @@ sub setPosList
   $self->{a} = 1;
   $self->{r} = 1;
 }
+
+=item $random->initialize($file)
+
+Overrides the initialize method in the parent class. This method
+essentially initializes the measure for use.
+
+Parameters: $file -- configuration file.
+
+Returns: none.
+
+=cut 
 
 # Initialization of the WordNet::Similarity::random object... parses the config file and sets up
 # global variables, or sets them to default values.
@@ -121,6 +143,18 @@ sub getRelatedness
   return $score;
 }
 
+=item $random->traceOptions()
+
+This method is internally called to determine the extra options
+specified by this measure (apart from the default options specified
+in the WordNet::Similarity base class).
+
+Parameters: none.
+
+Returns: none.
+
+=cut 
+
 # 12/5/03 JM (#1)
 # show all config options specific to this module
 sub traceOptions {
@@ -130,6 +164,7 @@ sub traceOptions {
 }
 
 1;
+
 __END__
 
 =back

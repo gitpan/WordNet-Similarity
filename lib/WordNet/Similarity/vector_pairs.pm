@@ -1,5 +1,5 @@
-# WordNet::Similarity::vector_pairs.pm version 1.01
-# (Last updated $Id: vector_pairs.pm,v 1.6 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::vector_pairs.pm version 1.03
+# (Last updated $Id: vector_pairs.pm,v 1.7 2006/02/19 19:11:09 sidz1979 Exp $)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using a
@@ -71,7 +71,7 @@ use File::Spec;
 use vars qw($VERSION @ISA);
 
 @ISA = qw(WordNet::Similarity::GlossFinder);
-$VERSION = '1.01';
+$VERSION = '1.03';
 
 WordNet::Similarity::addConfigOption("vectordb", 0, "p", undef);
 
@@ -215,6 +215,17 @@ sub initialize
     }
 }
 
+=item $measure->traceOptions()
+
+This method is internally called to determine the extra options
+specified by this measure (apart from the default options specified
+in the WordNet::Similarity base class).
+
+Parameters: none.
+
+Returns: none.
+
+=cut 
 
 # show all config options specific to this module
 sub traceOptions 

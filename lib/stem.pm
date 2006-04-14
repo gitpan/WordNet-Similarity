@@ -1,5 +1,5 @@
-# stem.pm version 1.01
-# (Last updated $Id: stem.pm,v 1.6 2005/12/11 22:37:02 sidz1979 Exp $)
+# stem.pm version 1.03
+# (Last updated $Id: stem.pm,v 1.7 2006/02/19 19:11:09 sidz1979 Exp $)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
@@ -34,10 +34,37 @@
 
 package stem;
 
+=head1 NAME
+
+stem - Module that find the stem of a word or the stems of a string 
+of words, using WordNet.
+
+=head1 SYNOPSIS
+
+  use stem;
+
+  my $wn = WordNet::QueryData->new();
+
+  my $stemmer = stem->new($wn)
+
+  my @stems = $stemmer->stemWord($word);
+
+  my $string = $stemmer->stemString($inString, $cache);
+
+=head1 DESCRIPTION
+
+This module uses the internal stemming algorithm of WordNet to
+stem words and strings of words. This module is used by the
+lesk measure of the WordNet::Similarity package.
+
+=head2 Methods
+
+=over
+
+=cut
+
 use strict;
-
 use Exporter;
-
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @ISA = qw(Exporter);
@@ -48,9 +75,20 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.01';
+$VERSION = '1.03';
 
-# function to set up the wordnet object.
+=item new
+
+Creates a new stemmer object and initilizes it with a 
+WordNet::QueryData object.
+
+Parameters: $wn
+
+Returns: $stemmer
+
+=cut
+
+# function to create the stemmer object
 sub new
 {
     my $className = shift;
@@ -65,6 +103,16 @@ sub new
     return $self;
 }
 
+=item stemString
+
+Takes a string of words as input and returns a string of stemmed words.
+
+Parameters: $inString
+
+Returns: $retString
+
+=cut
+
 # Function to take a string, and process it in such a way that all the
 # words in it get stemmed. Note that if a single word has two or more
 # possible stems, we return the original surface form since there is
@@ -72,7 +120,6 @@ sub new
 # can be cached if requested. Useful if the calling function knows
 # which strings it will have to stem over and over again. Strings that
 # will be only stemmed ones need not be cached - thereby saving space.
-
 sub stemString
 {
     my $self = shift;
@@ -103,11 +150,23 @@ sub stemString
     return($outputString);
 }
 
+=item stemWord
+
+Takes a word as input and returns its stems. A word may have more than
+one stem. All are returned.
+
+Parameters: $word
+
+Returns: @stems
+
+=back
+
+=cut
+
 # stem the word passed to this function and return an array of words
 # that contain all the possible stems of this word. All possible stems
 # of the word may include the surface form too if its a valid WordNet
 # lemma.
-
 sub stemWord
 {
     my $self = shift;
@@ -149,3 +208,58 @@ sub stemWord
 
 1;
 
+__END__
+
+=head1 SEE ALSO
+
+perl(1), WordNet::Similarity(3), WordNet::QueryData(3)
+
+http://www.cs.utah.edu/~sidd
+
+http://wordnet.princeton.edu
+
+http://www.ai.mit.edu/~jrennie/WordNet
+
+http://groups.yahoo.com/group/wn-similarity
+
+=head1 AUTHORS
+
+ Ted Pedersen, University of Minnesota Duluth
+ tpederse at d.umn.edu
+
+ Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+ banerjee+ at cs.cmu.edu
+
+=head1 BUGS
+
+None.
+
+To report bugs, go to http://groups.yahoo.com/group/wn-similarity/ or
+e-mail "S<tpederse at d.umn.edu>".
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2005, Ted Pedersen and Satanjeev Banerjee
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to
+
+   The Free Software Foundation, Inc.,
+   59 Temple Place - Suite 330,
+   Boston, MA  02111-1307, USA.
+
+Note: a copy of the GNU General Public License is available on the web
+at L<http://www.gnu.org/licenses/gpl.txt> and is included in this
+distribution as GPL.txt.
+
+=cut

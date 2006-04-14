@@ -371,6 +371,8 @@ t/pairs.t
 t/pairs.txt
 t/path.t
 t/PathFinder.t
+t/pod.t
+t/pod-coverage.t
 t/random.t
 t/README
 t/res.t

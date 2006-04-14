@@ -15,7 +15,7 @@ DESCRIPTION
     This package consists of Perl modules along with supporting Perl
     programs that implement the semantic relatedness measures described by
     Leacock & Chodorow (1998), Jiang & Conrath (1997), Resnik (1995), Lin
-    (1998), Hirst & St-Onge (1998), Wu & Palmer (1994), the adapted gloss
+    (1998), Hirst & St-Onge (1998), Wu & Palmer (1994), the extended gloss
     overlap measure by Banerjee and Pedersen (2002), and two measures based
     on context vectors by Patwardhan (2003). The details of the vector
     measure are described in the Master's thesis work of Patwardhan (2003)
@@ -132,7 +132,7 @@ ACKNOWLEDGEMENTS
     QueryData package, the WordNet guys at Princeton for WordNet, Resnik,
     Hirst, St-Onge, Jiang, Conrath, Lin, Wu, Palmer, Leacock, and Chodorow
     for their algorithms and work on the relatedness measures. We also thank
-    Bano (Satanjeev Banerjee) for his work on the adapted gloss overlap
+    Bano (Satanjeev Banerjee) for his work on the extended gloss overlap
     module. We are grateful to Wybo Wiersma for contributing his
     optimizations to the GlossFinder code.
 
@@ -143,11 +143,11 @@ REFERENCES
 
     2   Resnik P. 1995. Using information content to evaluate semantic
         similarity. In Proceedings of the 14th International Joint
-        Conference on Artificial Intelligence, pages 448-453, Montreal.
+        Conference on Artificial Intelligence, pages 448-453. Montreal.
 
     3   Jiang J. and Conrath D. 1997. Semantic similarity based on corpus
         statistics and lexical taxonomy. In Proceedings of International
-        Conference on Research in Computational Linguistics, Taiwan.
+        Conference on Research in Computational Linguistics. Taiwan.
 
     4   Fellbaum C., editor. WordNet: An electronic lexical database. MIT
         Press, 1998.
@@ -158,7 +158,7 @@ REFERENCES
 
     6   Lin D. 1998. An information-theoretic definition of similarity. In
         Proceedings of the 15th International Conference on Machine
-        Learning, Madison, WI.
+        Learning. Madison, WI.
 
     7   Hirst G. and St-Onge D. 1998. Lexical Chains as representations of
         context for the detection and correction of malapropisms. In
@@ -186,13 +186,24 @@ REFERENCES
     12  Patwardhan S., Banerjee S. and Pedersen T. 2002. Using Semantic
         Relatedness for Word Sense Disambiguation. In Proceedings of the
         Fourth International Conference on Intelligent Text Processing and
-        Computational Linguistics, Mexico City.
+        Computational Linguistics. Mexico City.
 
-    13  Banerjee S. Adapting the Lesk algorithm for word sense
+    13  Banerjee S. and Pedersen T. 2003. Extended Gloss Overlaps as a
+        Measure of Semantic Relatedness. In the Proceedings of the
+        Eighteenth International Joint Conference on Artificial
+        Intelligence. Acapulco, Mexico.
+
+    14  Patwardhan S. and Pedersen T. 2006. Using WordNet-based Context
+        Vectors to Estimate the Semantic Relatedness of Concepts. In the
+        Proceedings of the EACL 2006 Workshop Making Sense of Sense -
+        Bringing Computational Linguistics and Psycholinguistics Together.
+        Trento, Italy.
+
+    15  Banerjee S. Adapting the Lesk algorithm for word sense
         disambiguation to WordNet. Master Thesis, University of Minnesota,
         Duluth, 2002.
 
-    14  Patwardhan S. Incorporating dictionary and corpus information into a
+    16  Patwardhan S. Incorporating dictionary and corpus information into a
         vector measure of semantic relatedness. Master Thesis, University of
         Minnesota, Duluth, 2003.
 

@@ -1,5 +1,5 @@
-# WordNet::Similarity::vector.pm version 1.01
-# (Last updated $Id: vector.pm,v 1.20 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::vector.pm version 1.03
+# (Last updated $Id: vector.pm,v 1.21 2006/02/19 19:11:09 sidz1979 Exp $)
 #
 # Module accepts two WordNet synsets and returns a floating point
 # number that indicates how similar those two synsets are, using a
@@ -55,7 +55,7 @@ use vars qw($VERSION @ISA);
 
 @ISA = qw(WordNet::Similarity);
 
-$VERSION = '1.01';
+$VERSION = '1.03';
 
 WordNet::Similarity::addConfigOption("relation", 0, "p", undef);
 WordNet::Similarity::addConfigOption("vectordb", 0, "p", undef);
@@ -63,6 +63,17 @@ WordNet::Similarity::addConfigOption("stop", 0, "p", undef);
 WordNet::Similarity::addConfigOption("stem", 0, "i", 0);
 WordNet::Similarity::addConfigOption("compounds", 0, "p", undef);
 WordNet::Similarity::addConfigOption("textsize", 0, "i", "-1");
+
+=item $vector->setPosList()
+
+This method is internally called to determine the parts of speech
+this measure is capable of dealing with.
+
+Parameters: none.
+
+Returns: none.
+
+=cut
 
 sub setPosList
 {
@@ -73,6 +84,17 @@ sub setPosList
   $self->{r} = 1;
   return 1;
 }
+
+=item $vector->initialize($file)
+
+Overrides the initialize method in the parent class (GlossFinder.pm). This method
+essentially initializes the measure for use.
+
+Parameters: $file -- configuration file.
+
+Returns: none.
+
+=cut 
 
 # Initialization of the WordNet::Similarity::vector object... parses the config file and sets up
 # global variables, or sets them to default values.
@@ -409,6 +431,18 @@ sub initialize
 
     $self->{textsize} = -1 if(!defined $self->{textsize});
 }
+
+=item $vector->traceOptions()
+
+This method is internally called to determine the extra options
+specified by this measure (apart from the default options specified
+in the WordNet::Similarity base class).
+
+Parameters: none.
+
+Returns: none.
+
+=cut 
 
 # show all config options specific to this module
 sub traceOptions {
