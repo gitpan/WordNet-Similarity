@@ -1,4 +1,4 @@
-# WordNet::Similarity::vector_pairs.pm version 1.03
+# WordNet::Similarity::vector_pairs.pm version 1.04
 # (Last updated $Id: vector_pairs.pm,v 1.7 2006/02/19 19:11:09 sidz1979 Exp $)
 #
 # Module to accept two WordNet synsets and to return a floating point
@@ -71,7 +71,7 @@ use File::Spec;
 use vars qw($VERSION @ISA);
 
 @ISA = qw(WordNet::Similarity::GlossFinder);
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 WordNet::Similarity::addConfigOption("vectordb", 0, "p", undef);
 
@@ -346,7 +346,6 @@ sub getRelatedness
 		$funcStringPrinted = 1;
 	    }
 	}
-        $i++;
     }
 
     # Average the score...

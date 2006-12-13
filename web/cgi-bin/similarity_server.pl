@@ -106,6 +106,7 @@ use WordNet::Similarity::lin;
 use WordNet::Similarity::path;
 use WordNet::Similarity::random;
 use WordNet::Similarity::res;
+use WordNet::Similarity::vector;
 use WordNet::Similarity::vector_pairs;
 use WordNet::Similarity::wup;
 
@@ -127,7 +128,7 @@ close FH;
 our $lesk = WordNet::Similarity::lesk->new ($wn, $leskcfg);
 unlink $leskcfg;
 
-my $vectorcfg = "vector$$.cfg";
+my $vectorcfg = "vectorpairs$$.cfg";
 open VFH, '>', $vectorcfg or die "Cannot open $vectorcfg for writing: $!";
 print VFH "WordNet::Similarity::vector_pairs\n";
 print VFH "stop::$stoplist\n" if -e 'stoplist.txt';
@@ -136,7 +137,19 @@ print VFH "compounds::$compfile\n";
 print VFH "vectordb::$wordvectors\n";
 close VFH;
 
-our $vector = WordNet::Similarity::vector_pairs->new ($wn, $vectorcfg);
+our $vector_pairs = WordNet::Similarity::vector_pairs->new ($wn, $vectorcfg);
+unlink $vectorcfg;
+
+$vectorcfg = "vector$$.cfg";
+open WFH, '>', $vectorcfg or die "Cannot open $vectorcfg for writing: $!";
+print WFH "WordNet::Similarity::vector\n";
+print WFH "stop::$stoplist\n" if -e 'stoplist.txt';
+print WFH "stem::1\n";
+print WFH "compounds::$compfile\n";
+print WFH "vectordb::$wordvectors\n";
+close WFH;
+
+our $vector = WordNet::Similarity::vector->new($wn, $vectorcfg);
 unlink $vectorcfg;
 
 
@@ -146,7 +159,7 @@ our $random = WordNet::Similarity::random->new ($wn);
 our $res = WordNet::Similarity::res->new ($wn);
 our $wup = WordNet::Similarity::wup->new ($wn);
 
-my @measures = ($hso, $jcn, $lch, $lesk, $lin, $path, $random, $res, $wup, $vector);
+my @measures = ($hso, $jcn, $lch, $lesk, $lin, $path, $random, $res, $wup, $vector, $vector_pairs);
 foreach (@measures) {
     my ($err, $errstr) = $_->getError ();
     die "$errstr died" if $err;
@@ -281,7 +294,7 @@ while ((my $client = $socket->accept) or $interrupted) {
 	    }
 
 	    my $module;
-	    if ($measure =~ /^(?:hso|jcn|lch|lesk|lin|path|random|res|wup|vector)$/) {
+	    if ($measure =~ /^(?:hso|jcn|lch|lesk|lin|path|random|res|wup|vector|vector_pairs)$/) {
 		no strict 'refs';
 		$module = $$measure;
 		unless (defined $module) {

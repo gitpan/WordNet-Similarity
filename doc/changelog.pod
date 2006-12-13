@@ -10,7 +10,46 @@ is released.
 
 =head1 DESCRIPTION
 
-=head2 Version 1.03
+=head2 Version 1.04 (Released 12/13/2006)
+
+=over
+
+=item *
+
+12/13/06
+
+=over
+
+=item (1)
+
+Fixed major bug reported in vector_pairs, where every alternate function
+is skipped because of a loop variable being incremented twice. (Sid)
+
+=back
+
+=item *
+
+04/21/06
+
+=over
+
+=item (1)
+
+The web-interface was still not working for the vector measure, because
+only one side of the client-server interface had been updated. Updated
+the similarity server with code to support both, vector and vector_pairs
+measures. (Sid)
+
+=item (2)
+
+Updated the description of the Gloss Vector measure in measures.html (web
+interface). (Sid)
+
+=back
+
+=back
+
+=head2 Version 1.03 (Released 04/14/2006)
 
 =over
 
@@ -22,7 +61,7 @@ is released.
 
 =item (1)
 
-Applied Ben Haskell's path to ICFinder.pm (to make the behaviour of the
+Applied Ben Haskell's patch to ICFinder.pm (to make the behaviour of the
 probability() and IC() functions consistent with their comments).
 
 =back

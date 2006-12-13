@@ -122,6 +122,33 @@
       of a lack of better alternatives.
     </p>
 
+    <h2>Gloss Vector</h2>
+    <p>The Gloss Vector measure works by forming second-order co-occurrence
+      vectors from the glosses or WordNet definitions of concepts. The 
+      relatedness of two concepts is determined as the cosine of the angle
+      between their gloss vectors. In order to get around the data sparsity 
+      issues presented by extremely short glosses, this measure augments the 
+      glosses of concepts with glosses of adjacent concepts as defined by 
+      WordNet relations.
+    </p>
+      
+    <h2>Gloss Vector (pairwise)</h2>
+    <p>The Gloss Vector (pairwise) measure is very similar to the "regular" Gloss
+      Vector measure, except in the way it augments the glosses of concepts with
+      adjacent glosses. The regular Gloss Vector measure first combines the 
+      adjacent glosses to form one large "super-gloss" and creates a single vector
+      corresponding to each of the two concepts from the two "super-glosses". The
+      pairwise Gloss Vector measure, on the other hand, forms separate vectors
+      corresponding to each of the adjacent glosses (does not form a single super
+      gloss). For example separate vectors will be created for the hyponyms, the 
+      holonyms, the meronyms, etc. of the two concepts. The measure then takes the
+      sum of the individual cosines of the corresponding gloss vectors, i.e. the
+      cosine of the angle between the hyponym vectors is added to the cosine of the
+      angle between the hlonym vectors, and so on. From empirical studies, we have
+      found that the regular Gloss Vector measure performs better than the pairwise
+      Gloss Vector measure.
+    </p>
+      
     <h2>Random</h2>
     <p>The relatedness values are simply randomly generated numbers.</p>
 
