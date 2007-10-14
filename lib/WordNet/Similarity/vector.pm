@@ -1,5 +1,5 @@
-# WordNet::Similarity::vector.pm version 1.03
-# (Last updated $Id: vector.pm,v 1.21 2006/02/19 19:11:09 sidz1979 Exp $)
+# WordNet::Similarity::vector.pm version 2.01
+# (Last updated $Id: vector.pm,v 1.22 2007/10/09 12:05:39 sidz1979 Exp $)
 #
 # Module accepts two WordNet synsets and returns a floating point
 # number that indicates how similar those two synsets are, using a
@@ -55,13 +55,12 @@ use vars qw($VERSION @ISA);
 
 @ISA = qw(WordNet::Similarity);
 
-$VERSION = '1.03';
+$VERSION = '2.01';
 
 WordNet::Similarity::addConfigOption("relation", 0, "p", undef);
 WordNet::Similarity::addConfigOption("vectordb", 0, "p", undef);
 WordNet::Similarity::addConfigOption("stop", 0, "p", undef);
 WordNet::Similarity::addConfigOption("stem", 0, "i", 0);
-WordNet::Similarity::addConfigOption("compounds", 0, "p", undef);
 WordNet::Similarity::addConfigOption("textsize", 0, "i", "-1");
 
 =item $vector->setPosList()
@@ -113,7 +112,6 @@ sub initialize
 
     # Stemming? Compounds? StopWords?
     $self->{stem} = 0;
-    $self->{compoundHash} = {};
     $self->{stopHash} = {};
 
     # Call the initialize method of the super-class.
@@ -147,32 +145,6 @@ sub initialize
 	{
 	    $self->{errorString} .= "\nWarning (WordNet::Similarity::vector->initialize()) - ";
 	    $self->{errorString} .= "Unable to open $stopFile.";
-	    $self->{error} = 1 if($self->{error} < 1);
-	}
-    }
-
-    # Load the compounds.
-    if(defined $self->{compounds})
-    {
-	my $line;
-        my $compFile = $self->{compounds};
-
-	if(open(COMP, $compFile))
-	{
-	    while($line = <COMP>)
-	    {
-		$line =~ s/[\r\f\n]//g;
-		$line =~ s/^\s+//;
-		$line =~ s/\s+$//;
-		$line =~ s/\s+/_/g;
-		$self->{compoundHash}->{$line} = 1;		
-	    }
-	    close(COMP);
-	}
-	else
-	{
-	    $self->{errorString} .= "\nWarning (WordNet::Similarity::vector->initialize()) - ";
-	    $self->{errorString} .= "Unable to open $compFile.";
 	    $self->{error} = 1 if($self->{error} < 1);
 	}
     }
@@ -449,7 +421,6 @@ sub traceOptions {
   my $self = shift;
   $self->{traceString} .= "relation File :: ".((defined $self->{relation})?"$self->{relation}":"")."\n";
   $self->{traceString} .= "vectorDB File :: ".((defined $self->{vectordb})?"$self->{vectordb}":"")."\n";
-  $self->{traceString} .= "compounds File :: ".((defined $self->{compounds})?"$self->{compounds}":"")."\n";
   $self->{traceString} .= "stop File :: ".((defined $self->{stop})?"$self->{stop}":"")."\n";
   $self->{traceString} .= "stem :: $self->{stem}\n";
   $self->{traceString} .= "textsize :: $self->{textsize}\n";
@@ -474,6 +445,7 @@ sub getRelatedness
     my $wps1 = shift;
     my $wps2 = shift;
     my $wn = $self->{wn};
+    my $wntools = $self->{wntools};
     my $gwi = $self->{gwi};
 
     # Check the existence of the WordNet::QueryData object.
@@ -481,6 +453,15 @@ sub getRelatedness
     {
 	$self->{errorString} .= "\nError (WordNet::Similarity::vector->getRelatedness()) - ";
 	$self->{errorString} .= "A WordNet::QueryData object is required.";
+	$self->{error} = 2;
+	return undef;
+    }
+
+    # Check the existence of the WordNet::Tools object.
+    if(!$wntools)
+    {
+	$self->{errorString} .= "\nError (WordNet::Similarity::vector->getRelatedness()) - ";
+	$self->{errorString} .= "A WordNet::Tools object is required.";
 	$self->{error} = 2;
 	return undef;
     }
@@ -622,12 +603,12 @@ sub getRelatedness
     $firstString =~ s/[^a-z0-9]+/ /g;
     $firstString =~ s/^\s+//;
     $firstString =~ s/\s+$//;
-    $firstString = $self->_compoundify($firstString);
+    $firstString = $wntools->compoundify($firstString);
     $secondString =~ s/\'//g;
     $secondString =~ s/[^a-z0-9]+/ /g;
     $secondString =~ s/^\s+//;
     $secondString =~ s/\s+$//;
-    $secondString = $self->_compoundify($secondString);
+    $secondString = $wntools->compoundify($secondString);
 
     # Get vectors... score...
     my $a;
@@ -811,59 +792,6 @@ sub _inner
     return $prod;
 }
 
-# Method that determines all possible compounds in a line of text.
-sub _compoundify
-{
-    my $self = shift;
-    my $block = shift;
-    my $string;
-    my $done;
-    my $temp;
-    my $firstPointer;
-    my $secondPointer;
-    my @wordsArray;
-
-    return undef if(!defined $block);
-
-    # get all the words into an array
-    @wordsArray = ();
-    while ($block =~ /(\w+)/g)
-    {
-	push @wordsArray, $1;
-    }
-
-    # now compoundify, GREEDILY!!
-    $firstPointer = 0;
-    $string = "";
-
-    while($firstPointer <= $#wordsArray)
-    {
-	$secondPointer = (($firstPointer + 5 < $#wordsArray)?($firstPointer + 5):($#wordsArray));
-	$done = 0;
-	while($secondPointer > $firstPointer && !$done)
-	{
-	    $temp = join ("_", @wordsArray[$firstPointer..$secondPointer]);
-	    if(exists $self->{compoundHash}->{$temp})
-	    {
-		$string .= "$temp ";
-		$done = 1;
-	    }
-	    else
-	    {
-		$secondPointer--;
-	    }
-	}
-	if(!$done)
-	{
-	    $string .= "$wordsArray[$firstPointer] ";
-	}
-	$firstPointer = $secondPointer + 1;
-    }
-    $string =~ s/ $//;
-
-    return $string;
-}
-
 1;
 
 __END__
@@ -994,13 +922,6 @@ A value of 1 switches 'on' stemming, and a value of 0 switches stemming
 'off'. When stemming is enabled, all the words of the
 glosses are stemmed before their vectors are created for the vector
 measure or their overlaps are compared for the lesk measure.
-
-=item compounds
-
-The value of this parameter is the path of a file containing a list of
-compound words in WordNet.  This path may be either an absolute path or
-a relative path.  If the value is omitted, then the default
-behavior (no compound recognition) is used.
 
 =item vectordb
 

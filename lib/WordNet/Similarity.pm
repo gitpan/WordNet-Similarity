@@ -1,5 +1,5 @@
-# WordNet::Similarity.pm version 1.04
-# (Last updated $Id: Similarity.pm,v 1.41 2006/04/23 08:00:04 sidz1979 Exp $)
+# WordNet::Similarity.pm version 2.01
+# (Last updated $Id: Similarity.pm,v 1.45 2007/10/09 12:05:39 sidz1979 Exp $)
 #
 # Module containing the version information and pod
 # for the WordNet::Similarity package, and all measures are
@@ -103,6 +103,8 @@ use constant UNLIMITED_CACHE => 2_147_483_647;
 
 use constant DEFAULT_CACHE => 5_000;
 
+use WordNet::Tools;
+
 our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 @ISA = qw(Exporter);
@@ -113,7 +115,7 @@ our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.04';
+$VERSION = '2.01';
 
 # a hash to contain the module-specific configuration options.
 our %config_options;
@@ -196,6 +198,13 @@ sub new
   else {
     # queryWord() in older versions of WordNet::QueryData was broken
     $this->{wn}->VERSION (1.30);
+    my $wntools = WordNet::Tools->new($this->{wn});
+    unless (defined $wntools) {
+      $this->{errorString} .= "\nError (${class}::new()) - ";
+      $this->{errorString} .= "Error creating WordNet::Tools object.";
+      $this->{error} = 2;
+    }
+    $this->{wntools} = $wntools;
   }
 
   bless $this, $class;
@@ -252,9 +261,9 @@ sub initialize
   # moved option for root node to PathFinder.pm
   #
   # use a virtual root node (if applicable)
-  #  six of the measures (res, lin, jcn, edge, wup, lch) use a virtual
+  #  six of the measures (res, lin, jcn, path, wup, lch) use a virtual
   #  root node in some way, and it is present by default in these cases.
-  #  Three of the measures--edge, wup, and lch--allow this root node to be
+  #  Three of the measures--path, wup, and lch--allow this root node to be
   #  turned off (i.e., the measure would be run without a root node).
   # $self->{rootNode} = 1;
 
@@ -1113,7 +1122,7 @@ send e-mail to tpederse I<at> d.umn.edu.
 perl(1), WordNet::Similarity::jcn(3), WordNet::Similarity::res(3),
 WordNet::Similarity::lin(3), WordNet::Similarity::lch(3),
 WordNet::Similarity::hso(3), WordNet::Similarity::lesk(3),
-WordNet::Similarity::wup(3), WordNet::Similarity::edge(3),
+WordNet::Similarity::wup(3), WordNet::Similarity::path(3),
 WordNet::Similarity::random(3), WordNet::Similarity::ICFinder(3),
 WordNet::Similarity::PathFinder(3)
 WordNet::QueryData(3)

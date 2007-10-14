@@ -1,12 +1,21 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         WordNet-Similarity
-version:      1.04
-version_from: lib/WordNet/Similarity.pm
-installdirs:  site
-requires:
+--- #YAML:1.0
+name:                WordNet-Similarity
+version:             2.01
+abstract:            Perl modules for computing measures of semantic
+license:             ~
+generated_by:        ExtUtils::MakeMaker version 6.36
+distribution_type:   module
+requires:     
+    CGI:                           3.10
+    Digest::SHA1:                  2.10
+    File::Find:                    1.05
+    File::Spec:                    3.12
+    Getopt::Long:                  2.34
+    IO:                            1.21
     Text::Similarity:              0.02
-    WordNet::QueryData:            1.39
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+    WordNet::QueryData:            1.40
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
+    version: 1.2
+author:
+    - Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee, Jason Michelizzi

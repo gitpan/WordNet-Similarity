@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# compounds.pl version 1.01
-# (Last updated $Id: compounds.pl,v 1.9 2005/12/11 22:37:02 sidz1979 Exp $)
+# compounds.pl version 2.01
+# (Last updated $Id: compounds.pl,v 1.10 2007/10/09 12:05:41 sidz1979 Exp $)
 #
 # Program to generate a list of all compound words
 # present in WordNet.
@@ -38,15 +38,16 @@
 #
 # -----------------------------------------------------------------------------
 
+use strict;
 use Getopt::Long;
 
 # Now get the options!
+our ($opt_version, $opt_help, $opt_wnpath);
 &GetOptions("version", "help", "wnpath=s");
 
 # If the version information has been requested
 if(defined $opt_version)
 {
-    $opt_version = 1;
     &printVersion();
     exit;
 }
@@ -54,12 +55,12 @@ if(defined $opt_version)
 # If detailed help has been requested
 if(defined $opt_help)
 {
-    $opt_help = 1;
     &printHelp();
     exit;
 }
 
 # Check if path to WordNet Data files has been provided ... If so ... save it.
+my ($wnPCPath, $wnUnixPath);
 if(defined $opt_wnpath)
 {
     $wnPCPath = $opt_wnpath;
@@ -77,10 +78,11 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-3.0/dict";
 }
 
+my $line;
 open(NIDX, $wnUnixPath."/index.noun") || open(NIDX, $wnPCPath."\\noun.idx") || die "Unable to open index file.\n";
 open(VIDX, $wnUnixPath."/index.verb") || open(VIDX, $wnPCPath."\\verb.idx") || die "Unable to open index file.\n";
 open(AIDX, $wnUnixPath."/index.adj") || open(AIDX, $wnPCPath."\\adj.idx") || die "Unable to open index file.\n";
@@ -94,7 +96,7 @@ while($line = <NIDX>)
     $line =~ s/[\r\f\n]//g;
     $line =~ s/^\s+//;
     $line =~ s/\s+$//;
-    ($word) = split(/\s+/, $line, 2);
+    my ($word) = split(/\s+/, $line, 2);
     print "$word\n" if($word =~ /_/);
 }
 
@@ -107,7 +109,7 @@ while($line = <VIDX>)
     $line =~ s/[\r\f\n]//g;
     $line =~ s/^\s+//;
     $line =~ s/\s+$//;
-    ($word) = split(/\s+/, $line, 2);
+    my ($word) = split(/\s+/, $line, 2);
     print "$word\n" if($word =~ /_/);
 }
 
@@ -120,7 +122,7 @@ while($line = <AIDX>)
     $line =~ s/[\r\f\n]//g;
     $line =~ s/^\s+//;
     $line =~ s/\s+$//;
-    ($word) = split(/\s+/, $line, 2);
+    my ($word) = split(/\s+/, $line, 2);
     print "$word\n" if($word =~ /_/);
 }
 
@@ -133,7 +135,7 @@ while($line = <RIDX>)
     $line =~ s/[\r\f\n]//g;
     $line =~ s/^\s+//;
     $line =~ s/\s+$//;
-    ($word) = split(/\s+/, $line, 2);
+    my ($word) = split(/\s+/, $line, 2);
     print "$word\n" if($word =~ /_/);
 }
 
@@ -173,7 +175,7 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "compounds.pl version 1.01\n";
+    print "compounds.pl version 2.01\n";
     print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.\n";
 }
 
@@ -197,7 +199,7 @@ and writes the resultant list to the standard output.
 B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
-    /usr/local/WordNet-2.1/dict)
+    /usr/local/WordNet-3.0/dict)
 
 =head1 AUTHORS
 

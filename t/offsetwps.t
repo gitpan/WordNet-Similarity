@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# PathFinder.t version 0.14
+# offsetwps.t version 2.01
 # (Updated 2/10/2004 -- Jason)
 #
 # Copyright (C) 2004
@@ -12,7 +12,7 @@
 # tpederse at d.umn.edu
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl offsetwps.t'
+# 'make test'.  After 'make install' it should work as 'perl t/offsetwps.t'
 
 # A script to test whether the offset method of finding paths and LCSs
 # is equivalent to the wps method.  The tests are conducted as follows:

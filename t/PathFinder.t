@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# PathFinder.t version 0.07
+# PathFinder.t version 2.01
 # (Updated 1/12/2004 -- Jason)
 #
 # Copyright (C) 2004
@@ -12,7 +12,7 @@
 # tpederse at d.umn.edu
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl PathFinder.t'
+# 'make test'.  After 'make install' it should work as 'perl t/PathFinder.t'
 
 # A script to run tests on the WordNet::Similarity::PathFinder module.
 # The following are among the tests run by this script:
@@ -43,7 +43,8 @@ my ($err, $errstr) = $module->getError();
 is ($err, 0) or diag "$errstr\n";
 
 # run a few tests finding Least Common Subsumers (LCSs)
-my $wnver = $wn->version();
+my $wnver = '0.0';
+$wnver = $wn->version() if($wn->can('version'));
 
 # a few variables that we'll need repeatedly      '
 my $offset1;
@@ -66,7 +67,7 @@ my $path;
 
 SKIP:
 {
-  skip "Unknown WordNet version", 16 unless($wnver eq '2.1' || $wnver eq '2.0');
+  skip "Skipping tests for WordNet v2.1 and v2.0", 16 unless($wnver eq '2.1' || $wnver eq '2.0');
 
   # levitation#n#1 and levitation#n#1, using offsets
   if($wnver eq '2.0')

@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# wordVectors.pl version 1.01
-# (Last updated $Id: wordVectors.pl,v 1.13 2005/12/11 22:37:02 sidz1979 Exp $)
+# wordVectors.pl version 2.01
+# (Last updated $Id: wordVectors.pl,v 1.14 2007/10/09 12:05:41 sidz1979 Exp $)
 #
 # Program to create word vectors (co-occurrence vectors) for all
 # words in WordNet glosses.
@@ -32,12 +32,15 @@
 #
 # -----------------------------------------------------------------------------
 
+use strict;
 use Getopt::Long;
 use WordNet::QueryData;
+use WordNet::Tools;
 use vectorFile;
 
 # Declarations!
 my $wn;              # WordNet::QueryData object.
+my $wntools;         # WordNet::Tools object.
 my $fh;              # Filehandle, to hold data file handles.
 my $wnPCPath;        # Path to WordNet data files (on Windows).
 my $wnUnixPath;      # Path to WordNet data files (on Unix).
@@ -46,7 +49,6 @@ my $saveDocCount;    # The value to be written to output file.
 my $saveDims = {};   # The dimesion hash to be written to file.
 my $saveMatrix = {}; # The vector matrtix to be written to file.
 my %rows;            # Hash holding the rows of the matrix.
-my %compounds;       # List of compounds in WordNet.
 my %stopWords;       # List of stop words.
 my %wordMatrix;      # Matrix of co-occurrences.
 my %wordIndex;       # List of words word -> index mapping.
@@ -55,13 +57,13 @@ my %wordDF;          # Document Frequency (for each word).
 my %wFreq;           # Word Frequency.
 
 # Get the options!
-&GetOptions("version", "help", "wnpath=s", "noexamples", "compfile=s", "stopfile=s",
+our ($opt_version, $opt_help, $opt_wnpath, $opt_noexamples, $opt_stopfile, $opt_cutoff, $opt_rhigh, $opt_rlow, $opt_chigh, $opt_clow);
+&GetOptions("version", "help", "wnpath=s", "noexamples", "stopfile=s",
             "cutoff=f", "rhigh=i",  "rlow=i", "chigh=i", "clow=i");
 
 # If the version information has been requested...
 if(defined $opt_version)
 {
-    $opt_version = 1;     # Hack to prevent "Single occurrence of variable" warning.
     &printVersion();
     exit;
 }
@@ -69,7 +71,6 @@ if(defined $opt_version)
 # If detailed help has been requested...
 if(defined $opt_help)
 {
-    $opt_help = 1;        # Hack to prevent "Single occurrence of variable" warning.
     &printHelp();
     exit;
 }
@@ -103,21 +104,6 @@ else
     exit;
 }
 
-# Check if compounds file is provided... if so, get the compounds.
-if(defined $opt_compfile)
-{
-    print STDERR "Loading compounds... ";
-    open (WORDS, "$opt_compfile") || die ("Couldnt open $opt_compfile.\n");
-    while (<WORDS>)
-    {
-	s/[\r\f\n]//g;
-	s/\s+//g;
-	$compounds{$_} = 1;
-    }
-    close WORDS;
-    print STDERR "done.\n";
-}
-
 # Load the stop words if specified
 if(defined $opt_stopfile)
 {
@@ -132,9 +118,6 @@ if(defined $opt_stopfile)
     close WORDS;
     print STDERR "done.\n";
 }
-
-# Hack to prevent "Single occurrence of variable" warning
-$opt_noexamples = 1 if(defined $opt_noexamples);
 
 # Check if path to WordNet Data files has been provided ... If so ... save it.
 print STDERR "Loading WordNet... ";
@@ -158,18 +141,16 @@ else
     }
     else
     {
-	$wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
-	$wnUnixPath = "/usr/local/WordNet-2.1/dict";
+	$wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
+	$wnUnixPath = "/usr/local/WordNet-3.0/dict";
     }
 
     $wn = WordNet::QueryData->new;
 }
-if(!$wn)
-{
-    print STDERR "Unable to create WordNet::QueryData object.\n";
-    exit;
-}
+die "Unable to create WordNet::QueryData object.\n" if(!$wn);
 $wnPCPath = $wnUnixPath = $wn->dataPath() if($wn->can('dataPath'));
+$wntools = WordNet::Tools->new($wn);
+die "Unable to create WordNet::Tools object.\n" if(!$wntools);
 print STDERR "done.\n";
 
 print STDERR "Creating word vectors...                                       ";
@@ -179,7 +160,7 @@ open(AIDX, $wnUnixPath."/data.adj") || open(AIDX, $wnPCPath."\\adj.dat") || die 
 open(RIDX, $wnUnixPath."/data.adv") || open(RIDX, $wnPCPath."\\adv.dat") || die "Unable to open data file.\n";
 
 $documentCount = 0;
-foreach $fh (NIDX, VIDX, AIDX, RIDX)
+foreach $fh (*NIDX, *VIDX, *AIDX, *RIDX)
 {
     my $line;
     my $word1;
@@ -206,7 +187,7 @@ foreach $fh (NIDX, VIDX, AIDX, RIDX)
 	    $line =~ s/[^a-z0-9]+/ /g;
 	    $line =~ s/^\s*//;
 	    $line =~ s/\s*$//;
-	    $line = &compoundify($line) if(defined $opt_compfile);
+	    $line = $wntools->compoundify($line);
 	    @walk = split(/\s+/,$line);
 	    @walk = &_removeStopWords(@walk) if(defined $opt_stopfile);
 	    @walk = &_stem(@walk);
@@ -333,59 +314,6 @@ print STDERR "done.\n";
 
 # ----------------- Subroutines Start Here ----------------------
 
-# Form all possible compounds within a sentence
-sub compoundify
-{
-    my $block;
-    my $string;
-    my $done;
-    my $temp;
-    my $firstPointer;
-    my $secondPointer;
-    my @wordsArray;
-    
-    # get the block of text
-    $block = shift;
-    
-    # get all the words into an array
-    @wordsArray = ();
-    while ($block =~ /(\w+)/g)
-    {
-	push @wordsArray, $1;
-    }
-    
-    # now compoundify, GREEDILY!!
-    $firstPointer = 0;
-    $string = "";
-    
-    while($firstPointer <= $#wordsArray)
-    {
-	$secondPointer = (($firstPointer + 5 < $#wordsArray)?($firstPointer + 5):($#wordsArray));
-	$done = 0;
-	while($secondPointer > $firstPointer && !$done)
-	{
-	    $temp = join ("_", @wordsArray[$firstPointer..$secondPointer]);
-	    if(exists $compounds{$temp})
-	    {
-		$string .= "$temp "; 
-		$done = 1;
-	    }
-	    else 
-	    { 
-		$secondPointer--; 
-	    }
-	}
-	if(!$done) 
-	{ 
-	    $string .= "$wordsArray[$firstPointer] "; 
-	}
-	$firstPointer = $secondPointer + 1;
-    }
-    $string =~ s/ $//;
-    
-    return $string;    
-}
-
 # Subroutine to stem a list of words...
 # INPUT PARAMS  : @words        .. list of words.
 # RETURN VALUES : @stemmedWords .. Stemmed list.
@@ -463,9 +391,6 @@ sub printHelp
     print "\nThis program writes out word vectors computed from WordNet glosses in\n";
     print "a database file specified by filename DBFILE.\n";
     print "Options: \n";
-    print "--compfile       Option specifying the the list of compounds present\n";
-    print "                 in WordNet in the file COMPOUNDS. This list is used\n";
-    print "                 for compound detection.\n";
     print "--stopfile       Option specifying a list of stopwords to not be\n";
     print "                 considered while counting.\n";
     print "--wnpath         WNPATH specifies the path of the WordNet data files.\n";
@@ -498,7 +423,7 @@ sub minimalUsageNotes
 # Subroutine that prints the usage
 sub printUsage
 {
-    print "Usage: wordVectors.pl [{ [--compfile COMPOUNDS] [--stopfile STOPLIST] [--wnpath WNPATH]";
+    print "Usage: wordVectors.pl [{ [--stopfile STOPLIST] [--wnpath WNPATH]";
     print " [--noexamples] [--cutoff VALUE] [--rhigh RHIGH] [--rlow RLOW] [--chigh CHIGH] [--clow CLOW] DBFILE\n";
     print "                      | --help \n";
     print "                      | --version }]\n";
@@ -507,7 +432,7 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "wordVectors.pl version 1.01\n";
+    print "wordVectors.pl version 2.01\n";
     print "Copyright (c) 2005, Ted Pedersen and Siddharth Patwardhan.\n";
 }
 
@@ -519,7 +444,7 @@ wordVectors.pl - write word vectors from WordNet glosses to a file.
 
 =head1 SYNOPSIS
 
-wordVectors.pl [[--compfile COMPOUNDS] [--stopfile STOPLIST]
+wordVectors.pl [[--stopfile STOPLIST]
   [--wnpath WNPATH] [--noexamples] [--cutoff VALUE] [--rhigh RHIGH] 
   [--rlow RLOW] [--chigh CHIGH] [--clow CLOW] DBFILE 
  | --help | --version]
@@ -532,12 +457,6 @@ file is intended for use by the WordNet::Similarity::vector Perl module,
 but if you can think of something else to do with it, then go ahead.
 
 =head1 OPTIONS
-
-B<--compfile>=I<file>
-
-    Option specifying the the list of compounds present
-    in WordNet in the file COMPOUNDS. This list is used
-    for compound detection.
 
 B<--stopfile>=I<file>
 

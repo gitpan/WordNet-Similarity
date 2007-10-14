@@ -338,7 +338,7 @@ exact usage and help.
 
 =head3 Usage
 
-<utility> [{--compfile COMPFILE --outfile OUTFILE 
+<utility> [{--outfile OUTFILE 
            [--stopfile STOPFILE] [--wnpath WNPATH] 
            [--resnik] [--smooth SCHEME] PATH
           | --help 
@@ -358,11 +358,6 @@ to get the <utility>-specific idiosyncrasies.
 =head3 Options:
 
 =over
-
-=item --compfile
-
-Used to specify the file COMPFILE containing the
-list of compounds in WordNet.
 
 =item --outfile
 
@@ -502,17 +497,16 @@ source of raw text files is the Gutenberg Project: http://www.gutenberg.org
 In order to generate the information content file from the BNC, we type
 the command:
 
- BNCFreq.pl --compfile ../samples/compounds.dat --outfile infoBNC.dat /home/sid/BNC-world/Texts
+ BNCFreq.pl --outfile infoBNC.dat /home/sid/BNC-world/Texts
 
 Here '/home/sid/BNC-world/Texts' is the path containing the BNC. Ouptut
-information content file infoBNC.dat is generated and 'compounds.dat'
-is used for the list of compound in WordNet.
+information content file is infoBNC.dat.
 
 =item (2)
 
 Frequency counts generated from the Brown corpus, using a stop-list.
 
-brownFreq.pl --compfile compounds.dat --outfile infoBrown.dat --stopfile stop.txt /home/sid/Brown/*
+brownFreq.pl --outfile infoBrown.dat --stopfile stop.txt /home/sid/Brown/*
 
 Uses the file 'stop.txt' containing stop words -- words that are
 ignored while counting the frequencies.
@@ -522,7 +516,7 @@ ignored while counting the frequencies.
 Frequency counts generated from a raw text file, using Resnik
 counting.
 
- rawtextFreq.pl --compfile compounds.dat --outfile infoRawText.dat --resnik /home/sid/Texts/WorldWar.txt
+ rawtextFreq.pl --outfile infoRawText.dat --resnik /home/sid/Texts/WorldWar.txt
 
 WorldWar.txt is the raw text file. infoRawText.dat is the output
 information content file.
@@ -532,7 +526,7 @@ information content file.
 Using a the Treebank corpus (WSJ articles) to generate an information
 content file with the option for Add-1 smoothing.
 
- treebankFreq.pl --compfile compounds.dat --outfile tbInfo.dat --smooth ADD1 /home/sid/treebank/raw/wsj
+ treebankFreq.pl --outfile tbInfo.dat --smooth ADD1 /home/sid/treebank/raw/wsj
 
 'tbInfo.dat' is the output file. '/home/sid/treebank/raw/wsj' is the
 path to the Wall Street Journal articles of the Treebank corpus. The
@@ -551,7 +545,7 @@ database file. This utility generates co-occurrence vectors from the
 WordNet glosses themselves. Utilities to generate these from other corpora
 will be provided in future releases of this software.
 
- Usage: wordVectors.pl [{ [--compfile COMPOUNDS] [--stopfile STOPLIST]
+ Usage: wordVectors.pl [{ [--stopfile STOPLIST]
                          [--wnpath WNPATH] [--noexamples] [--cutoff VALUE]
                          [--rhigh RHIGH] [--rlow RLOW] [--chigh CHIGH] 
                          [--clow CLOW] DBFILE 
@@ -564,12 +558,6 @@ a database file specified by filename DBFILE.
 Options:
 
 =over
-
-=item --compfile
-
-Option specifying the the list of compounds present
-in WordNet in the file COMPOUNDS. This list is used
-for compound detection.
 
 --stopfile
 

@@ -1,5 +1,5 @@
 # WordNet::Similarity::PathFinder version 1.01
-# (Last updated $Id: PathFinder.pm,v 1.35 2005/12/11 22:37:02 sidz1979 Exp $)
+# (Last updated $Id: PathFinder.pm,v 1.36 2007/10/10 01:47:24 sidz1979 Exp $)
 #
 # Module containing path-finding code for the various measures of semantic
 # relatedness.
@@ -513,6 +513,10 @@ sub _getHypernymTrees
   my $synset = shift;
   my $pos = shift;
   my $mode = shift;
+  my $curPath = shift;
+  $curPath = {} if(!defined($curPath));
+  $curPath->{$synset} = 1;
+  
 
   my $wordForm = $synset;
   if ($mode eq 'offset') {
@@ -545,13 +549,28 @@ sub _getHypernymTrees
   }
   else {
     foreach my $hypernym (@hypernyms) {
-      #my $offset = $mode eq 'offset' ? $synset : $wn->offset ($synset);
       my $hypesynset = $mode eq 'offset' ? $wn->offset ($hypernym) : $hypernym;
-      my @tmpArray = $self->_getHypernymTrees ($hypesynset, $pos, $mode);
+      if(!defined($curPath->{$hypesynset}))
+      {
+        my %localCopy = %{$curPath};
+        my @tmpArray = $self->_getHypernymTrees ($hypesynset, $pos, $mode, \%localCopy);
 
-      foreach my $element (@tmpArray) {
-	push @$element, $synset;
-	push @returnArray, [@$element];
+        foreach my $element (@tmpArray) {
+	  push @$element, $synset;
+          push @returnArray, [@$element];
+        }
+      }
+      if(scalar(@returnArray) <= 0) {
+        my @tmpArray = $synset;
+        if ($self->{rootNode}) {
+          if ($mode eq 'offset') {
+	    unshift @tmpArray, 0;
+          }
+          else {
+	    unshift @tmpArray, ($pos eq 'n') ? $self->ROOT_N : $self->ROOT_V;
+          }
+        }
+        push @returnArray, [@tmpArray];
       }
     }
   }

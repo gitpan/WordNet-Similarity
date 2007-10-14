@@ -1,5 +1,5 @@
-# WordNet::Similarity::DepthFinder version 1.01
-# (Last updated $Id: DepthFinder.pm,v 1.15 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::DepthFinder version 2.01
+# (Last updated $Id: DepthFinder.pm,v 1.16 2007/10/09 12:05:39 sidz1979 Exp $)
 #
 # Module containing code to find the depths of (noun and verb) synsets in
 # the WordNet 'is-a' taxonomies
@@ -52,7 +52,7 @@ use WordNet::Similarity::PathFinder;
 
 our @ISA = qw/WordNet::Similarity::PathFinder/;
 
-our $VERSION = '1.01';
+our $VERSION = '2.01';
 
 WordNet::Similarity::addConfigOption ("taxonomyDepthsFile", 1, "p", undef);
 WordNet::Similarity::addConfigOption ("synsetDepthsFile", 1, "p", undef);
@@ -70,10 +70,9 @@ sub initialize
     my $class = ref $self || $self;
 
     my $wn = $self->{wn};
-    my $wnversion = $wn->version ();
 
-    my $defaultdepths = "synsetdepths-${wnversion}.dat";
-    my $defaultroots = "treedepths-${wnversion}.dat";
+    my $defaultdepths = "synsetdepths.dat";
+    my $defaultroots = "treedepths.dat";
 
     $self->SUPER::initialize (@_);
 
@@ -344,7 +343,7 @@ sub _processSynsetsFile
     my $self = shift;
     my $file = shift;
     my $class = ref $self || $self;
-    my $wnver = $self->{wn}->version ();
+    my $wnver = $self->{wntools}->hashCode ();
 
     unless (open FH, '<', $file) {
 	$self->{error} = 2;
@@ -354,7 +353,7 @@ sub _processSynsetsFile
     }
 
     my $line = <FH>;
-    unless ($line =~ /^wnver::([\d.]+)$/) {
+    unless ($line =~ /^wnver::(\S+)$/) {
 	$self->{errorString} .= "\nError (${class}::_processSynsetsFile()) - ";
 	$self->{errorString} .= "File $file has bad format.";
 	$self->{error} = 2;
@@ -362,7 +361,7 @@ sub _processSynsetsFile
     }
     unless ($1 eq $wnver) {
 	$self->{errorString} .= "\nError (${class}::_processSynsetsFile()) - ";
-	$self->{errorString} .= "Bad WordNet version in $file, $1, should be $wnver.";
+	$self->{errorString} .= "Bad WordNet hash-code in $file, $1, should be $wnver.";
 	$self->{error} = 2;
 	return 0;
     }
@@ -422,7 +421,7 @@ sub _processTaxonomyFile
 
     my $line = <FH>;
 
-    unless ($line =~ /^wnver::([\d.]+)$/) {
+    unless ($line =~ /^wnver::(\S+)$/) {
 	$self->{errorString} .= "Error (${class}::_processTaxonomyFile()) - ";
 	$self->{errorString} .= "Bad file format for $filename.";
 	$self->{error} = 2;

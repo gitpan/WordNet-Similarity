@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl rawtextFreq.t'
+# 'make test'.  After 'make install' it should work as 'perl t/utils/rawtextFreq.t'
 
 # A script to test the rawtextFreq.pl utility.  We can't really test most '
 # of the other infocontent programs (*Freq.pl programs) because the users
@@ -36,13 +36,13 @@ ok (-r $stopfile);
 my $outfile = "rtout$$.txt";
 my $perl = $^X;
 
-system "$perl -MExtUtils::testlib $rawtextFreq --compfile=$compfile --stopfile=$stopfile --outfile=$outfile --infile=$corpus 2>$devnull";
+system "$perl -MExtUtils::testlib $rawtextFreq --stopfile=$stopfile --outfile=$outfile --infile=$corpus 2>$devnull";
 is ($?, 0);
 ok (-e $outfile);
 ok (open FH, "$outfile") or diag "Cannot open temporary file '$outfile': $!";
 
 my $line = <FH>;
-ok ($line =~ m/^wnver::([\d\.]+)$/);
+ok ($line =~ m/^wnver::(\S+)$/);
 my $wnver = $1;
 
 # Test::More lets us use this nifty SKIP block for situations like this.
@@ -80,20 +80,20 @@ SKIP: {
     ok ($isroot);
   }
   else {
-    skip ("using an unknown version of WordNet: $wnver", 3);
+    skip ("Skipping tests dependent on deprecated 'version' method", 3);
   }
 }
 
 ok (close FH);
 
 # now do it with Resnik counting
-system "$perl -MExtUtils::testlib $rawtextFreq --compfile=$compfile --stopfile=$stopfile --resnik --outfile=$outfile --infile=$corpus 2>$devnull";
+system "$perl -MExtUtils::testlib $rawtextFreq --stopfile=$stopfile --resnik --outfile=$outfile --infile=$corpus 2>$devnull";
 is ($?, 0);
 ok (-e $outfile);
 ok (open FH, "$outfile") or diag "Cannot open temporary file '$outfile': $!";
 
 $line = <FH>;
-ok ($line =~ m/^wnver::([\d\.]+)$/);
+ok ($line =~ m/^wnver::(\S+)$/);
 $wnver = $1;
 
 # see note above.  The following block does essentially the same thing,
@@ -138,7 +138,7 @@ SKIP: {
     ok ($isroot);
   }
   else {
-    skip ("using an unknown version of WordNet: $wnver", 4);
+    skip ("Skipping tests dependent on deprecated 'version' method", 4);
   }
 }
 

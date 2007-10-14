@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl random.t'
+# 'make test'.  After 'make install' it should work as 'perl t/config/random.t'
 
 # A script to test configuration options specific to the
 # WordNet::Similarity::random module; specifically, it tests

@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 
-# wnDepths.pl version 1.02
-# (Last updated $Id: wnDepths.pl,v 1.27 2006/01/15 23:48:32 sidz1979 Exp $)
+# wnDepths.pl version 2.01
+# (Last updated $Id: wnDepths.pl,v 1.29 2007/10/09 12:05:41 sidz1979 Exp $)
 
 # A program to generate a list of the depths of the top-level nodes
 # in the WordNet IS-A taxonomies.  The program can also produce a
@@ -14,6 +14,7 @@ use warnings;
 
 use Getopt::Long;
 use WordNet::QueryData;
+use WordNet::Tools;
 use File::Spec;
 
 our ($opt_wnpath, $opt_outfile, $opt_help, $opt_version);
@@ -71,8 +72,8 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-3.0/dict";
 }
 
 # I think the actual OS name for most versions of Windows is 'MSWin32',
@@ -84,6 +85,13 @@ print STDERR "Loading WordNet::QueryData... ";
 my $wn = WordNet::QueryData->new ($wnpath);
 
 unless ($wn) {
+  print STDERR ("failed.\n");
+  exit (1);
+}
+
+my $wntools = WordNet::Tools->new($wn);
+
+unless ($wntools) {
   print STDERR ("failed.\n");
   exit (1);
 }
@@ -136,7 +144,7 @@ if ($opt_verbose) {
 }
 
 # determine WordNet version
-my $wnver = $wn->version ();
+my $wnver = $wntools->hashCode ();
 print OUTFH "wnver::$wnver\n";
 
 ### find leaf nodes
@@ -163,7 +171,7 @@ foreach my $offset (@{$noun_leafs_ref}) {
 
   $root_offset = sprintf ("%08d", $root_offset);
 
-  if ($top_level{n}->{$root_offset} < $depth) {
+  if (!defined($top_level{n}->{$root_offset}) || $top_level{n}->{$root_offset} < $depth) {
     $top_level{n}->{$root_offset} = $depth;
   }
 }
@@ -220,7 +228,7 @@ foreach my $offset (@{$verb_leafs_ref}) {
   my ($depth, $root_offset) = findDepth ($offset, 'v');
   $root_offset = sprintf ("%08d", $root_offset);
 
-  if ($top_level{v}->{$root_offset} < $depth) {
+  if (!defined($top_level{v}->{$root_offset}) || $top_level{v}->{$root_offset} < $depth) {
     $top_level{v}->{$root_offset} = $depth;
   }
 }
@@ -345,9 +353,11 @@ sub findLeafs {
 
 sub findWPSDepths {
   my $wps = shift;
+  my $curPath = shift;
   defined $wpsDepths{$wps} and return @{$wpsDepths{$wps}};
 
   my @hypernyms = $wn->querySense ($wps, "hypes");
+  $curPath->{$wn->offset($wps)} = 1;
 
   unless (scalar @hypernyms > 0) {
     $wpsDepths{$wps} = [[1, $wps]];
@@ -357,11 +367,16 @@ sub findWPSDepths {
     my @all_paths = ();
 
     foreach my $hype (@hypernyms) {
-      push @all_paths, findWPSDepths ($hype);
+      unless(defined($curPath->{$wn->offset($hype)}))
+      {
+        my %pathCopy = %{$curPath};
+        push @all_paths, findWPSDepths ($hype, \%pathCopy);
+      }
     }
 
     @all_paths = map {[$_->[0] + 1, $_->[1]]} @all_paths;
 
+    push(@all_paths, [1, $wps]) if(scalar(@all_paths) <= 0);
     $wpsDepths{$wps} = \@all_paths;
   }
 
@@ -378,7 +393,7 @@ sub findDepth {
   $wps or die "Internal error: bad offset $offset";
 
   #my ($depth, $root) = findWPSDepths ($wps);
-  my @paths = findWPSDepths ($wps);
+  my @paths = findWPSDepths ($wps, {});
 
   my $mindepth = 1_000;
   my $root;
@@ -407,8 +422,8 @@ sub showHelp {
   showUsage ();
   print "Options:\n";
   print "\t--wnpath=PATH    PATH is the path to WordNet.  The default is\n";
-  print "\t                 /usr/local/WordNet-2.1/dict on Unix and\n";
-  print "\t                 C:\\WordNet\\2.1\\dict on Windows\n";
+  print "\t                 /usr/local/WordNet-3.0/dict on Unix and\n";
+  print "\t                 C:\\WordNet\\3.0\\dict on Windows\n";
   print "\t--outfile=FILE   File to which the maximum depths of the taxon-\n";
   print "\t                 omies should be output.\n";
   print "\t--depthfile=FILE File to which the depth of every synset should\n";
@@ -421,13 +436,15 @@ sub showHelp {
 }
 
 sub showVersion {
-  print "wnDepths.pl version 1.01\n";
+  print "wnDepths.pl version 2.01\n";
   print "Copyright (c) 2005, Ted Pedersen, Jason Michelizzi and Siddharth Patwardhan\n\n";
   print "This program comes with ABSOLUTELY NO WARRANTY.  This program\n";
   print "is free software, and you are welcome to redistribute it under\n";
   print "certain conditions.  See the file GPL.txt for warranty and\n";
   print "copyright information.\n";
 }
+
+1;
 
 __END__
 
@@ -437,7 +454,7 @@ wnDepths.pl - find depths of WordNet taxonomies
 
 =head1 SYNOPSIS
 
-wnDepths.pl [[--wnhome=PATH] [--outfile=FILE|-] [--depthfile=FILE] [--wps] [--verbose]]
+wnDepths.pl [[--wnpath=PATH] [--outfile=FILE|-] [--depthfile=FILE] [--wps] [--verbose]]
 | --help | --version]
 
 =head1 DESCRIPTION
@@ -452,8 +469,8 @@ likely has other uses as well.
 
 B<--wnpath>=I<path>
 
-The path to WordNet data files.  The default is /usr/local/WordNet-2.1/dict on
-Unix and C:\WordNet\2.1\dict on Windows.
+The path to WordNet data files.  The default is /usr/local/WordNet-3.0/dict on
+Unix and C:\WordNet\3.0\dict on Windows.
 
 B<--outfile>=I<file>
 

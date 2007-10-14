@@ -1,6 +1,6 @@
 #! /usr/local/bin/perl -w
 #
-# (Last updated $Id: rankFormat.pl,v 1.1 2006/02/06 23:11:46 sidz1979 Exp $)
+# (Last updated $Id: rankFormat.pl,v 1.2 2007/10/10 07:32:27 sidz1979 Exp $)
 #
 # Program to rank the output of similarity.pl based on the semantic
 # relatedness of the word pairs. The output is in a format that can
@@ -117,7 +117,7 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "rankFormat.pl version 1.02\n";
+    print "rankFormat.pl version 2.01\n";
     print "Copyright (c) 2006, Ted Pedersen and Siddharth Patwardhan.\n";
 }
 

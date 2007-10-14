@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 
 # Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl path.t'
+# `make test'. After `make install' it should work as `perl t/path.t'
 
 # A script to test the path-length/edge-counting (path.pm) measure.  This
 # script runs the following tests:

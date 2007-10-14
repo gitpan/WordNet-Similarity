@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# brownFreq.pl version 1.01
-# (Last updated $Id: brownFreq.pl,v 1.11 2005/12/11 22:37:02 sidz1979 Exp $)
+# brownFreq.pl version 2.01
+# (Last updated $Id: brownFreq.pl,v 1.12 2007/10/09 12:05:41 sidz1979 Exp $)
 #
 # This program reads the Brown Corpus and computes the frequency counts
 # for each synset in WordNet. These frequency counts are used by 
@@ -39,17 +39,18 @@
 
 # Variable declarations
 my $wn;
+my $wntools;
 my $wnver;
 my $line;
 my $sentence;
 my @parts;
-my %compounds;
 my %stopWords;
 my %offsetFreq;
 my %newFreq;
 my %topHash;
 
 # Some modules used
+use strict;
 use Getopt::Long;
 use WordNet::QueryData;
 
@@ -62,12 +63,12 @@ if ( $#ARGV == -1 )
 }
 
 # Now get the options!
-&GetOptions("version", "help", "compfile=s", "stopfile=s", "outfile=s", "wnpath=s", "resnik", "smooth=s");
+our ($opt_version, $opt_help, $opt_stopfile, $opt_outfile, $opt_wnpath, $opt_resnik, $opt_smooth);
+&GetOptions("version", "help", "stopfile=s", "outfile=s", "wnpath=s", "resnik", "smooth=s");
 
 # If the version information has been requested
 if(defined $opt_version)
 {
-    $opt_version = 1;
     &printVersion();
     exit;
 }
@@ -75,29 +76,19 @@ if(defined $opt_version)
 # If detailed help has been requested
 if(defined $opt_help)
 {
-    $opt_help = 1;
     &printHelp();
     exit;
 }
 
-# Look for the Compounds file... exit if not specified.
-if(!defined $opt_compfile)
-{
-    &minimalUsageNotes();
-    exit;
-}
 
-if(defined $opt_outfile)
-{
-    $outfile = $opt_outfile;
-}
-else
+unless(defined $opt_outfile)
 {
     &minimalUsageNotes();
     exit;
 }
 
 # Get the path to WordNet...
+my ($wnPCPath, $wnUnixPath);
 if(defined $opt_wnpath)
 {
     $wnPCPath = $opt_wnpath;
@@ -115,20 +106,9 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-3.0/dict";
 }
-
-# Load the compounds
-print STDERR "Loading compounds... ";
-open (WORDS, "$opt_compfile") || die ("Couldnt open $opt_compfile.\n");
-while (<WORDS>)
-{
-    s/[\r\f\n]//g;
-    $compounds{$_} = 1;
-}
-close WORDS;
-print STDERR "done.\n";
 
 # Load the stop words if specified
 if(defined $opt_stopfile)
@@ -147,8 +127,10 @@ if(defined $opt_stopfile)
 # Load up WordNet
 print STDERR "Loading WordNet... ";
 $wn=(defined $opt_wnpath)? (WordNet::QueryData->new($opt_wnpath)):(WordNet::QueryData->new());
-die "Unable to create WordNet object.\n" if(!$wn);
+die "Unable to create WordNet::QueryData object.\n" if(!$wn);
 $wnPCPath = $wnUnixPath = $wn->dataPath() if($wn->can('dataPath'));
+$wntools = WordNet::Tools->new($wn);
+die "Unable to create WordNet::Tools object.\n" if(!$wntools);
 print STDERR "done.\n";
 
 # Load the topmost nodes of the hierarchies
@@ -175,16 +157,13 @@ while($line=<>)
 &process($sentence);
 print STDERR "done.\n";
 
-# Hack to prevent warning...
-$opt_resnik = 1 if(defined $opt_resnik);
-
 # Smoothing!
 if(defined $opt_smooth)
 {
     print STDERR "Smoothing... ";
     if($opt_smooth eq 'ADD1')
     {
-	foreach $pos ("noun", "verb")
+	foreach my $pos ("noun", "verb")
 	{
 	    my $localpos = $pos;
 
@@ -201,7 +180,7 @@ if(defined $opt_smooth)
 	    {
 		last if(/^\S/);
 	    }
-	    ($offset) = split(/\s+/, $_, 2);
+	    my ($offset) = split(/\s+/, $_, 2);
 	    $offset =~ s/^0*//;
 	    $offsetFreq{$localpos}{$offset}++;
 	    while(<IDX>)
@@ -234,11 +213,11 @@ print STDERR "done.\n";
 
 # Print the output to file
 print STDERR "Writing output file... ";
-open(OUT, ">$outfile") || die "Unable to open $outfile for writing.\n";
-print OUT "wnver::".$wn->version()."\n";
-foreach $pos ("n", "v")
+open(OUT, ">$opt_outfile") || die "Unable to open $opt_outfile for writing.\n";
+print OUT "wnver::".$wntools->hashCode()."\n";
+foreach my $pos ("n", "v")
 {
-    foreach $offset (sort {$a <=> $b} keys %{$newFreq{$pos}})
+    foreach my $offset (sort {$a <=> $b} keys %{$newFreq{$pos}})
     {
 	print OUT "$offset$pos $newFreq{$pos}{$offset}";
 	print OUT " ROOT" if($topHash{$pos}{$offset});
@@ -267,64 +246,11 @@ sub process
     while($block =~ s/([0-9]+)\s+([0-9]+)/$1$2/g){}
     $block =~ s/^\s+//;
     $block =~ s/\s+$//;
-    $block = &compoundify($block);
+    $block = $wntools->compoundify($block);
     while($block =~ /([\w_]+)/g)
     {
 	&updateFrequency($1) if(!defined $stopWords{$1});
     }
-}
-
-# Form all possible compounds within a sentence
-sub compoundify
-{
-    my $block;
-    my $string;
-    my $done;
-    my $temp;
-    my $firstPointer;
-    my $secondPointer;
-    my @wordsArray;
-    
-    # get the block of text
-    $block = shift;
-    
-    # get all the words into an array
-    @wordsArray = ();
-    while ($block =~ /(\w+)/g)
-    {
-	push @wordsArray, $1;
-    }
-    
-    # now compoundify, GREEDILY!!
-    $firstPointer = 0;
-    $string = "";
-    
-    while($firstPointer <= $#wordsArray)
-    {
-	$secondPointer = (($firstPointer + 5 < $#wordsArray)?($firstPointer + 5):($#wordsArray));
-	$done = 0;
-	while($secondPointer > $firstPointer && !$done)
-	{
-	    $temp = join ("_", @wordsArray[$firstPointer..$secondPointer]);
-	    if(exists $compounds{$temp})
-	    {
-		$string .= "$temp "; 
-		$done = 1;
-	    }
-	    else 
-	    { 
-		$secondPointer--; 
-	    }
-	}
-	if(!$done) 
-	{ 
-	    $string .= "$wordsArray[$firstPointer] "; 
-	}
-	$firstPointer = $secondPointer + 1;
-    }
-    $string =~ s/ $//;
-    
-    return $string;    
 }
 
 # Subroutine to update frequency tokens on "seeing" a 
@@ -401,14 +327,13 @@ sub propagateFrequency
 # Subroutine that returns the hyponyms of a given synset.
 sub getHyponymOffsets
 {
-    my $offset;
     my $wordForm;
     my $hyponym;
     my @hyponyms;
     my @retVal;
 
-    $offset = shift;
-    $pos = shift;
+    my $offset = shift;
+    my $pos = shift;
     if($offset == 0)
     {
 	@retVal = keys %{$topHash{$pos}};
@@ -479,8 +404,6 @@ sub printHelp
     print "\nThis program computes the information content of concepts, by\n";
     print "counting the frequency of their occurrence in the Brown Corpus.\n";
     print "Options: \n";
-    print "--compfile       Used to specify the file COMPFILE containing the \n";
-    print "                 list of compounds in WordNet.\n";
     print "--outfile        Specifies the output file OUTFILE.\n";
     print "--stopfile       STOPFILE is a list of stop listed words that will\n";
     print "                 not be considered in the frequency count.\n";
@@ -510,14 +433,14 @@ sub minimalUsageNotes
 # Subroutine that prints the usage
 sub printUsage
 {
-    print "brownFreq.pl [{--compfile COMPFILE --outfile OUTFILE [--stopfile STOPFILE]";
+    print "brownFreq.pl [{--outfile OUTFILE [--stopfile STOPFILE]";
     print " [--wnpath WNPATH] [--resnik] [--smooth SCHEME] [FILE...] | --help | --version }]\n"
 }
 
 # Subroutine to print the version information
 sub printVersion
 {
-    print "brownFreq.pl version 1.01\n";
+    print "brownFreq.pl version 2.01\n";
     print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan.\n";
 }
 
@@ -529,15 +452,10 @@ brownFreq.pl
 
 =head1 SYNOPSIS
 
-brownFreq.pl [--compfile=COMPFILE --outfile=OUTFILE [--stopfile=STOPFILE] 
+brownFreq.pl [--outfile=OUTFILE [--stopfile=STOPFILE] 
  [--wnpath=WNPATH] [--resnik] [--smooth=SCHEME] FILES | --help --version]
 
 =head1 OPTIONS
-
-B<--compfile>=I<filename>
-
-    The name of a file containing the compound words (collocations) in
-    WordNet
 
 B<--outfile>=I<filename>
 
@@ -553,7 +471,7 @@ B<--stopfile>=I<filename>
 B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
-    /usr/local/WordNet-2.1/dict)
+    /usr/local/WordNet-3.0/dict)
 
 B<--resnik>
 

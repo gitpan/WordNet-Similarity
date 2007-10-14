@@ -1,14 +1,14 @@
 #!/usr/local/bin/perl -w
 
 # Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl loaded.t'
+# `make test'. After `make install' it should work as `perl t/access.t'
 
 ##################### We start with some black magic to print on failure.
 
 BEGIN { $| = 1; print "1..12\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use WordNet::Similarity;
-use WordNet::QueryData 1.39;
+use WordNet::QueryData 1.40;
 use WordNet::Similarity::jcn;
 use WordNet::Similarity::res;
 use WordNet::Similarity::lin;
@@ -164,7 +164,7 @@ else
     print "not ok 8\n";
 }
 
-############ Load edge
+############ Load path
 
 $path = WordNet::Similarity::path->new($wn);
 if($path)

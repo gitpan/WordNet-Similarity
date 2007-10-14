@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl wnDepths.t'
+# 'make test'.  After 'make install' it should work as 'perl t/utils/wnDepths.t'
 
 # A script to test the wnDepths.pl utility program.  The following
 # tests are performed:
@@ -52,7 +52,7 @@ ok ($wnver);
 SKIP:
 {
   unless ($wnver eq '2.1' or $wnver eq '2.0' or $wnver eq '1.7.1') {
-    skip ("Unknown version of WordNet: $wnver", 5)
+    skip ("Skipping tests dependent on deprecated 'version' method", 5)
   }
 
   for (1..$#depths) {
@@ -131,18 +131,21 @@ SKIP:
   }
 }
 
-#ok (open WNDFH, "$perl -MExtUtils::testlib $wndepths 2> $devnull |")
-#  or diag "Could not open pipe from $wndepths: $!";
-
-#my @depths = <WNDFH>;
-
-#ok (close WNDFH) or diag "Could not close pipe: $!";
-
 my $keydir = File::Spec->catdir ('t', 'keys');
 
 $keydir = $opt_keydir if $opt_keydir;
 
 my $keyfile = File::Spec->catfile ($keydir, 'wndepths.txt');
+
+my $wfile = File::Spec->catfile ($keydir, "wnver.key");
+ok (open WNF, $wfile);
+my $wnHash = <WNF>;
+ok ($wnHash);
+$wnHash = "" if(!defined($wnHash));
+$wnHash =~ s/[\r\f\n]+//g;
+$wnHash =~ s/^\s+//;
+$wnHash =~ s/\s+$//;
+ok (close WNF);
 
 # Since 5.8.0, Perl hash randomized its hash function.  Since wnDepths.pl
 # stores the depths in a hash and then just dumps the depths to a file
@@ -150,24 +153,27 @@ my $keyfile = File::Spec->catfile ($keydir, 'wndepths.txt');
 # every time wnDepths.pl is run.
 @depths = sort @depths;
 
-unless ($opt_key) {
-  ok (open KFFH, $keyfile) or diag "Could not open $keyfile: $!";
+SKIP: {
+  skip "Hash-code of key file(s) does not match installed WordNet", 1 if($wnHash ne $wnver);
+  unless ($opt_key) {
+    ok (open KFFH, $keyfile) or diag "Could not open $keyfile: $!";
 
-  my @keys = <KFFH>;
+    my @keys = <KFFH>;
 
-  ok (close KFFH) or diag "Could not close $keyfile: $!";
+    ok (close KFFH) or diag "Could not close $keyfile: $!";
 
-  is (scalar @depths, scalar @keys);
+    is (scalar @depths, scalar @keys);
 
-  for (0..$#depths) {
-    is ($depths[$_], $keys[$_]);
+    for (0..$#depths) {
+      is ($depths[$_], $keys[$_]);
+    }
   }
-}
-else {
-  ok (open KFFH, '>', $keyfile) or diag "Could not open $keyfile: $!";
-  print KFFH @depths;
-  ok (close KFFH);
-  exit 0;
+  else {
+    ok (open KFFH, '>', $keyfile) or diag "Could not open $keyfile: $!";
+    print KFFH @depths;
+    ok (close KFFH);
+    exit 0;
+  }
 }
 
 __END__

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl sim-file.t'
+# 'make test'.  After 'make install' it should work as 'perl t/utils/sim-file.t'
 
 # A script to ensure that similarity.pl handles input from files correctly
 # and ensures that invalid files result in a warning or error.  The

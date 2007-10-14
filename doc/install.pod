@@ -17,8 +17,8 @@ install.pod - how to install WordNet::Similarity
 
 =head2 Prerequisites
 
-You need to have WordNet (version 2.1) installed, WordNet::QueryData
-(version 1.39 or later), and Text::Similarity installed.
+You need to have WordNet (version 3.0) installed, WordNet::QueryData
+(version 1.46 or later), and Text::Similarity installed.
 
 WordNet is available at http://wordnet.princeton.edu, WordNet::QueryData
 is available from http://search.cpan.org/dist/WordNet-QueryData, and
@@ -43,7 +43,7 @@ The usual way to install the package is to run the following commands:
 If you can't set the WNHOME environment variable, you can use the WNHOME
 option when running S<perl Makefile.PL>.  For example,
 
- perl Makefile.PL WNHOME=/usr/local/WordNet-2.1
+ perl Makefile.PL WNHOME=/usr/local/WordNet-3.0
 
 You will often need root access/superuser priviledges to run S<make install>.
 The module can also be installed locally.  To do a local install, you need
@@ -132,7 +132,7 @@ you would need to explicitly invoke them as 'perl similarity.pl ... ' or
 
 WordNet: All the measures are based on WordNet. WordNet must be
 installed on your system. WordNet is freely downloadable from
-http://wordnet.princeton.edu. WordNet version 2.1 was used during
+http://wordnet.princeton.edu. WordNet version 3.0 was used during
 the development and testing of the package. Unfortunately, due to major
 changes in WordNet (and WordNet::QueryData) from version 2.0 to 2.1, this
 version of WordNet::Similarity supports only WordNet 2.1 (or later).
@@ -146,7 +146,7 @@ WordNet::QueryData documentation.
 WordNet::QueryData: This is the Perl interface to WordNet written by
 Jason Rennie. QueryData should be accessible on the @INC path of Perl. (Can
 be freely downloaded from http://search.cpan.org/dist/WordNet-QueryData).
-QueryData 1.39 was used during the development. Also we observed that that
+QueryData 1.46 was used during the development. Also we observed that that
 due to some major changes in QueryData from its previous versions, this
 software does not work with the earlier versions of QueryData. If you have
 an earlier version of QueryData (1.38 or earlier) you may need to upgrade
@@ -173,21 +173,21 @@ run these tests, run 'make test_all'.
 The following procedure will work on most Linux systems.
 
  cd /tmp
- wget http://wordnet.princeton.edu/2.1/WordNet-2.1.tar.gz
- wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.39.tar.gz
+ wget http://wordnet.princeton.edu/3.0/WordNet-3.0.tar.gz
+ wget http://search.cpan.org/CPAN/authors/id/J/JR/JRENNIE/WordNet-QueryData-1.46.tar.gz
  wget http://search.cpan.org/CPAN/authors/id/J/JA/JASONM/Text-Similarity-0.02.tar.gz
- wget http://search.cpan.org/CPAN/authors/id/T/TP/TPEDERSE/WordNet-Similarity-1.01.tar.gz
+ wget http://search.cpan.org/CPAN/authors/id/T/TP/TPEDERSE/WordNet-Similarity-2.01.tar.gz
 
 Then unpack each one:
 
- tar -zxvf WordNet-2.1.tar.gz
- tar -zxvf WordNet-QueryData-1.39.tar.gz
+ tar -zxvf WordNet-3.0.tar.gz
+ tar -zxvf WordNet-QueryData-1.46.tar.gz
  tar -zxvf Text-Similarity-0.02.tar.gz
- tar -zxvf WordNet-Similarity-1.01.tar.gz
+ tar -zxvf WordNet-Similarity-2.01.tar.gz
 
 Install WordNet:
 
- cd /tmp/WordNet-2.1
+ cd /tmp/WordNet-3.0
  ./configure
  make
  su
@@ -196,7 +196,7 @@ Install WordNet:
 
 Installing QueryData and Similarity:
 
- cd /tmp/WordNet-QueryData-1.39
+ cd /tmp/WordNet-QueryData-1.46
  perl Makefile.PL
  make
  make test
@@ -212,7 +212,7 @@ Installing QueryData and Similarity:
  make install
  exit
 
- cd /tmp/WordNet-Similarity-1.01
+ cd /tmp/WordNet-Similarity-2.01
  perl Makefile.PL
  make
  make test

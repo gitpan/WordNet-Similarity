@@ -7,6 +7,79 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
+  Version 2.01 (Released 10/14/2007)
+    *   10/13/07
+
+        (1) Fixed error in loading WordNet::Tools for similarity_server.pl.
+            (Sid)
+
+        (2) Removed the use of default (hardcoded) stoplist and word-vectors
+            file for similarity_server.pl. (Sid)
+
+        (3) Print WordNet hash-code instead of WordNet version, for
+            similarity.cgi WordNet version information. (Sid)
+
+    *   10/09/07
+
+        (1) Updated the Pathfinder code to handle loops in the WordNet is-a
+            hierarchy (like the one in WN3.0). (Sid)
+
+        (2) Updated MANIFEST, changelog and documentation to reflect the new
+            changes. (Sid)
+
+    *   10/08/07
+
+        (1) The modules now are not dependent on the version() method of
+            WordNet::QueryData (which is no longer reliable). Instead they
+            now use a 'hash-code' representing a specific WordNet
+            distribution. (Sid)
+
+        (2) Added module WordNet::Tools which provides the hashCode and
+            compoundify methods used by most of the other modules and
+            utilities. (Sid)
+
+        (3) Completely modified the build procedure to generate data files
+            during the 'make' step instead of the 'perl Makefile.PL' step.
+            (Sid)
+
+        (4) Removed the WordNet version numbers appended to synsetdepths.dat
+            and treedepths.dat. (Sid)
+
+        (5) Added two "build" utilities -- build/Infocontent.PL and
+            build/Depthfiles.PL -- which are run during the 'make' step to
+            generate data files. (Sid)
+
+        (6) The default WordNet version is now v3.0. Changed all
+            documentation, code and examples to reflect this. (Sid)
+
+        (7) The package now requires WordNet::QueryData version 1.46 or
+            above. (Sid)
+
+        (8) Revised all tests and test-keys for the new code and new version
+            of WordNet and QueryData. (Sid)
+
+        (9) Removed the multiple pieces of code implementing "compoundify"
+            and moved it all into a single method in WordNet::Tools. (Sid)
+
+    *   10/04/07
+
+        (1) Included a default word vectors file in the distribution and
+            eliminated the creation of a default word vectors file at
+            install time. (Sid)
+
+    *   02/25/07
+
+        (1) Fixed documentation where module WordNet::Similarity::path was
+            referred to as WordNet::Similarity::edge (old name). (Sid)
+
+    *   01/30/07
+
+        (1) Fixed wnDepths.pl man-page to display the wnpath option
+            consistently in the usage and the description. (Sid)
+
+        (2) Fixed the "deep recursion" error (only with WN3.0) in the
+            findWPSDepths() subroutine in the wnDepths.pl script. (Sid)
+
   Version 1.04 (Released 12/13/2006)
     *   12/13/06
 

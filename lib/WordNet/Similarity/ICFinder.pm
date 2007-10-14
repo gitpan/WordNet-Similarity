@@ -1,5 +1,5 @@
 # WordNet::Similarity::ICFinder.pm version 1.03
-# (Last updated $Id: ICFinder.pm,v 1.15 2006/04/14 07:58:26 sidz1979 Exp $)
+# (Last updated $Id: ICFinder.pm,v 1.16 2007/10/09 12:05:39 sidz1979 Exp $)
 #
 # A generic (and abstract) information content measure--this is not a
 # real measure.  The res, lin, and jcn measures inherit from this class.
@@ -44,16 +44,17 @@ in the configuration file for the measure. If no information content file is
 specified, then the default information content file, generated at the time 
 of the installation of the WordNet::Similarity modules, is used. A description 
 of the format of these files follows. The FIRST LINE of this file must contain 
-the version of WordNet the the file was created with. This should be present 
+the hash-code of WordNet the the file was created with. This should be present 
 as a string of the form
 
-  wnver::<version>
+  wnver::<hashcode>
 
-For example, if WordNet version 2.0 was used for creation of the
-information content file, the following line would be present at the start
-of the information content file.
+For example, if WordNet version 2.1 with the hash-code
+LL1BZMsWkr0YOuiewfbiL656+Q4 was used for creation of the information content
+file, the following line would be present at the start of the information
+content file.
 
-  wnver::2.0
+  wnver::LL1BZMsWkr0YOuiewfbiL656+Q4
 
 The rest of the file contains on each line, a WordNet synset offset, 
 part-of-speech and a frequency count, of the form
@@ -314,6 +315,7 @@ sub configure {
   my $self = shift;
   $self->SUPER::configure (@_);
   my $wn = $self->{wn};
+  my $wntools = $self->{wntools};
   my $class = ref $self || $self;
 
   unless (defined $self->{infocontent}) {
@@ -333,14 +335,14 @@ sub configure {
     }
 
     # If there are multiple possibilities, get the one that matches the
-    # the installed version of WordNet.
+    # the installed version (hash-code) of WordNet.
     foreach $path (@possiblePaths) {
       if (open (ICF, $path)) {
 	my $wnver = <ICF>;
 	$wnver =~ s/[\r\f\n\t ]+//g;
 	if ($wnver =~ /wnver::(.*)/) {
 	  $wnver = $1;
-	  if (defined $wnver && $wnver eq $wn->version()) {
+	  if (defined $wnver && $wnver eq $wntools->hashCode()) {
 	    $self->{infocontent} = $path;
 	    close (ICF);
 	    last;
@@ -370,7 +372,7 @@ sub configure {
   $wnver =~ s/[\r\f\n\t ]+//g;
   if($wnver =~ /wnver::(.*)/) {
     $wnver = $1;
-    if(defined $wnver && $wnver eq $wn->version()) {
+    if(defined $wnver && $wnver eq $wntools->hashCode()) {
       $self->{offsetFreq}->{n}->{0} = 0;
       $self->{offsetFreq}->{v}->{0} = 0;
       while(<ICF>) {
@@ -431,6 +433,7 @@ sub _loadInfoContentFile
     my $self = shift;
     my $infoContentFile = shift;
     my $wn = $self->{'wn'};
+    my $wntools = $self->{'wntools'};
     my $wnver;
     my $offsetPOS;
     my $frequency;
@@ -445,7 +448,7 @@ sub _loadInfoContentFile
 	if($wnver =~ /wnver::(.*)/)
 	{
 	    $wnver = $1;
-	    if(defined $wnver && $wnver eq $wn->version())
+	    if(defined $wnver && $wnver eq $wntools->hashCode())
 	    {
 		$localFreq->{"n"}->{0} = 0;
 		$localFreq->{"v"}->{0} = 0;
@@ -506,6 +509,7 @@ sub _isValidInfoContentFile
     my $self = shift;
     my $path = shift;
     my $wn = $self->{'wn'};
+    my $wntools = $self->{'wntools'};
     my $wnver;
 
     if(open(INFOCONTENT, $path))
@@ -516,7 +520,7 @@ sub _isValidInfoContentFile
 	if($wnver =~ /wnver::(.*)/)
 	{
 	    $wnver = $1;
-	    if(defined $wnver && $wnver eq $wn->version())
+	    if(defined $wnver && $wnver eq $wntools->hashCode())
 	    {
 		close(INFOCONTENT);
 		return 1;

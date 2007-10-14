@@ -1,5 +1,5 @@
-# WordNet::Similarity::vector_pairs.pm version 1.04
-# (Last updated $Id: vector_pairs.pm,v 1.7 2006/02/19 19:11:09 sidz1979 Exp $)
+# WordNet::Similarity::vector_pairs.pm version 2.01
+# (Last updated $Id: vector_pairs.pm,v 1.9 2007/10/09 12:05:39 sidz1979 Exp $)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using a
@@ -71,7 +71,7 @@ use File::Spec;
 use vars qw($VERSION @ISA);
 
 @ISA = qw(WordNet::Similarity::GlossFinder);
-$VERSION = '1.04';
+$VERSION = '2.01';
 
 WordNet::Similarity::addConfigOption("vectordb", 0, "p", undef);
 
@@ -254,6 +254,7 @@ sub getRelatedness
     my $wps1 = shift;
     my $wps2 = shift;
     my $wn = $self->{wn};
+    my $wntools = $self->{wntools};
     my $class = ref $self || $self;
     
     # Check the existence of the WordNet::QueryData object.
@@ -261,6 +262,15 @@ sub getRelatedness
     {
         $self->{errorString} .= "\nError (${class}::getRelatedness()) - ";
         $self->{errorString} .= "A WordNet::QueryData object is required.";
+        $self->{error} = 2;
+        return undef;
+    }
+
+    # Check the existence of the WordNet::Tools object.
+    unless($wntools)
+    {
+        $self->{errorString} .= "\nError (${class}::getRelatedness()) - ";
+        $self->{errorString} .= "A WordNet::Tools object is required.";
         $self->{error} = 2;
         return undef;
     }
@@ -308,12 +318,12 @@ sub getRelatedness
         $firstString =~ s/[^a-z0-9]+/ /g;
         $firstString =~ s/^\s+//;
         $firstString =~ s/\s+$//;
-        $firstString = $self->compoundify($firstString);
+        $firstString = $wntools->compoundify($firstString);
         $secondString =~ s/\'//g;
         $secondString =~ s/[^a-z0-9]+/ /g;
         $secondString =~ s/^\s+//;
         $secondString =~ s/\s+$//;
-        $secondString = $self->compoundify($secondString);
+        $secondString = $wntools->compoundify($secondString);
 
         # Get vectors... score...
         my $a;
@@ -594,13 +604,6 @@ A value of 1 switches 'on' stemming, and a value of 0 switches stemming
 'off'. When stemming is enabled, all the words of the
 glosses are stemmed before their vectors are created for the vector
 measure or their overlaps are compared for the lesk measure.
-
-=item compounds
-
-The value of this parameter is the path of a file containing a list of
-compound words in WordNet.  This path may be either an absolute path or
-a relative path.  If the value is omitted, then the default
-behavior (no compound recognition) is used.
 
 =item vectordb
 

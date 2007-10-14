@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# all.t version 0.14
+# all.t version 2.01
 # (Updated 1/12/2004 -- Jason)
 #
 # Copyright (C) 2004
@@ -12,7 +12,7 @@
 # tpederse at d.umn.edu
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl Infocontent.t'
+# 'make test'.  After 'make install' it should work as 'perl t/config/all.t'
 
 # A script to run general tests of the ability of various WordNet::Similarity
 # modules to read config files.  This script simply tries to contruct each

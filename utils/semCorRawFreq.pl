@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# semCorRawFreq.pl version 1.01
-# (Last updated $Id: semCorRawFreq.pl,v 1.8 2005/12/11 22:37:02 sidz1979 Exp $)
+# semCorRawFreq.pl version 2.01
+# (Last updated $Id: semCorRawFreq.pl,v 1.9 2007/10/09 12:05:41 sidz1979 Exp $)
 #
 # This program reads SemCor files and computes the frequency
 # counts for each synset in WordNet, ignoring the sense tags
@@ -43,7 +43,6 @@ use File::Find;
 
 # Variable declarations
 my @parts;
-my %compounds;
 my %stopWords;
 my %offsetFreq;
 my %newFreq;
@@ -52,6 +51,7 @@ my %topHash;
 # Some modules used
 use Getopt::Long;
 use WordNet::QueryData;
+use WordNet::Tools;
 
 # First check if no commandline options have been provided... in which case
 # print out the usage notes!
@@ -61,11 +61,11 @@ if($#ARGV == -1)
     exit;
 }
 
-our (@opt_infiles, $opt_version, $opt_help, $opt_compfile, $opt_stopfile);
+our (@opt_infiles, $opt_version, $opt_help, $opt_stopfile);
 our ($opt_outfile, $opt_wnpath, $opt_resnik, $opt_smooth, $opt_stdin);
 
 # Now get the options!
-my $okay = GetOptions("version", "help", "compfile=s", "stopfile=s",
+my $okay = GetOptions("version", "help", "stopfile=s",
 		      "outfile=s", "wnpath=s", "resnik", "smooth=s",
 		      "stdin", "infile=s" => \@opt_infiles);
 
@@ -88,13 +88,6 @@ if(defined $opt_help)
     $opt_help = 1;
     &printHelp();
     exit;
-}
-
-# Look for the Compounds file... exit if not specified.
-if(!defined $opt_compfile)
-{
-    &minimalUsageNotes();
-    exit 1;
 }
 
 unless (defined $opt_outfile)
@@ -128,21 +121,10 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-3.0/dict";
 }
 
-
-# Load the compounds
-print STDERR "Loading compounds... ";
-open (WORDS, "$opt_compfile") or die ("Couldn't open $opt_compfile.\n");
-while (<WORDS>)
-{
-    s/[\r\f\n]//g;
-    $compounds{$_} = 1;
-}
-close WORDS;
-print STDERR "done.\n";
 
 # Hack to prevent warning...
 $opt_resnik = 1 if defined $opt_resnik;
@@ -168,6 +150,8 @@ my $wn = defined $opt_wnpath
          : (WordNet::QueryData->new());
 die "Unable to create WordNet object.\n" if(!$wn);
 $wnPCPath = $wnUnixPath = $wn->dataPath() if($wn->can('dataPath'));
+my $wntools = WordNet::Tools->new($wn);
+die "Unable to create WordNet::Tools object.\n" if(!$wntools);
 print STDERR "done.\n";
 
 # Load the topmost nodes of the hierarchies
@@ -286,7 +270,7 @@ print STDERR "Writing output file... ";
 open(OUT, '>', $opt_outfile)
     or die "Unable to open '$opt_outfile' for writing.";
 
-print OUT "wnver::".$wn->version()."\n";
+print OUT "wnver::".$wntools->hashCode()."\n";
 foreach my $pos ("n", "v")
 {
     foreach my $offset (sort {$a <=> $b} keys %{$newFreq{$pos}})
@@ -484,8 +468,6 @@ sub printHelp
     print "\nThis program computes the information content of concepts, by\n";
     print "counting the frequency of their occurrence in the SemCor Corpus.\n";
     print "Options: \n";
-    print "--compfile       Used to specify the file COMPFILE containing the \n";
-    print "                 list of compounds in WordNet.\n";
     print "--outfile        Specifies the output file OUTFILE.\n";
     print "--stdin          Read input from the standard input.\n";
     print "--infile         Specifies the name of an input file.\n";
@@ -518,7 +500,7 @@ sub minimalUsageNotes
 sub printUsage
 {
     print <<'EOU';
-Usage: semCorRawFreq.pl --compfile FILE --outfile FILE
+Usage: semCorRawFreq.pl --outfile FILE
                          {--stdin | --infile FILE [--infile FILE ...]}
                          [--stopfile FILE] [--resnik] [--wnpath PATH]
                          [--smooth SCHEME]
@@ -529,7 +511,7 @@ EOU
 # Subroutine to print the version information
 sub printVersion
 {
-    print "semCorRawFreq.pl version 1.01\n";
+    print "semCorRawFreq.pl version 2.01\n";
     print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan.\n";
 }
 
@@ -541,16 +523,11 @@ semCorRawFreq.pl
 
 =head1 SYNOPSIS
 
-semCorRawFreq.pl --compfile FILE --outfile FILE [--stopfile FILE] [--resnik]
+semCorRawFreq.pl --outfile FILE [--stopfile FILE] [--resnik]
   [--wnpath PATH] [--smooth SCHEME] {--stdin | --infile FILE [--infile FILE ...]}
  | --help | --version
 
 =head1 OPTIONS
-
-B<--compfile>=I<filename>
-
-    Specify a file containing the list of compound words occurring 
-    in WordNet
 
 B<--outfile>=I<filename>
 
@@ -568,7 +545,7 @@ B<--resnik>
 B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
-    /usr/local/WordNet-2.1/dict)
+    /usr/local/WordNet-3.0/dict)
 
 B<--smooth>=I<SCHEME>
 

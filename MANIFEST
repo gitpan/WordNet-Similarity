@@ -1,3 +1,5 @@
+build/Depthfiles.PL
+build/Infocontent.PL
 CHANGES
 doc/changelog.pod
 doc/config.pod
@@ -15,6 +17,7 @@ lib/stem.pm
 lib/vectorFile.pm
 lib/WordNet/lesk-relation.dat
 lib/WordNet/Similarity.pm
+lib/WordNet/Tools.pm
 lib/WordNet/Similarity/DepthFinder.pm
 lib/WordNet/Similarity/GlossFinder.pm
 lib/WordNet/Similarity/hso.pm
@@ -32,6 +35,7 @@ lib/WordNet/Similarity/vector_pairs.pm
 lib/WordNet/Similarity/wup.pm
 lib/WordNet/vector-pairs-relation.dat
 lib/WordNet/vector-relation.dat
+lib/WordNet/wordvectors.dat
 Makefile.PL
 MANIFEST
 README
@@ -328,6 +332,31 @@ t/keys/0.16/wndepths.txt
 t/keys/0.16/wuppairs.key
 t/keys/0.16/wuppairs_nr.key
 t/keys/0.16/wuptrace.key
+t/keys/1.04/hsopairs.key
+t/keys/1.04/hsopairs_nr.key
+t/keys/1.04/hsotrace.key
+t/keys/1.04/jcnpairs.key
+t/keys/1.04/jcnpairs_nr.key
+t/keys/1.04/jcntrace.key
+t/keys/1.04/lchpairs.key
+t/keys/1.04/lchpairs_nr.key
+t/keys/1.04/lchtrace.key
+t/keys/1.04/leskpairs.key
+t/keys/1.04/leskpairs_nr.key
+t/keys/1.04/lesktrace.key
+t/keys/1.04/linpairs.key
+t/keys/1.04/linpairs_nr.key
+t/keys/1.04/lintrace.key
+t/keys/1.04/pathpairs.key
+t/keys/1.04/pathpairs_nr.key
+t/keys/1.04/pathtrace.key
+t/keys/1.04/respairs.key
+t/keys/1.04/respairs_nr.key
+t/keys/1.04/restrace.key
+t/keys/1.04/wndepths.txt
+t/keys/1.04/wuppairs.key
+t/keys/1.04/wuppairs_nr.key
+t/keys/1.04/wuptrace.key
 t/keys/diff/hsopairs.diff
 t/keys/diff/jcnpairs.diff
 t/keys/diff/lchpairs.diff
@@ -359,6 +388,7 @@ t/keys/respairs.key
 t/keys/respairs_nr.key
 t/keys/restrace.key
 t/keys/wndepths.txt
+t/keys/wnver.key
 t/keys/wuppairs.key
 t/keys/wuppairs_nr.key
 t/keys/wuptrace.key
@@ -372,6 +402,7 @@ t/pairs.txt
 t/path.t
 t/PathFinder.t
 t/pod.t
+t/pod-doc.t
 t/pod-coverage.t
 t/random.t
 t/README
@@ -396,6 +427,7 @@ t/utils/sim.t
 t/utils/wnDepths.t
 t/vector.t
 t/vector_pairs.t
+t/wn30loop.t
 t/wup.t
 utils/BNCFreq.pl
 utils/brownFreq.pl

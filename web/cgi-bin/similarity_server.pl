@@ -10,16 +10,15 @@ use POSIX ':sys_wait_h';  # for waitpid() and friends; used by reaper()
 # $BASEDIR is simply the directory of that where this file resides.
 my $BASEDIR = '/usr/local/apache2/cgi-bin';
 my $localport = 31134;
-my $wnlocation = '/usr/local/WordNet-2.1/dict';
+my $wnlocation = '/usr/local/WordNet-3.0/dict';
 
 
 my $lock_file = "$BASEDIR/similarity_server.lock";
 my $error_log = "$BASEDIR/error.log";
 my $conf_file = "similarity_server.conf";
 
-my $wordvectors = "wordvectors.dat";
-my $compfile = "compfile.txt";
-my $stoplist = "stoplist.txt";
+my $wordvectors;
+my $stoplist;
 
 my $maxchild = 4; # max number of child processes at one time
 
@@ -36,28 +35,24 @@ if (-e $conf_file) {
         }
 
         if ($1 eq 'lock_file') {
-            print "lock_file=$2\n";
+            print STDERR "Lock file = $2\n";
             $lock_file = $2;
         }
         elsif ($1 eq 'error_log') {
-            print "error_log=$2\n";
+            print STDERR "Error log = $2\n";
             $error_log = $2;
         }
 	elsif ($1 eq 'vectordb') {
 	    $wordvectors = $2;
-	    print "vectordb=$2\n";
-	}
-	elsif ($1 eq 'compounds') {
-	    $compfile = $2;
-	    print "compounds=$2\n";
+	    print STDERR "Word vectors = $2\n";
 	}
 	elsif ($1 eq 'stop') {
 	    $stoplist = $2;
-	    print "stoplist=$2\n";
+	    print STDERR "Stoplist = $2\n";
 	}
 	elsif ($1 eq 'maxchild') {
 	    $maxchild = $2;
-	    print "maxchild=$2\n";
+	    print STDERR "Maxchild = $2\n";
 	}
         else {
             warn "Unknown config option in $conf_file at $.\n";
@@ -89,6 +84,8 @@ END {
     }
 }
 
+print STDERR "Loading modules... ";
+
 # prototypes:
 sub getAllForms ($);
 sub getlock ();
@@ -98,6 +95,7 @@ use sigtrap handler => \&bailout, 'normal-signals';
 use IO::Socket::INET;
 
 use WordNet::QueryData;
+use WordNet::Tools;
 use WordNet::Similarity::hso;
 use WordNet::Similarity::jcn;
 use WordNet::Similarity::lch;
@@ -111,8 +109,10 @@ use WordNet::Similarity::vector_pairs;
 use WordNet::Similarity::wup;
 
 my $wn = WordNet::QueryData->new ($wnlocation);
-
 $wn or die "Couldn't construct WordNet::QueryData object";
+
+my $wntools = WordNet::Tools->new($wn);
+$wntools or die "Unable to create WordNet::Tools object";
 
 our $hso = WordNet::Similarity::hso->new ($wn);
 our $jcn = WordNet::Similarity::jcn->new ($wn);
@@ -122,7 +122,7 @@ my $leskcfg = "lesk$$.cfg";
 open FH, '>', $leskcfg or die "Cannot open $leskcfg for writing: $!";
 print FH "WordNet::Similarity::lesk\n";
 print FH "stem::1\n";
-print FH "stop::stoplist.txt\n" if -e 'stoplist.txt';
+print FH "stop::$stoplist\n" if(defined($stoplist) && -e $stoplist);
 close FH;
 
 our $lesk = WordNet::Similarity::lesk->new ($wn, $leskcfg);
@@ -131,10 +131,9 @@ unlink $leskcfg;
 my $vectorcfg = "vectorpairs$$.cfg";
 open VFH, '>', $vectorcfg or die "Cannot open $vectorcfg for writing: $!";
 print VFH "WordNet::Similarity::vector_pairs\n";
-print VFH "stop::$stoplist\n" if -e 'stoplist.txt';
+print VFH "stop::$stoplist\n" if(defined($stoplist) && -e $stoplist);
 print VFH "stem::1\n";
-print VFH "compounds::$compfile\n";
-print VFH "vectordb::$wordvectors\n";
+print VFH "vectordb::$wordvectors\n" if(defined($wordvectors));
 close VFH;
 
 our $vector_pairs = WordNet::Similarity::vector_pairs->new ($wn, $vectorcfg);
@@ -143,15 +142,13 @@ unlink $vectorcfg;
 $vectorcfg = "vector$$.cfg";
 open WFH, '>', $vectorcfg or die "Cannot open $vectorcfg for writing: $!";
 print WFH "WordNet::Similarity::vector\n";
-print WFH "stop::$stoplist\n" if -e 'stoplist.txt';
+print WFH "stop::$stoplist\n" if(defined($stoplist) && -e $stoplist);
 print WFH "stem::1\n";
-print WFH "compounds::$compfile\n";
-print WFH "vectordb::$wordvectors\n";
+print WFH "vectordb::$wordvectors\n" if(defined($wordvectors));
 close WFH;
 
 our $vector = WordNet::Similarity::vector->new($wn, $vectorcfg);
 unlink $vectorcfg;
-
 
 our $lin = WordNet::Similarity::lin->new ($wn);
 our $path = WordNet::Similarity::path->new ($wn);
@@ -169,7 +166,8 @@ undef @measures;
 # reset (untaint) the PATH
 $ENV{PATH} = '/bin:/usr/bin:/usr/local/bin';
 
-
+print STDERR "done.\n";
+print STDERR "Started server... accepting requests.\n";
 
 # re-direct STDERR from wherever it is now to a log file
 close STDERR;
@@ -245,7 +243,7 @@ while ((my $client = $socket->accept) or $interrupted) {
 	if ($type eq 'v') {
 	    # get version information
 	    my $qdver = $wn->VERSION ();
-	    my $wnver = $wn->version ();
+	    my $wnver = $wntools->hashCode ();
 	    my $simver = $WordNet::Similarity::VERSION;
 	    print $client "v WordNet $wnver\015\012";
 	    print $client "v WordNet::QueryData $qdver\015\012";

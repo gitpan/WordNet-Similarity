@@ -201,13 +201,14 @@ modules, is used. A description of the format of these files follows. The
 FIRST LINE of this file must contain the version of WordNet that the file
 was created with. This should be present as a string of the form 
 
-wnver::<version>
+wnver::<hashcode>
 
-For example, if WordNet version 2.0 was used for creation of the
-information content file, the following line would be present at the start
-of the information content file.
+For example, if WordNet version 2.1 with a hash-code
+LL1BZMsWkr0YOuiewfbiL656+Q4 was used for creation of the information
+content file, the following line would be present at the start of the
+information content file.
 
-wnver::2.0
+wnver::LL1BZMsWkr0YOuiewfbiL656+Q4
 
 The rest of the file contains on each line a WordNet synset offset,
 part-of-speech and a frequency count, in the form
@@ -249,7 +250,7 @@ The file used by lch has the version of WordNet that was used when generating
 the file on the first line of the file, similar to the information content
 files.  For example:
 
-wnver::2.0
+wnver::LL1BZMsWkr0YOuiewfbiL656+Q4
 
 The remaining lines of the file give the part of speech for each taxonomy,
 the offset of the root of each taxonomy, and the maximum depth of the

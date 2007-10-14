@@ -155,15 +155,6 @@ normalizing 'off'. When normalizing is enabled, the score obtained by
 counting the gloss overlaps is normalized by the size of the glosses.
 The details are described in Banerjee and Pedersen (2002).
 
-=item compounds
-
-This option is supported only by the vector_pairs measure.
-
-The value of this parameter is the path of a file containing a list of
-compound words in WordNet.  This path may be either an absolute path or
-a relative path.  If the value is omitted, then the default
-behavior (no compound recognition) is used.
-
 =item vectordb
 
 This option is supported only by the vector_pairs measure.

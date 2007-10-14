@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# sim.t version 0.07
+# sim.t version 2.01
 # (Updated 1/12/2004 -- Jason)
 #
 # Copyright (C) 2004
@@ -12,7 +12,7 @@
 # tpederse at d.umn.edu
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl sim.t'
+# 'make test'.  After 'make install' it should work as 'perl t/utils/sim.t'
 
 # A script to run general tests on the similarity.pl utility.  The following
 # tests are run:

@@ -1,5 +1,5 @@
-# get_wn_info.pm version 1.03
-# (Last updated $Id: get_wn_info.pm,v 1.11 2006/02/19 19:11:09 sidz1979 Exp $)
+# get_wn_info.pm version 2.01
+# (Last updated $Id: get_wn_info.pm,v 1.12 2007/10/09 12:05:39 sidz1979 Exp $)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
@@ -73,7 +73,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.03';
+$VERSION = '2.01';
 
 =item new
 

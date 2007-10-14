@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# similarity.pl version 1.03
-# (Last updated $Id: similarity.pl,v 1.19 2006/04/05 20:15:41 sidz1979 Exp $)
+# similarity.pl version 2.01
+# (Last updated $Id: similarity.pl,v 1.23 2007/10/11 07:24:36 sidz1979 Exp $)
 #
 # This program is a command line interface to WordNet::Similarity
 #
@@ -19,7 +19,7 @@ use strict;
 #  {
 
 # Include the QueryData package.
-use WordNet::QueryData 1.39;
+use WordNet::QueryData 1.40;
 
 # Include library to get Command-Line options.
 use Getopt::Long;
@@ -506,7 +506,7 @@ sub showHelp
     print "--type        Switch to select the type of similarity measure\n";
     print "              to be used while calculating the semantic\n";
     print "              relatedness. The following strings are defined.\n";
-    print "               'WordNet::Similarity::edge'   Simple edge-counts (inverted).\n";
+    print "               'WordNet::Similarity::path'   Simple edge-counts (inverted).\n";
     print "               'WordNet::Similarity::hso'    The Hirst St. Onge measure.\n";
     print "               'WordNet::Similarity::lch'    The Leacock Chodorow measure.\n";
     print "               'WordNet::Similarity::lesk'   Extended Gloss Overlaps measure.\n";
@@ -541,8 +541,8 @@ sub showHelp
     print "              file with pairs of words separated by newlines, and the\n";
     print "              words of each pair separated by a space.\n";
     print "--wnpath      Option to specify the path of the WordNet data files\n";
-    print "              as PATH. (Defaults to /usr/local/WordNet-2.1/dict on Unix\n";
-    print "              systems and C:\\WordNet\\2.1\\dict on Windows systems)\n";
+    print "              as PATH. (Defaults to /usr/local/WordNet-3.0/dict on Unix\n";
+    print "              systems and C:\\WordNet\\3.0\\dict on Windows systems)\n";
     print "--simpath     If the relatedness module to be used, is locally installed,\n";
     print "              then SIMPATH can be used to indicate the location of the local\n";
     print "              install of the measure.\n";
@@ -564,7 +564,7 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "similarity.pl  version 1.03\n";
+    print "similarity.pl  version 2.01\n";
 
     # 12/8/2003 JM (#3)
     # Print version of module if the --type option was given.
@@ -619,7 +619,7 @@ work are denoted with a *):
 B<--type>=I<type>
     the type of similarity measure.  Valid values are
 
-    WordNet::Similarity::edge - simple edge counting
+    WordNet::Similarity::path - simple edge counting
     WordNet::Similarity::hso - Hirst & St-Onge (1998)
     WordNet::Similarity::lch - Leacock & Chodorow (1998)
     WordNet::Similarity::lesk - Extended Gloss Overlaps (Pedersen & Banerjee 2003)
@@ -652,7 +652,7 @@ B<--file>=I<filename>
 
 B<--wnpath>=I<path>
     looks for WordNet in I<path>. Usual values are
-    /usr/local/WordNet/2.1/dict and C:\WordNet\2.1\dict.
+    /usr/local/WordNet/3.0/dict and C:\WordNet\3.0\dict.
 
 B<--simpath>=I<path>
     look the relatedness module in I<path>.  This is useful if

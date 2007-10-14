@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# rawtextFreq.pl version 1.01
-# (Last updated $Id: rawtextFreq.pl,v 1.16 2005/12/11 22:37:02 sidz1979 Exp $)
+# rawtextFreq.pl version 2.01
+# (Last updated $Id: rawtextFreq.pl,v 1.17 2007/10/09 12:05:41 sidz1979 Exp $)
 #
 # This program reads raw text and computes the frequency counts
 # for each synset in WordNet. These frequency counts are used by
@@ -43,7 +43,6 @@ use strict;
 use File::Find;
 
 # Variable declarations
-my %compounds;
 my %stopWords;
 my %offsetFreq;
 my %newFreq;
@@ -52,6 +51,7 @@ my %topHash;
 # Some modules used
 use Getopt::Long;
 use WordNet::QueryData;
+use WordNet::Tools;
 
 
 # First check if no commandline options have been provided... in which case
@@ -63,11 +63,11 @@ if ($#ARGV == -1)
 }
 
 our @opt_infiles;
-our ($opt_version, $opt_help, $opt_compfile, $opt_stopfile, $opt_outfile);
+our ($opt_version, $opt_help, $opt_stopfile, $opt_outfile);
 our ($opt_wnpath, $opt_resnik, $opt_smooth, $opt_stdin);
 
 # Now get the options!
-my $ok = GetOptions("version", "help", "compfile=s", "stopfile=s", "outfile=s",
+my $ok = GetOptions("version", "help", "stopfile=s", "outfile=s",
 		    "wnpath=s", "resnik", "smooth=s", "stdin",
 		    "infile=s" => \@opt_infiles);
 
@@ -89,13 +89,6 @@ if(defined $opt_help)
     $opt_help = 1;
     &printHelp();
     exit 0;
-}
-
-# Look for the Compounds file... exit if not specified.
-if(!defined $opt_compfile)
-{
-    &minimalUsageNotes();
-    exit 1;
 }
 
 # make sure either --stdin or --infile was given
@@ -120,17 +113,6 @@ else
     &minimalUsageNotes();
     exit 1;
 }
-
-# Load the compounds
-print STDERR "Loading compounds... ";
-open (WORDS, '<', "$opt_compfile") or die ("Couldn't open $opt_compfile.\n");
-while (<WORDS>)
-{
-    s/[\r\f\n]//g;
-    $compounds{$_} = 1;
-}
-close WORDS;
-print STDERR "done.\n";
 
 # Load the stop words if specified
 if(defined $opt_stopfile)
@@ -166,8 +148,8 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-3.0/dict";
 }
 
 # Load up WordNet
@@ -175,8 +157,10 @@ print STDERR "Loading WordNet... ";
 my $wn = (defined $opt_wnpath)
          ? (WordNet::QueryData->new($opt_wnpath))
          : (WordNet::QueryData->new());
-die "Unable to create WordNet object.\n" if(!$wn);
+die "Unable to create WordNet::QueryData object.\n" if(!$wn);
 $wnPCPath = $wnUnixPath = $wn->dataPath() if(defined $wn->can('dataPath'));
+my $wntools = WordNet::Tools->new($wn);
+die "Unable to create WordNet::Tools object.\n" if(!$wntools);
 print STDERR "done.\n";
 
 # Load the topmost nodes of the hierarchies
@@ -306,7 +290,7 @@ print STDERR "done.\n";
 # Print the output to file
 print STDERR "Writing output file... ";
 open(OUT, ">$outfile") || die "Unable to open $outfile for writing: $!\n";
-print OUT "wnver::".$wn->version()."\n";
+print OUT "wnver::".$wntools->hashCode()."\n";
 foreach my $pos ("n", "v")
 {
     foreach my $offset (sort {$a <=> $b} keys %{$newFreq{$pos}})
@@ -339,55 +323,12 @@ sub process
     while($block =~ s/([0-9]+)\s+([0-9]+)/$1$2/g){}
     $block =~ s/^\s+//;
     $block =~ s/\s+$//;
-    $block = &compoundify($block);
+    $block = $wntools->compoundify($block);
 
     while($block =~ /([\w_]+)/g)
     {
 	&updateFrequency($1) if(!defined $stopWords{$1});
     }
-}
-
-# Form all possible compounds within a sentence
-sub compoundify
-{
-    my $block = shift; # get the block of text
-    my $done;
-    my $temp;
-    my $secondPointer;
-
-    # get all the words into an array
-    my @wordsArray = $block =~ /(\w+)/g;
-
-    # now compoundify, GREEDILY!!
-    my $firstPointer = 0;
-    my $string = "";
-
-    while($firstPointer <= $#wordsArray)
-    {
-	$secondPointer = (($firstPointer + 5 < $#wordsArray)?($firstPointer + 5):($#wordsArray));
-	$done = 0;
-	while($secondPointer > $firstPointer && !$done)
-	{
-	    $temp = join ("_", @wordsArray[$firstPointer..$secondPointer]);
-	    if(exists $compounds{$temp})
-	    {
-		$string .= "$temp ";
-		$done = 1;
-	    }
-	    else
-	    {
-		$secondPointer--;
-	    }
-	}
-	if(!$done)
-	{
-	    $string .= "$wordsArray[$firstPointer] ";
-	}
-	$firstPointer = $secondPointer + 1;
-    }
-    $string =~ s/ $//;
-
-    return $string;
 }
 
 # Subroutine to update frequency tokens on "seeing" a
@@ -592,8 +533,6 @@ sub printHelp
     print "\nThis program computes the information content of concepts, by\n";
     print "counting the frequency of their occurrence in raw text.\n";
     print "Options: \n";
-    print "--compfile       Used to specify the file COMPFILE containing the \n";
-    print "                 list of compounds in WordNet.\n";
     print "--outfile        Specifies the output file OUTFILE.\n";
     print "--stdin          Read the input from the standard input\n";
     print "--infile         INFILE is the name of an input file\n";
@@ -626,7 +565,7 @@ sub minimalUsageNotes
 sub printUsage
 {
     print <<'EOT';
-Usage: rawtextFreq.pl --compfile COMPFILE --outfile OUTFILE
+Usage: rawtextFreq.pl --outfile OUTFILE
                        {--stdin | --infile FILE [--infile FILE ...]}
                        [--stopfile FILE] [--resnik] [--wnpath PATH]
                        [--smooth SCHEME]
@@ -637,7 +576,7 @@ EOT
 # Subroutine to print the version information
 sub printVersion
 {
-    print "rawtextFreq.pl version 1.01\n";
+    print "rawtextFreq.pl version 2.01\n";
     print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.\n";
 }
 
@@ -650,16 +589,11 @@ files
 
 =head1 SYNOPSIS
 
-rawtextFreq.pl --compfile COMPFILE --outfile OUTFILE [--stopfile=STOPFILE]
+rawtextFreq.pl --outfile OUTFILE [--stopfile=STOPFILE]
                {--stdin | --infile FILE [--infile FILE ...]} [--wnpath WNPATH]
                [--resnik] [--smooth=SCHEME] | --help | --version
 
 =head1 OPTIONS
-
-B<--compfile>=I<filename>
-
-    The name of a file containing the compound words (collocations) in
-    WordNet
 
 B<--outfile>=I<filename>
 
@@ -675,7 +609,7 @@ B<--stopfile>=I<filename>
 B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
-    /usr/local/WordNet-2.1/dict)
+    /usr/local/WordNet-3.0/dict)
 
 B<--resnik>
 

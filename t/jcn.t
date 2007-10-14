@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 
 # Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl jcn.t'
+# `make test'. After `make install' it should work as `perl t/jcn.t'
 
 # A script to test the Jiang-Conrath (jcn.pm) measure.  This script runs the
 # following tests:

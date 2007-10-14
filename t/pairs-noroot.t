@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# pairs-noroot.t version 0.07
+# pairs-noroot.t version 2.01
 # (Updated 1/15/2004 -- Jason)
 
 # Copyright (C) 2004
@@ -12,7 +12,7 @@
 # tpederse at d.umn.edu
 
 # Before 'make install' is performed this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl pairs-noroot.t'
+# 'make test'.  After 'make install' it should work as 'perl t/pairs-noroot.t'
 
 # A script to run queries on a large file of words and compare the results
 # with a set of relatedness values stored in "keys."  The list of pairs
@@ -39,12 +39,13 @@ my $num_tests;
 
 BEGIN {
   @measures = qw/jcn lch lin path res wup/;
-  $num_tests = 14 + (7 + 109) * scalar @measures;
+  $num_tests = 19 + (7 + 109) * scalar @measures;
 }
 
 use Test::More tests => $num_tests;
 
 BEGIN {use_ok 'WordNet::QueryData'}
+BEGIN {use_ok 'WordNet::Tools'}
 #BEGIN {use_ok 'WordNet::Similarity::hso'}
 BEGIN {use_ok 'WordNet::Similarity::jcn'}
 BEGIN {use_ok 'WordNet::Similarity::lch'}
@@ -63,6 +64,11 @@ my $precision = 4;
 my $wn = WordNet::QueryData->new;
 ok ($wn);
 
+my $wntools = WordNet::Tools->new($wn);
+ok ($wntools);
+my $wnHash = $wntools->hashCode();
+ok ($wnHash);
+
 my $infile = File::Spec->catfile ('t', 'pairs.txt');
 
 ok (-e $infile);
@@ -75,6 +81,23 @@ ok (close FH);
 
 my @pairs = map {my ($w1, $w2) = split; [$w1, $w2]} @lines;
 
+my $wnverfile;
+if ($opt_keydir) {
+  $wnverfile = File::Spec->catfile ($opt_keydir, "wnver.key");
+}
+else {
+  $wnverfile = File::Spec->catfile ('t', 'keys', "wnver.key");
+}
+
+ok (open KEY, $wnverfile) or diag "Could not open $wnverfile: $!";
+my $wnver = <KEY>;
+ok (defined $wnver);
+$wnver = "" if(!defined($wnver));
+$wnver =~ s/[\r\f\n]+//g;
+$wnver =~ s/^\s+//;
+$wnver =~ s/\s+$//;
+ok (close KEY);
+
 # the temporary config file
 my $config = "pairs_nr.cfg";
 
@@ -84,43 +107,48 @@ my $config = "pairs_nr.cfg";
 # values we are generating correspond to the key's values.
 unless ($opt_key) {
   # not generating a key--actually running tests
+
   foreach my $measure (@measures) {
-    # make a temporary config file
-    ok (open CFH, ">$config") or diag "Could not open $config: $!";
-    print CFH "WordNet::Similarity::$measure\n";
-    print CFH "rootNode::0\n";
-    ok (close CFH);
+    SKIP: {
+      skip "Hash-code of key file(s) does not match installed WordNet", 116 if($wnver ne $wnHash);
 
-    my $keyfile;
-    if ($opt_keydir) {
-      $keyfile = File::Spec->catfile ($opt_keydir, "${measure}pairs_nr.key");
-    }
-    else {
-      $keyfile = File::Spec->catfile ('t', 'keys', "${measure}pairs_nr.key");
-    }
+      # make a temporary config file
+      ok (open CFH, ">$config") or diag "Could not open $config: $!";
+      print CFH "WordNet::Similarity::$measure\n";
+      print CFH "rootNode::0\n";
+      ok (close CFH);
 
-    ok (open KEY, $keyfile) or diag "Could not open $keyfile: $!";
+      my $keyfile;
+      if ($opt_keydir) {
+        $keyfile = File::Spec->catfile ($opt_keydir, "${measure}pairs_nr.key");
+      }
+      else {
+        $keyfile = File::Spec->catfile ('t', 'keys', "${measure}pairs_nr.key");
+      }
 
-    my @keys = map {chomp; $_} <KEY>;
+      ok (open KEY, $keyfile) or diag "Could not open $keyfile: $!";
 
-    is (scalar @keys, scalar @pairs);
+      my @keys = map {chomp; $_} <KEY>;
 
-    ok (close KEY);
+      is (scalar @keys, scalar @pairs);
 
-    my $module = "WordNet::Similarity::$measure"->new ($wn, $config);
-    ok ($module);
-    my ($err, $errstr) = $module->getError ();
-    is ($err, 0) or diag "$errstr";
+      ok (close KEY);
 
-    for (0..$#pairs) {
-      my ($word1, $word2) = ($pairs[$_]->[0], $pairs[$_]->[1]);
-      my $score = $module->getRelatedness ($word1, $word2);
+      my $module = "WordNet::Similarity::$measure"->new ($wn, $config);
+      ok ($module);
+      my ($err, $errstr) = $module->getError ();
+      is ($err, 0) or diag "$errstr";
 
-      # format the score so that we can compare it to the value from file
-      $score = defined $score ? sprintf ("%.*f", $precision, $score) : 'undef';
+      for (0..$#pairs) {
+        my ($word1, $word2) = ($pairs[$_]->[0], $pairs[$_]->[1]);
+        my $score = $module->getRelatedness ($word1, $word2);
 
-      is ($score, $keys[$_]) or diag "Wrong relatedness using $measure for $word1 $word2";
-      $module->getError();
+        # format the score so that we can compare it to the value from file
+        $score = defined $score ? sprintf ("%.*f", $precision, $score) : 'undef';
+
+        is ($score, $keys[$_]) or diag "Wrong relatedness using $measure for $word1 $word2";
+        $module->getError();
+      }
     }
   }
 }
@@ -167,9 +195,9 @@ else {
   # of tests.  This magic avoids an irritating warning that says something
   # to the effect of "looks like you planned X tests but only ran Y."
  SKIP: {
-    my $num_skipped = $num_tests - 14 - 6 * scalar (@measures);
+    my $num_skipped = $num_tests - 20 - 6 * scalar (@measures);
     skip ("Generating key, no need to run test", $num_skipped);
   }
 }
 
-END {ok unlink $config}
+END {unlink $config}

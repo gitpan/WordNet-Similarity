@@ -30,6 +30,9 @@ my $cgi = CGI->new;
 my $text_color1 = 'black';
 my $text_color2 = '#d03000';
 
+# Mapping from hash-code to version
+my %versionMap = ('eOS9lXC6GvMWznF1wkZofDdtbBU' => '3.0', 'LL1BZMsWkr0YOuiewfbiL656+Q4' => '2.1');
+
 # print the HTTP header
 print $cgi->header;
 
@@ -62,7 +65,14 @@ if ($showversion) {
     while (my $line = <Server>) {
 	last if $line eq "\015\012";
 	if ($line =~ /^v (\S+) (\S+)/) {
-	    print "<p>$1 version $2</p>\n";
+            if($1 eq "WordNet") {
+              my $verstring = $versionMap{$2};
+	      print "<p>$1 version $verstring (hash-code: $2)</p>\n" if(defined($verstring));
+	      print "<p>$1 hash-code: $2</p>\n" if(!defined($verstring));
+            }
+            else {
+	      print "<p>$1 version $2</p>\n";
+            }
 	}
 	elsif ($line =~ m/^! (.*)/) {
 	    print "<p>$1</p>\n";

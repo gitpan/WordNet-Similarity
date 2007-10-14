@@ -1,5 +1,5 @@
-# WordNet::Similarity::hso.pm version 1.03
-# (Last updated $Id: hso.pm,v 1.14 2006/02/19 19:11:09 sidz1979 Exp $)
+# WordNet::Similarity::hso.pm version 2.01
+# (Last updated $Id: hso.pm,v 1.15 2007/10/09 12:05:39 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Hirst and St-Onge (1998).
@@ -58,7 +58,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-our $VERSION = '1.03';
+our $VERSION = '2.01';
 
 =item $hso->setPosList()
 
@@ -216,8 +216,8 @@ sub getRelatedness
   defined $relatedness and return $relatedness;
 
   # Now get down to really finding the relatedness of these two.
-  my $offset1 = $wn->offset($wps1).$pos1;
-  my $offset2 = $wn->offset($wps2).$pos2;
+  my $offset1 = $wn->offset($wps1);
+  my $offset2 = $wn->offset($wps2);
 
   if(!$offset1 || !$offset2) {
     $self->{errorString} .= "\nWarning (${class}::getRelatedness()) - ";
@@ -225,6 +225,9 @@ sub getRelatedness
     $self->{error} = ($self->{error} < 1) ? 1 : $self->{error};
     return undef;
   }
+
+  $offset1 = $offset1.$pos1;
+  $offset2 = $offset2.$pos2;
 
   if($offset1 eq $offset2) {
     # [trace]

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl compounds.t'
+# 'make test'.  After 'make install' it should work as 'perl t/utils/compounds.t'
 
 # A script to test the compounds.pl utility.  The utility is used
 # to generate a list of compounds.  That list is then search for

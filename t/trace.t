@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# pairs.t version 0.07
+# trace.t version 2.01
 # (Updated 1/12/2004 -- Jason)
 #
 # Copyright (C) 2004
@@ -12,7 +12,7 @@
 # tpederse at d.umn.edu
 
 # Before 'make install' is performed this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl trace.t'
+# 'make test'.  After 'make install' it should work as 'perl t/trace.t'
 
 # A script to tracing in the relatedness modules.  The following tests are
 # run:
@@ -51,7 +51,7 @@ BEGIN {
 #		['ambrose#n#1', 'john_chrysostom#n#1'],
 		['professional_football#n#1', 'scat#n#1']
 	       );
-  $num_tests = 16
+  $num_tests = 20
     + 7 * (scalar @measures)
     + scalar (@measures) * scalar (@wordpairs);
 }
@@ -66,6 +66,7 @@ my $result = GetOptions ("key", "keydir=s");
 ok ($result);
 
 BEGIN {use_ok 'WordNet::QueryData'}
+BEGIN {use_ok 'WordNet::Tools'}
 BEGIN {use_ok 'WordNet::Similarity::hso'}
 BEGIN {use_ok 'WordNet::Similarity::jcn'}
 BEGIN {use_ok 'WordNet::Similarity::lch'}
@@ -82,54 +83,74 @@ BEGIN {use_ok 'File::Copy'}
 my $wn = WordNet::QueryData->new;
 ok ($wn) or diag "Could not create WordNet::QueryData object";
 
+my $wntools = WordNet::Tools->new($wn);
+ok ($wntools);
+
+my $wnHash = $wntools->hashCode();
+ok ($wnHash);
+
 my $config = "trace$$.cfg";
 my $tempfile = "trace$$.tmp";
 
 my $keydir = File::Spec->catdir ('t', 'keys');
 $keydir = $opt_keydir if ($opt_keydir);
 
-foreach my $measure (@measures) {
-  ok (open CFH, '>', $config) or diag "Could not open $config for writing: $!";
-  print CFH "WordNet::Similarity::$measure\ntrace::1\n";
-  ok (close CFH) or diag "Could not close $config: $!";
+my $wnkey = File::Spec->catfile ($keydir, "wnver.key");
+ok (open WNF, $wnkey);
+my $wnver = <WNF>;
+ok (defined $wnver);
+$wnver = "" if(!defined($wnver));
+$wnver =~ s/[\r\f\n]+//g;
+$wnver =~ s/^\s+//;
+$wnver =~ s/\s+$//;
+ok (close WNF);
 
-  my $module = "WordNet::Similarity::$measure"->new ($wn, $config);
-#  my $module = "WordNet::Similarity::$measure"->new ($wn);
-  ok ($module) or diag "Failed to create $measure module";
-  my ($err, $errstr) = $module->getError ();
-  is ($err, 0) or diag $errstr;
+SKIP: {
+  skip "Hash-code of key file(s) does not match installed WordNet", 112 if($wnver ne $wnHash);
 
-  # turn on tracing
-  $module->{trace} = 1;
+  foreach my $measure (@measures) {
+    ok (open CFH, '>', $config) or diag "Could not open $config for writing: $!";
+    print CFH "WordNet::Similarity::$measure\ntrace::1\n";
+    ok (close CFH) or diag "Could not close $config: $!";
 
-  ok (open TFH, '>', $tempfile) or diag "Could not open $tempfile: $!";
+    my $module = "WordNet::Similarity::$measure"->new ($wn, $config);
+    # my $module = "WordNet::Similarity::$measure"->new ($wn);
+    ok ($module) or diag "Failed to create $measure module";
+    my ($err, $errstr) = $module->getError ();
+    is ($err, 0) or diag $errstr;
 
-  foreach my $pair (@wordpairs) {
-    my ($wps1, $wps2) = @$pair;
-    my $score = $module->getRelatedness ($wps1, $wps2);
-    my $tracestr = $module->getTraceString ();
-    $module->getError (); # clear errors
-    ok ($tracestr) or diag "$measure ($wps1, $wps2) has no trace";
-    print TFH $tracestr;
-  }
+    # turn on tracing
+    $module->{trace} = 1;
 
-  my $keyfile = File::Spec->catfile ($keydir, "${measure}trace.key");
+    ok (open TFH, '>', $tempfile) or diag "Could not open $tempfile: $!";
 
-  unless ($opt_key) {
-    ok (close TFH) or diag "Could not close $tempfile: $!";
-    my ($diff, $msg) = diff ($tempfile, $keyfile);
-    is ($diff, 0) or diag "$measure: $msg";
-  }
-  else {
-    ok (close TFH) or diag "Could not close $tempfile: $!";
-    ok (copy $tempfile, $keyfile)
-      or diag "Could not copy file $tempfile to $keyfile: $!";
+    foreach my $pair (@wordpairs) {
+      my ($wps1, $wps2) = @$pair;
+      my $score = $module->getRelatedness ($wps1, $wps2);
+      my $tracestr = $module->getTraceString ();
+      $module->getError (); # clear errors
+      ok ($tracestr) or diag "$measure ($wps1, $wps2) has no trace";
+      print TFH $tracestr;
+    }
+
+    my $keyfile = File::Spec->catfile ($keydir, "${measure}trace.key");
+
+    unless ($opt_key) {
+      ok (close TFH) or diag "Could not close $tempfile: $!";
+      my ($diff, $msg) = diff ($tempfile, $keyfile);
+      is ($diff, 0) or diag "$measure: $msg";
+    }
+    else {
+      ok (close TFH) or diag "Could not close $tempfile: $!";
+      ok (copy $tempfile, $keyfile)
+        or diag "Could not copy file $tempfile to $keyfile: $!";
+    }
   }
 }
 
 END {
-  ok (unlink $config);
-  ok (unlink $tempfile);
+  unlink $config;
+  unlink $tempfile;
 }
 
 sub diff ($$) {

@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# semCorFreq.pl version 1.01
-# (Last updated $Id: semCorFreq.pl,v 1.7 2005/12/11 22:37:02 sidz1979 Exp $)
+# semCorFreq.pl version 2.01
+# (Last updated $Id: semCorFreq.pl,v 1.8 2007/10/09 12:05:41 sidz1979 Exp $)
 #
 # A helper tool perl program for WordNet::Similarity. This 
 # program is used to generate the frequency count data
@@ -43,21 +43,18 @@
 #
 # -----------------------------------------------------------------
 
-# Include the QueryData package.
+# Include other packages
+use strict;
 use WordNet::QueryData;
-
-# Include library to get Command-Line options.
+use WordNet::Tools;
 use Getopt::Long;
 
 # Global Variable declaration.
 my $wn;
-my $wnPCPath;
-my $wnUnixPath;
+my $wntools;
 my $totalCount;
 my $offset;
-my $fname;
 my $unknownSmooth;
-my @line;
 my %offsetMnem;
 my %mnemFreq;
 my %offsetFreq;
@@ -66,12 +63,12 @@ my %posMap;
 my %topHash;
 
 # Get Command-Line options.
+our ($opt_help, $opt_version, $opt_wnpath, $opt_outfile, $opt_smooth);
 &GetOptions("help", "version", "wnpath=s", "outfile=s", "smooth=s");
 
 # Check if help has been requested ... If so ... display help.
 if(defined $opt_help)
 {
-    $opt_help = 1;
     &showHelp;
     exit;
 }
@@ -79,12 +76,12 @@ if(defined $opt_help)
 # Check if version number has been requested ... If so ... display version.
 if(defined $opt_version)
 {
-    $opt_version = 1;
     &showVersion;
     exit;
 }
 
 # Check if path to WordNet Data files has been provided ... If so ... save it.
+my ($wnPCPath, $wnUnixPath);
 if(defined $opt_wnpath)
 {
     $wnPCPath = $opt_wnpath;
@@ -102,16 +99,12 @@ elsif (defined $ENV{WNHOME})
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\2.1\\dict";
-    $wnUnixPath = "/usr/local/WordNet-2.1/dict";
+    $wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
+    $wnUnixPath = "/usr/local/WordNet-3.0/dict";
 }
 
 
-if(defined $opt_outfile)
-{
-    $fname = $opt_outfile;
-}
-else
+unless(defined $opt_outfile)
 {
     &showUsage;
     print "Type 'semCorFreq.pl --help' for detailed help.\n";
@@ -128,10 +121,12 @@ print STDERR "Loading WordNet ... ";
 $wn = ((defined $opt_wnpath) ? (WordNet::QueryData->new($opt_wnpath)) : (WordNet::QueryData->new()));
 if(!$wn)
 {
-    print STDERR "\nUnable to create WordNet object.\n";
-    exit;
+    print STDERR "\nUnable to create WordNet::QueryData object.\n";
+    exit(1);
 }
 $wnPCPath = $wnUnixPath = $wn->dataPath() if($wn->can('dataPath'));
+$wntools = WordNet::Tools->new($wn);
+die "Unable to create WordNet::Tools object.\n" if(!$wntools);
 print STDERR "done.\n";
 
 
@@ -141,10 +136,10 @@ open(IDX, $wnUnixPath."/index.sense") || open(IDX, $wnPCPath."\\sense.idx") || d
 while(<IDX>)
 {
     chomp;
-    @line = split / +/;
+    my @line = split / +/;
     if($line[0] =~ /%([12]):/)
     {
-	$posHere = $1;
+	my $posHere = $1;
 	$line[1] =~ s/^0*//;
 	push @{$offsetMnem{$line[1].$posMap{$posHere}}}, $line[0];
     }
@@ -159,7 +154,7 @@ open(CNT, $wnUnixPath."/cntlist") || open(CNT, $wnPCPath."\\cntlist") || die "Un
 while(<CNT>)
 {
     chomp;
-    @line = split / /;
+    my @line = split / /;
     if($line[1] =~ /%[12]:/)
     {
 	$mnemFreq{$line[1]}=$line[0];
@@ -172,9 +167,10 @@ print STDERR "done.\n";
 # Mapping the frequency counts to offsets...
 print STDERR "Mapping offsets to frequencies ... ";
 $unknownSmooth = 0;
-foreach $tPos ("noun", "verb")
+foreach my $tPos ("noun", "verb")
 {
     my $xPos = $tPos;
+    my $line;
     $xPos =~ s/(^[nv]).*/$1/;
     open(DATA, $wnUnixPath."/data.$tPos") || open(DATA, $wnPCPath."\\$tPos.dat") || die "Unable to open data file.\n";
     foreach(1 .. 29)
@@ -188,7 +184,7 @@ foreach $tPos ("noun", "verb")
 	$offset =~ s/^0*//;
 	if(exists $offsetMnem{$offset."$xPos"})
 	{
-	    foreach $mnem (@{$offsetMnem{$offset."$xPos"}})
+	    foreach my $mnem (@{$offsetMnem{$offset."$xPos"}})
 	    {
 		if($offsetFreq{"$xPos"}{$offset})
 		{
@@ -268,8 +264,8 @@ print STDERR "done.\n";
 
 # Write out the information content file...
 print STDERR "Writing infocontent file ... ";
-open(DATA, ">$fname") || die "Unable to open data file for writing.\n";
-print DATA "wnver::".$wn->version()."\n";
+open(DATA, ">$opt_outfile") || die "Unable to open data file for writing.\n";
+print DATA "wnver::".$wntools->hashCode()."\n";
 foreach $offset (sort {$a <=> $b} keys %{$newFreq{"n"}})
 {
     print DATA $offset."n ".$newFreq{"n"}{$offset};
@@ -284,7 +280,7 @@ foreach $offset (sort {$a <=> $b} keys %{$newFreq{"v"}})
 }
 close(DATA);
 print STDERR "done.\n";
-print STDERR "Wrote file '$fname'.\n";
+print STDERR "Wrote file '$opt_outfile'.\n";
 
 
 # ---------------------- Subroutines start here -------------------------
@@ -296,15 +292,13 @@ print STDERR "Wrote file '$fname'.\n";
 #                             the node.
 sub updateFrequency
 {
-    my $node;
-    my $pos;
     my $sum;
     my $retValue;
     my $hyponym;
     my @hyponyms;
 
-    $node = shift;
-    $pos = shift;
+    my $node = shift;
+    my $pos = shift;
     if($newFreq{$pos}{$node})
     {
 	return $newFreq{$pos}{$node};
@@ -381,14 +375,13 @@ sub createTopHash
 # RETURN PARAMS : @offsets .. Offsets of the hyponyms of $offset. 
 sub getHyponymOffsets
 {
-    my $offset;
     my $wordForm;
     my $hyponym;
     my @hyponyms;
     my @retVal;
 
-    $offset = shift;
-    $pos = shift;
+    my $offset = shift;
+    my $pos = shift;
     if($offset == 0)
     {
 	@retVal = keys %{$topHash{$pos}};
@@ -444,9 +437,11 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "semCorFreq.pl version 1.01\n";
+    print "semCorFreq.pl version 2.01\n";
     print "Copyright (c) 2005, Ted Pedersen and Siddharth Patwardhan.\n";
 }
+
+1;
 
 __END__
 
@@ -467,7 +462,7 @@ B<--outfile>=I<filename>
 B<--wnpath>=I<path>
 
     Location of the WordNet data files (e.g.,
-    /usr/local/WordNet-2.1/dict)
+    /usr/local/WordNet-3.0/dict)
 
 B<--smooth>=I<SCHEME>
 

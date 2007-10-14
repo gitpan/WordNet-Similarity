@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl rootnode.t'
+# 'make test'.  After 'make install' it should work as 'perl t/config/rootnode.t'
 
 # A script to run tests on the handling of root nodes by the
 # res, lin, jcn, path, lch, and wup measures.  The following cases are
@@ -36,7 +36,8 @@ BEGIN {use_ok ('WordNet::Similarity::wup')}
 my $wn = new WordNet::QueryData;
 ok ($wn);
 
-my $wnver = $wn->version();
+my $wnver = '0.0';
+$wnver = $wn->version() if($wn->can('version'));
 ok ($wnver);
 
 # array of temporary file names
@@ -78,7 +79,7 @@ foreach my $measure (@measures) {
   $score = $module->getRelatedness ('entity#n#1', 'event#n#1');
   SKIP:
   {
-    skip("Unknown WordNet version.", 4) unless($wnver eq '2.1' || $wnver eq '2.0' || $wnver eq '1.7.1');
+    skip("Skipping tests for WordNet v2.1, v2.0 and v1.7.1", 4) unless($wnver eq '2.1' || $wnver eq '2.0' || $wnver eq '1.7.1');
     if($wnver eq '2.0' || $wnver eq '1.7.1')
     {
       is (($module->getError())[0], 1);

@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl invalid.t'
+# 'make test'.  After 'make install' it should work as 'perl t/config/invalid.t'
 
 # A script that ensures that errors/warnings are raised when the modules
 # are given invalid config files.  The following tests are run:

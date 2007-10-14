@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# ICFinder.t version 0.07
+# ICFinder.t version 2.01
 # (Updated 2/12/2004 -- Jason)
 #
 # Copyright (c) 2005
@@ -12,7 +12,7 @@
 # tpederse at d.umn.edu
 
 # Before 'make install' is run this script should be runnable with
-# 'make test'.  After 'make install' it should work as 'perl ICFinder.t'
+# 'make test'.  After 'make install' it should work as 'perl t/ICFinder.t'
 
 # A script to test the WordNet::Similarity::Infocontent module.
 # Specifically, for a given set of words, it checks that the probability
@@ -34,7 +34,8 @@ my $wn = WordNet::QueryData->new;
 ok ($wn) or diag "Failed to construct WordNet::QueryData object";
 
 # get WordNet version (not the version of WordNet::QueryData)
-my $wnver = $wn->version ();
+my $wnver = '0.0';
+$wnver = $wn->version () if($wn->can('version'));
 my $module = WordNet::Similarity::ICFinder->new ($wn);
 
 # Tests 4, 5
@@ -53,7 +54,7 @@ my $ic;
 
 SKIP: 
 {
-  skip "Unknown WordNet Version", 12 unless ($wnver eq '2.1' || $wnver eq '2.0' || $wnver eq '1.7.1');
+  skip "Skipping tests for WordNet v2.1, v2.0 and v1.7.1", 12 unless ($wnver eq '2.1' || $wnver eq '2.0' || $wnver eq '1.7.1');
 
   # Tests 6, 7, 8, 9
   # find probability and ic of entity#n#1

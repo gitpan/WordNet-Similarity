@@ -1,5 +1,5 @@
-# WordNet::Similarity::GlossFinder version 1.01
-# (Last updated $Id: GlossFinder.pm,v 1.7 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::GlossFinder version 2.01
+# (Last updated $Id: GlossFinder.pm,v 1.8 2007/10/09 12:05:39 sidz1979 Exp $)
 #
 # Module containing gloss-finding code for the various measures of semantic
 # relatedness (lesk, vector).
@@ -51,12 +51,11 @@ use get_wn_info;
 
 our @ISA = qw/WordNet::Similarity/;
 
-our $VERSION = '1.01';
+our $VERSION = '2.01';
 
 WordNet::Similarity::addConfigOption("relation", 0, "p", undef);
 WordNet::Similarity::addConfigOption("stop", 0, "p", undef);
 WordNet::Similarity::addConfigOption("stem", 0, "i", 0);
-WordNet::Similarity::addConfigOption("compounds", 0, "p", undef);
 
 =item $measure->setPosList(Z<>)
 
@@ -83,7 +82,7 @@ sub setPosList
 
 Overrides method of same name in WordNet::Similarity.  Prints module-specific
 configuration options to the trace string (if tracing is on).  GlossFinder
-supports module specific options: relation, stop, stem and compounds.
+supports module specific options: relation, stop and stem.
 
 Parameters: none
 
@@ -97,14 +96,13 @@ sub traceOptions
     $self->{traceString} .= "relation file :: ".((defined $self->{relation}) ? ($self->{relation}) : "")."\n";
     $self->{traceString} .= "stopwords file :: ".((defined $self->{stop}) ? ($self->{stop}) : "")."\n";
     $self->{traceString} .= "stem :: ".((defined $self->{stem}) ? ($self->{stem}) : "")."\n";
-    $self->{traceString} .= "compounds file :: ".((defined $self->{compounds}) ? ($self->{compounds}) : "")."\n";
     $self->SUPER::traceOptions();
 }
 
 =item $self->configure($file)
 
 Overrides the configure method in WordNet::Similarity. This method loads
-various data files, such as the stop words, compounds and relations.
+various data files, such as the stop words and relations.
 
 Parameters: $file -- path of the configuration file.
 
@@ -123,47 +121,10 @@ sub configure
     $self->SUPER::configure(@_);
     $self->{maxCache} = 5000;
     
-    # Initialize the compound hash and stop list.
-    $self->{compoundHash} = {};
+    # Initialize the stop list.
     $self->{stopHash} = {};
     my $wn = $self->{wn};
     
-    # Commented out the use of a default relation file, ...
-    # instead glosexample-glosexample is used by default.
-    # -- Sid (12/11/2204)
-    #
-    # Look for the default relation file if not specified by the user.
-    # Search the @INC path in WordNet/Similarity.
-#     if(!defined $self->{relation}) 
-#     {
-#         my $path;
-#         my $header;
-#         my @possiblePaths = ();
-        
-#         # Look for all possible default data files installed.
-#         foreach $path (@INC) 
-#         {
-#             # JM 1-16-04  -- modified to use File::Spec
-#             my $file = File::Spec->catfile($path, 'WordNet', 'relation.dat');
-#             push @possiblePaths, $file if(-e $file);
-#         }
-
-#         # If there are multiple possibilities, get the one in the correct format.
-#         foreach $path (@possiblePaths) 
-#         {
-#             next if(!open(RELATIONS, $path));
-#             $header = <RELATIONS>;
-#             $header =~ s/\s+//g;
-#             if($header =~ /RelationFile/) 
-#             {
-#                 $self->{relation} = $path;
-#                 close(RELATIONS);
-#                 last;
-#             }
-#             close(RELATIONS);
-#         }
-#     }
-
     # Use default relation file if specified by module...
     $self->{relation} = $self->{relationDefault}
     if(!($self->{relation}) && defined $self->{relationDefault} && $self->{relationDefault} ne ""); 
@@ -191,32 +152,6 @@ sub configure
 	{
 	    $self->{errorString} .= "\nWarning ($class->configure()) - ";
 	    $self->{errorString} .= "Unable to open $stopFile.";
-	    $self->{error} = 1 if($self->{error} < 1);
-	}
-    }
-
-    # Load the compounds.
-    if(defined $self->{compounds})
-    {
-	my $line;
-        my $compFile = $self->{compounds};
-
-	if(open(COMP, $compFile))
-	{
-	    while($line = <COMP>)
-	    {
-		$line =~ s/[\r\f\n]//g;
-		$line =~ s/^\s+//;
-		$line =~ s/\s+$//;
-		$line =~ s/\s+/_/g;
-		$self->{compoundHash}->{$line} = 1;		
-	    }
-	    close(COMP);
-	}
-	else
-	{
-	    $self->{errorString} .= "\nWarning ($class->configure()) - ";
-	    $self->{errorString} .= "Unable to open $compFile.";
 	    $self->{error} = 1 if($self->{error} < 1);
 	}
     }
@@ -364,74 +299,7 @@ sub _getSuperGlosses()
     return \@stringArray;
 }
 
-=item $self->compoundify($block)
-
-This method identifies all compounds in a given block of text. It uses the list of
-compounds present in WordNet. Any such compound found in text is connected with
-underscores.
-
-Parameters: block -- block of text.
-
-Returns: Compounded block of text.
-
 =back
-
-=cut
-
-# Method that determines all possible compounds in a line of text.
-sub compoundify
-{
-    my $self = shift;
-    my $block = shift;
-    my $string;
-    my $done;
-    my $temp;
-    my $firstPointer;
-    my $secondPointer;
-    my @wordsArray;
-
-    return undef if(!defined $block);
-    return $block if(!defined $self->{compoundHash});
-    return $block if(scalar(keys(%{$self->{compoundHash}})) == 0);
-
-    # get all the words into an array
-    @wordsArray = ();
-    while ($block =~ /(\w+)/g)
-    {
-	push @wordsArray, $1;
-    }
-
-    # now compoundify, GREEDILY!!
-    $firstPointer = 0;
-    $string = "";
-
-    while($firstPointer <= $#wordsArray)
-    {
-	$secondPointer = (($firstPointer + 5 < $#wordsArray)?($firstPointer + 5):($#wordsArray));
-	$done = 0;
-	while($secondPointer > $firstPointer && !$done)
-	{
-	    $temp = join ("_", @wordsArray[$firstPointer..$secondPointer]);
-	    if(exists $self->{compoundHash}->{$temp})
-	    {
-		$string .= "$temp ";
-		$done = 1;
-	    }
-	    else
-	    {
-		$secondPointer--;
-	    }
-	}
-	if(!$done)
-	{
-	    $string .= "$wordsArray[$firstPointer] ";
-	}
-	$firstPointer = $secondPointer + 1;
-    }
-    $string =~ s/ $//;
-
-    return $string;
-}
 
 =head3 Private Methods
 
