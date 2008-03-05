@@ -18,7 +18,10 @@ install.pod - how to install WordNet::Similarity
 =head2 Prerequisites
 
 You need to have WordNet (version 3.0) installed, WordNet::QueryData
-(version 1.46 or later), and Text::Similarity installed.
+(version 1.40 or later), and Text::Similarity installed.
+[NOTE: However, if you're using WordNet 3.0, you must use
+WordNet::QueryData v1.46 or above. WordNet::QueryData v1.40 through
+v1.45 can only be used with WordNet 2.1.]
 
 WordNet is available at http://wordnet.princeton.edu, WordNet::QueryData
 is available from http://search.cpan.org/dist/WordNet-QueryData, and

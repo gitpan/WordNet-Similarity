@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 
-# wnDepths.pl version 2.01
-# (Last updated $Id: wnDepths.pl,v 1.29 2007/10/09 12:05:41 sidz1979 Exp $)
+# wnDepths.pl version 2.02
+# (Last updated $Id: wnDepths.pl,v 1.31 2008/03/04 08:37:11 sidz1979 Exp $)
 
 # A program to generate a list of the depths of the top-level nodes
 # in the WordNet IS-A taxonomies.  The program can also produce a
@@ -342,7 +342,10 @@ sub findLeafs {
 
   while (my $line = <WN>) {
     next if index ($line, " ") == 0;
-    next if $line =~ m/~/;
+    # Was: next if $line =~ m/~/;
+    # Failed on tilde#n#1 because the gloss contains ~.
+    # Fix provided by Ben Haskell (03/04/08).
+    next if $line =~ m/~.*\|/;
     my ($offset) = split /\s+/, $line;
     push @rtr, $offset;
   }
@@ -436,7 +439,7 @@ sub showHelp {
 }
 
 sub showVersion {
-  print "wnDepths.pl version 2.01\n";
+  print "wnDepths.pl version 2.02\n";
   print "Copyright (c) 2005, Ted Pedersen, Jason Michelizzi and Siddharth Patwardhan\n\n";
   print "This program comes with ABSOLUTELY NO WARRANTY.  This program\n";
   print "is free software, and you are welcome to redistribute it under\n";

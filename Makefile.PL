@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for WordNet::Similarity
-# (Last updated $Id: Makefile.PL,v 1.38 2007/10/11 07:24:35 sidz1979 Exp $)
+# (Last updated $Id: Makefile.PL,v 1.39 2008/01/10 21:49:03 sidz1979 Exp $)
 #
 # Generates the Makefile for the WordNet::Similarity CPAN modules.
 #
@@ -40,12 +40,12 @@ foreach my $arg (@tmpArgs)
 WriteMakefile('NAME'         => 'WordNet::Similarity',
               'PREREQ_PM'    => {'WordNet::QueryData' => '1.40',
                                  'Text::Similarity'   => '0.02',
-                                 'Digest::SHA1'       => '2.10',
-                                 'File::Spec'         => '3.12',
-                                 'File::Find'         => '1.05',
-                                 'Getopt::Long'       => '2.34',
-                                 'CGI'                => '3.10',
-                                 'IO'                 => '1.21'},
+                                 'Digest::SHA1'       => '0',
+                                 'File::Spec'         => '0',
+                                 'File::Find'         => '0',
+                                 'Getopt::Long'       => '0',
+                                 'CGI'                => '0',
+                                 'IO'                 => '0'},
               'PL_FILES'     => {'build/Infocontent.PL' => '$(INST_LIB)/WordNet/ic-semcor.dat',
                                  'build/Depthfiles.PL'  => '$(INST_LIB)/WordNet/synsetdepths.dat'},
               'CONFIGURE'    => \&configSub,
@@ -137,7 +137,7 @@ END
   {
     print STDERR <<'EONL'
 The installation of WordNet::Similarity requires that WordNet and
-the WordNet::QueryData module (ver 1.46 or above) be installed on
+the WordNet::QueryData module (ver 1.40 or above) be installed on
 this machine and that the module be accessible via the @INC perl
 library paths.  Make sure these are installed before installing
 WordNet::Similarity.

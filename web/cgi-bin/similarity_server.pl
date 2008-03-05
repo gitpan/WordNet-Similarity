@@ -1,5 +1,4 @@
 #!/usr/local/bin/perl -wT
-
 use strict;
 use POSIX ':sys_wait_h';  # for waitpid() and friends; used by reaper()
 
@@ -11,89 +10,88 @@ use POSIX ':sys_wait_h';  # for waitpid() and friends; used by reaper()
 my $BASEDIR = '/usr/local/apache2/cgi-bin';
 my $localport = 31134;
 my $wnlocation = '/usr/local/WordNet-3.0/dict';
-
-
 my $lock_file = "$BASEDIR/similarity_server.lock";
 my $error_log = "$BASEDIR/error.log";
 my $conf_file = "similarity_server.conf";
-
 my $wordvectors;
 my $stoplist;
-
 my $maxchild = 4; # max number of child processes at one time
-
 sub reaper;
 
-if (-e $conf_file) {
-    open CFH, '<', $conf_file or die "Cannot open config file $conf_file: $!";
-
-    while (my $line = <CFH>) {
-        $line =~ s/\#.*$//;
-        $line =~ s/\n|\r//g;
-        unless ($line =~ /(\w+)\:\:(\S+)/) {
-            next unless defined $1;
-        }
-
-        if ($1 eq 'lock_file') {
-            print STDERR "Lock file = $2\n";
-            $lock_file = $2;
-        }
-        elsif ($1 eq 'error_log') {
-            print STDERR "Error log = $2\n";
-            $error_log = $2;
-        }
-	elsif ($1 eq 'vectordb') {
-	    $wordvectors = $2;
-	    print STDERR "Word vectors = $2\n";
-	}
-	elsif ($1 eq 'stop') {
-	    $stoplist = $2;
-	    print STDERR "Stoplist = $2\n";
-	}
-	elsif ($1 eq 'maxchild') {
-	    $maxchild = $2;
-	    print STDERR "Maxchild = $2\n";
-	}
-        else {
-            warn "Unknown config option in $conf_file at $.\n";
-        }
+if (-e $conf_file)
+{
+  open CFH, '<', $conf_file or die "Cannot open config file $conf_file: $!";
+  while (my $line = <CFH>)
+  {
+    $line =~ s/\#.*$//;
+    $line =~ s/\n|\r//g;
+    unless ($line =~ /(\w+)\:\:(\S+)/)
+    {
+      next unless defined $1;
     }
-
-    close CFH;
+    if ($1 eq 'lock_file')
+    {
+      print STDERR "Lock file = $2\n";
+      $lock_file = $2;
+    }
+    elsif ($1 eq 'error_log')
+    {
+      print STDERR "Error log = $2\n";
+      $error_log = $2;
+    }
+    elsif ($1 eq 'vectordb')
+    {
+      $wordvectors = $2;
+      print STDERR "Word vectors = $2\n";
+    }
+    elsif ($1 eq 'stop')
+    {
+      $stoplist = $2;
+      print STDERR "Stoplist = $2\n";
+    }
+    elsif ($1 eq 'maxchild')
+    {
+      $maxchild = $2;
+      print STDERR "Maxchild = $2\n";
+    }
+    else
+    {
+      warn "Unknown config option in $conf_file at $.\n";
+    }
+  }
+  close CFH;
 }
-else {
-    print "No config file used\n";
+else
+{
+  print "No config file used\n";
 }
-
 my $lockfh;
-
-if (-e $lock_file) {
-    die "Lock file `$lock_file' already exists.  Make sure that another\n",
-    "instance of $0 isn't running, then delete the lock file.\n";
+if (-e $lock_file)
+{
+  die "Lock file `$lock_file' already exists.  Make sure that another\n","instance of $0 isn't running, then delete the lock file.\n";
 }
-open ($lockfh, '>', $lock_file)
-    or die "Cannot open lock file `$lock_file' for writing: $!";
+open($lockfh, '>', $lock_file)
+  or die "Cannot open lock file `$lock_file' for writing: $!";
 print $lockfh $$;
 close $lockfh or die "Cannot close lock file `lock_file': $!";
 
-END {
-    if (open FH, '<', $lock_file) {
-	my $pid = <FH>;
-	close FH;
-	unlink $lock_file if $pid eq $$;
-    }
+END
+{
+  if (open FH, '<', $lock_file)
+  {
+    my $pid = <FH>;
+    close FH;
+    unlink $lock_file if $pid eq $$;
+  }
 }
-
 print STDERR "Loading modules... ";
 
 # prototypes:
 sub getAllForms ($);
 sub getlock ();
 sub releaselock ();
-
 use sigtrap handler => \&bailout, 'normal-signals';
 use IO::Socket::INET;
-
 use WordNet::QueryData;
 use WordNet::Tools;
 use WordNet::Similarity::hso;
@@ -107,27 +105,21 @@ use WordNet::Similarity::res;
 use WordNet::Similarity::vector;
 use WordNet::Similarity::vector_pairs;
 use WordNet::Similarity::wup;
-
-my $wn = WordNet::QueryData->new ($wnlocation);
+my $wn = WordNet::QueryData->new($wnlocation);
 $wn or die "Couldn't construct WordNet::QueryData object";
-
 my $wntools = WordNet::Tools->new($wn);
 $wntools or die "Unable to create WordNet::Tools object";
-
-our $hso = WordNet::Similarity::hso->new ($wn);
-our $jcn = WordNet::Similarity::jcn->new ($wn);
-our $lch = WordNet::Similarity::lch->new ($wn);
-
+our $hso = WordNet::Similarity::hso->new($wn);
+our $jcn = WordNet::Similarity::jcn->new($wn);
+our $lch = WordNet::Similarity::lch->new($wn);
 my $leskcfg = "lesk$$.cfg";
 open FH, '>', $leskcfg or die "Cannot open $leskcfg for writing: $!";
 print FH "WordNet::Similarity::lesk\n";
 print FH "stem::1\n";
 print FH "stop::$stoplist\n" if(defined($stoplist) && -e $stoplist);
 close FH;
-
-our $lesk = WordNet::Similarity::lesk->new ($wn, $leskcfg);
+our $lesk = WordNet::Similarity::lesk->new($wn, $leskcfg);
 unlink $leskcfg;
-
 my $vectorcfg = "vectorpairs$$.cfg";
 open VFH, '>', $vectorcfg or die "Cannot open $vectorcfg for writing: $!";
 print VFH "WordNet::Similarity::vector_pairs\n";
@@ -135,10 +127,8 @@ print VFH "stop::$stoplist\n" if(defined($stoplist) && -e $stoplist);
 print VFH "stem::1\n";
 print VFH "vectordb::$wordvectors\n" if(defined($wordvectors));
 close VFH;
-
-our $vector_pairs = WordNet::Similarity::vector_pairs->new ($wn, $vectorcfg);
+our $vector_pairs = WordNet::Similarity::vector_pairs->new($wn, $vectorcfg);
 unlink $vectorcfg;
-
 $vectorcfg = "vector$$.cfg";
 open WFH, '>', $vectorcfg or die "Cannot open $vectorcfg for writing: $!";
 print WFH "WordNet::Similarity::vector\n";
@@ -146,46 +136,43 @@ print WFH "stop::$stoplist\n" if(defined($stoplist) && -e $stoplist);
 print WFH "stem::1\n";
 print WFH "vectordb::$wordvectors\n" if(defined($wordvectors));
 close WFH;
-
 our $vector = WordNet::Similarity::vector->new($wn, $vectorcfg);
 unlink $vectorcfg;
-
-our $lin = WordNet::Similarity::lin->new ($wn);
-our $path = WordNet::Similarity::path->new ($wn);
-our $random = WordNet::Similarity::random->new ($wn);
-our $res = WordNet::Similarity::res->new ($wn);
-our $wup = WordNet::Similarity::wup->new ($wn);
-
+our $lin = WordNet::Similarity::lin->new($wn);
+our $path = WordNet::Similarity::path->new($wn);
+our $random = WordNet::Similarity::random->new($wn);
+our $res = WordNet::Similarity::res->new($wn);
+our $wup = WordNet::Similarity::wup->new($wn);
 my @measures = ($hso, $jcn, $lch, $lesk, $lin, $path, $random, $res, $wup, $vector, $vector_pairs);
-foreach (@measures) {
-    my ($err, $errstr) = $_->getError ();
-    die "$errstr died" if $err;
+
+foreach (@measures)
+{
+  my ($err, $errstr) = $_->getError();
+  die "$errstr died" if $err;
 }
 undef @measures;
 
 # reset (untaint) the PATH
 $ENV{PATH} = '/bin:/usr/bin:/usr/local/bin';
-
 print STDERR "done.\n";
 print STDERR "Started server... accepting requests.\n";
 
 # re-direct STDERR from wherever it is now to a log file
 close STDERR;
-open (STDERR, '>', $error_log) or die "Could not re-open STDERR";
+open(STDERR, '>', $error_log) or die "Could not re-open STDERR";
 chmod 0664, $error_log;
 
-
 # The is the socket we listen to
-my $socket = IO::Socket::INET->new (LocalPort => $localport,
-				    Listen => SOMAXCONN,
-				    Reuse => 1,
-				    Type => SOCK_STREAM
-				   ) or die "Could not be a server: $!";
+my $socket = IO::Socket::INET->new(
+  LocalPort => $localport,
+  Listen => SOMAXCONN,
+  Reuse => 1,
+  Type => SOCK_STREAM
+) or die "Could not be a server: $!";
 
-# this variable is incremented after every fork, and is 
+# this variable is incremented after every fork, and is
 # updated by reaper() when a child process dies
 my $num_children = 0;
-
 ## SEE BELOW
 # automatically reap child processes
 #$SIG{CHLD} = 'IGNORE';
@@ -193,256 +180,263 @@ my $num_children = 0;
 ## BETTER WAY:
 # handle death of child process
 $SIG{CHLD} = \&reaper;
-
 my $interrupted = 0;
-
 ACCEPT:
-while ((my $client = $socket->accept) or $interrupted) {
-    $interrupted = 0;
+while ((my $client = $socket->accept) or $interrupted)
+{
+  $interrupted = 0;
+  next unless $client; # a SIGCHLD was raised
 
-    next unless $client; # a SIGCHLD was raised
-
-    # check to see if it's okay to handle this request
-    if ($num_children >= $maxchild) {
-	print $client "busy\015\012";
-	$client->close;
-	undef $client;
-	next ACCEPT;
-    }
-
-
-    my $childpid;
-    # fork; let the child handle the actual request
-    if ($childpid = fork) {
-	# This is the parent
-
-	$num_children++;
-
-	# go wait for next request
-	undef $client;
-	next ACCEPT;
-    }
-
-    # This is the child process
-
-    defined $childpid or die "Could not fork: $!";
-
-    # here we're the child, so we actually handle the request
-    my @requests;
-    while (my $request = <$client>) {
-	last if $request eq "\015\012";
-	push @requests, $request;
-    }
-
-    foreach my $i (0..$#requests) {
-        my $request = $requests[$i];
-	my $rnum = $i + 1;
-	$request =~ m/^(\w)\b/;
-	my $type = $1 || 'UNDEFINED';
-	
-	if ($type eq 'v') {
-	    # get version information
-	    my $qdver = $wn->VERSION ();
-	    my $wnver = $wntools->hashCode ();
-	    my $simver = $WordNet::Similarity::VERSION;
-	    print $client "v WordNet $wnver\015\012";
-	    print $client "v WordNet::QueryData $qdver\015\012";
-	    print $client "v WordNet::Similarity $simver\015\012";
-	    print $client "\015\012";
-	    goto EXIT_CHILD;
-	}
-	elsif ($type eq 's') {
-	    my (undef, $word) = split /\s+/, $request;
-	    my @senses = getAllForms ($word);
-	    unless (scalar @senses) {
-		print $client "! $word was not found in WordNet";
-		goto EXIT_CHILD;
-	    }
-
-	    getlock;
-	    foreach my $wps (@senses) {
-		my @synset = $wn->querySense ($wps, "syns");
-		print $client "$rnum $wps ", join (" ", @synset), "\015\012";
-	    }
-	    releaselock;
-	}
-	elsif ($type eq 'g') {
-	    my (undef, $word) = split /\s+/, $request;
-	    my @senses = getAllForms ($word);
-	    unless (scalar @senses) {
-		print $client "! $word was not found in WordNet\015\012";
-		goto EXIT_CHILD;
-	    }
-	
-	    getlock;
-	    foreach my $wps (@senses) {
-		my ($gloss) = $wn->querySense ($wps, "glos");
-		print $client "$rnum $wps ${gloss}\015\012";
-	    }
-	    releaselock;
-	}
-	elsif ($type eq 'r') {
-	    my (undef, $word1, $word2, $measure, $trace, $gloss, $syns, $root)
-		= split /\s+/, $request;
-
-	    unless (defined $word1 and defined $word2) {
-		print $client "! Error: undefined input words\015\012";
-		sleep 2;
-		goto EXIT_CHILD;
-	    }
-
-	    my $module;
-	    if ($measure =~ /^(?:hso|jcn|lch|lesk|lin|path|random|res|wup|vector|vector_pairs)$/) {
-		no strict 'refs';
-		$module = $$measure;
-		unless (defined $module) {
-		    print $client "! Error: Couldn't get reference to measure\015\012";
-		    sleep 2;
-		    goto EXIT_CHILD;
-		}
-	    }
-	    else {
-		print $client "! Error: no such measure $measure\015\012";
-		sleep 2;
-		goto EXIT_CHILD;
-	    }
-
-	    my @wps1 = getAllForms ($word1);
-	    unless (scalar @wps1) {
-		print $client "! $word1 was not found in WordNet\015\012";
-		goto EXIT_CHILD;
-	    }
-	    my @wps2 = getAllForms ($word2);
-	    unless (scalar @wps2) {
-		print $client "! $word2 was not found in WordNet\015\012";
-		goto EXIT_CHILD;
-	    }
-
-	    if ($trace eq 'yes') {
-		$module->{trace} = 1;
-	    }
-
-	    $module->{rootNode} = ($root eq 'yes') ? 1 : 0;
-
-	    if (($gloss eq 'yes') or ($syns eq 'yes')) {
-		getlock;
-		foreach my $wps ((@wps1, @wps2)) {
-		    if ($gloss eq 'yes') {
-			my ($gls) = $wn->querySense ($wps, 'glos');
-			print $client "g $wps $gls\015\012";
-		    }
-		    if ($syns eq 'yes') {
-			my @syns = $wn->querySense ($wps, 'syns');
-			print $client "s ", join (" ", @syns), "\015\012";
-		    }
-		}
-		releaselock;
-	    }
-
-
-	    getlock;
-	    foreach my $wps1 (@wps1) {
-		foreach my $wps2 (@wps2) {
-		    my $score = $module->getRelatedness ($wps1, $wps2);
-		    my ($err, $errstr) = $module->getError ();
-		    if ($err) {
-			print $client "! $errstr\015\012";
-		    }
-		    else {
-			print $client "r $measure $wps1 $wps2 $score\015\012";
-		    }
-		    if ($trace eq 'yes') {
-			my $tracestr = $module->getTraceString ();
-			$tracestr =~ s/[\015\012]+/<CRLF>/g;
-			print $client "t $tracestr\015\012";
-		    }
-		}
-	    }
-	    releaselock;
-
-	    # reset traces to off
-	    $module->{trace} = 0;
-	}
-	else {
-	    print $client "! Bad request type `$type'\015\012";
-	}
-    }
-
-    # Terminate ALL messages with CRLF (\015\012).  Do NOT use
-    # \r\n (the meaning of \r and \n varies on different platforms).
-    print $client "\015\012";
-
- EXIT_CHILD:
+  # check to see if it's okay to handle this request
+  if ($num_children >= $maxchild)
+  {
+    print $client "busy\015\012";
     $client->close;
-    $socket->close;
+    undef $client;
+    next ACCEPT;
+  }
+  my $childpid;
 
-    # don't let the child accept:
-    exit;
+  # fork; let the child handle the actual request
+  if ($childpid = fork)
+  {
+
+    # This is the parent
+    $num_children++;
+
+    # go wait for next request
+    undef $client;
+    next ACCEPT;
+  }
+
+  # This is the child process
+  defined $childpid or die "Could not fork: $!";
+
+  # here we're the child, so we actually handle the request
+  my @requests;
+  while (my $request = <$client>)
+  {
+    last if $request eq "\015\012";
+    push @requests, $request;
+  }
+  foreach my $i (0..$#requests)
+  {
+    my $request = $requests[$i];
+    my $rnum = $i + 1;
+    $request =~ m/^(\w)\b/;
+    my $type = $1 || 'UNDEFINED';
+    if ($type eq 'v')
+    {
+
+      # get version information
+      my $qdver = $wn->VERSION();
+      my $wnver = $wntools->hashCode();
+      my $simver = $WordNet::Similarity::VERSION;
+      print $client "v WordNet $wnver\015\012";
+      print $client "v WordNet::QueryData $qdver\015\012";
+      print $client "v WordNet::Similarity $simver\015\012";
+      print $client "\015\012";
+      goto EXIT_CHILD;
+    }
+    elsif ($type eq 's')
+    {
+      my (undef, $word) = split /\s+/, $request;
+      my @senses = getAllForms($word);
+      unless (scalar @senses)
+      {
+        print $client "! $word was not found in WordNet";
+        goto EXIT_CHILD;
+      }
+      getlock;
+      foreach my $wps (@senses)
+      {
+        my @synset = $wn->querySense($wps, "syns");
+        print $client "$rnum $wps ", join(" ", @synset), "\015\012";
+      }
+      releaselock;
+    }
+    elsif ($type eq 'g')
+    {
+      my (undef, $word) = split /\s+/, $request;
+      my @senses = getAllForms($word);
+      unless (scalar @senses)
+      {
+        print $client "! $word was not found in WordNet\015\012";
+        goto EXIT_CHILD;
+      }
+      getlock;
+      foreach my $wps (@senses)
+      {
+        my ($gloss) = $wn->querySense($wps, "glos");
+        print $client "$rnum $wps ${gloss}\015\012";
+      }
+      releaselock;
+    }
+    elsif ($type eq 'r')
+    {
+      my (undef, $word1, $word2, $measure, $trace, $gloss, $syns, $root)= split /\s+/, $request;
+      unless (defined $word1 and defined $word2)
+      {
+        print $client "! Error: undefined input words\015\012";
+        sleep 2;
+        goto EXIT_CHILD;
+      }
+      my $module;
+      if ($measure =~ /^(?:hso|jcn|lch|lesk|lin|path|random|res|wup|vector|vector_pairs)$/)
+      {
+        no strict 'refs';
+        $module = $$measure;
+        unless (defined $module)
+        {
+          print $client "! Error: Couldn't get reference to measure\015\012";
+          sleep 2;
+          goto EXIT_CHILD;
+        }
+      }
+      else
+      {
+        print $client "! Error: no such measure $measure\015\012";
+        sleep 2;
+        goto EXIT_CHILD;
+      }
+      my @wps1 = getAllForms($word1);
+      unless (scalar @wps1)
+      {
+        print $client "! $word1 was not found in WordNet\015\012";
+        goto EXIT_CHILD;
+      }
+      my @wps2 = getAllForms($word2);
+      unless (scalar @wps2)
+      {
+        print $client "! $word2 was not found in WordNet\015\012";
+        goto EXIT_CHILD;
+      }
+      if ($trace eq 'yes')
+      {
+        $module->{trace} = 1;
+      }
+      $module->{rootNode} = ($root eq 'yes') ? 1 : 0;
+      if (($gloss eq 'yes') or ($syns eq 'yes'))
+      {
+        getlock;
+        foreach my $wps ((@wps1, @wps2))
+        {
+          if ($gloss eq 'yes')
+          {
+            my ($gls) = $wn->querySense($wps, 'glos');
+            print $client "g $wps $gls\015\012";
+          }
+          if ($syns eq 'yes')
+          {
+            my @syns = $wn->querySense($wps, 'syns');
+            print $client "s ", join(" ", @syns), "\015\012";
+          }
+        }
+        releaselock;
+      }
+      getlock;
+      foreach my $wps1 (@wps1)
+      {
+        foreach my $wps2 (@wps2)
+        {
+          my $score = $module->getRelatedness($wps1, $wps2);
+          my ($err, $errstr) = $module->getError();
+          if ($err)
+          {
+            print $client "! $errstr\015\012";
+          }
+          else
+          {
+            print $client "r $measure $wps1 $wps2 $score\015\012";
+          }
+          if ($trace eq 'yes')
+          {
+            my $tracestr = $module->getTraceString();
+            $tracestr =~ s/[\015\012]+/<CRLF>/g;
+            print $client "t $tracestr\015\012";
+          }
+        }
+      }
+      releaselock;
+
+      # reset traces to off
+      $module->{trace} = 0;
+    }
+    else
+    {
+      print $client "! Bad request type `$type'\015\012";
+    }
+  }
+
+  # Terminate ALL messages with CRLF (\015\012).  Do NOT use
+  # \r\n (the meaning of \r and \n varies on different platforms).
+  print $client "\015\012";
+EXIT_CHILD:
+  $client->close;
+  $socket->close;
+
+  # don't let the child accept:
+  exit;
 }
-
 $socket->close;
 exit;
 
 sub getAllForms ($)
 {
-    my $word = shift;
+  my $word = shift;
 
-    # check if it's a type III string already:
-    return $word if $word =~ m/[^#]+\#[nvar]\#\d+/;
+  # check if it's a type III string already:
+  return $word if $word =~ m/[^#]+\#[nvar]\#\d+/;
 
+  # it must be a type I or II, so let's get all valid forms
+  getlock;
+  my @forms = $wn->validForms($word);
+  releaselock;
+  return () unless scalar @forms;
+  my @wps_strings;
 
-    # it must be a type I or II, so let's get all valid forms
+  # for each valid form, get all valid wps strings
+  foreach my $form (@forms)
+  {
+
+    # form is a type II string
     getlock;
-    my @forms = $wn->validForms ($word);
+    my @strings = $wn->querySense($form);
     releaselock;
-
-    return () unless scalar @forms;
-
-    my @wps_strings;
-
-    # for each valid form, get all valid wps strings
-    foreach my $form (@forms) {
-	# form is a type II string
-        getlock;
-	my @strings = $wn->querySense ($form);
-        releaselock;
-	next unless scalar @strings;
-	push @wps_strings, @strings;
-    }
-
-    return @wps_strings;
+    next unless scalar @strings;
+    push @wps_strings, @strings;
+  }
+  return @wps_strings;
 }
-
 
 # A signal handler, good for most normal signals (esp. INT).  Mostly we just
 # want to close the socket we're listening to and delete the lock file.
 sub bailout
 {
-    my $sig = shift;
-    $sig = defined $sig ? $sig : "?UNKNOWN?";
-    $socket->close if defined $socket;
-    print STDERR "Bailing out (SIG$sig)\n";
-    releaselock;
-    unlink $lock_file;
-    exit 1;
+  my $sig = shift;
+  $sig = defined $sig ? $sig : "?UNKNOWN?";
+  $socket->close if defined $socket;
+  print STDERR "Bailing out (SIG$sig)\n";
+  releaselock;
+  unlink $lock_file;
+  exit 1;
 }
-
-
 use Fcntl qw/:flock/;
 
 # gets a lock on $lockfh.  The return value is that of flock.
 sub getlock ()
 {
-    open $lockfh, '>>', $lock_file
-	or die "Cannot open lock file $lock_file: $!";
-    flock $lockfh, LOCK_EX;
+  open $lockfh,
+    '>>', $lock_file
+    or die "Cannot open lock file $lock_file: $!";
+  flock $lockfh, LOCK_EX;
 }
 
 # releases a lock on $lockfh.  The return value is that of flock.
 sub releaselock ()
 {
-    flock $lockfh, LOCK_UN;
-    close $lockfh;
+  flock $lockfh, LOCK_UN;
+  close $lockfh;
 }
 
 # sub to reap child processes (so they don't become zombies)
@@ -452,23 +446,20 @@ sub releaselock ()
 # http://www.india-seo.com/perl/cookbook/ch16_20.htm
 sub reaper
 {
-    my $moribund;
-    if (my $pid = waitpid (-1, WNOHANG) > 0) {
-	$num_children-- if WIFEXITED ($?);
-    }
-    $interrupted = 1;
-    $SIG{CHLD} = \&reaper; # cursed be SysV
+  my $moribund;
+  if (my $pid = waitpid(-1, WNOHANG) > 0)
+  {
+    $num_children-- if WIFEXITED($?);
+  }
+  $interrupted = 1;
+  $SIG{CHLD} = \&reaper; # cursed be SysV
 }
 
 __END__
 
 =head1 NAME
 
-similarity_server.pl - The server for similarity.cgi
-
-=head1 SYNOPSIS
-
-blah
+similarity_server.pl - The WordNet::Similarity server.
 
 =head1 DESCRIPTION
 

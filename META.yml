@@ -1,17 +1,17 @@
 --- #YAML:1.0
 name:                WordNet-Similarity
-version:             2.01
+version:             2.02
 abstract:            Perl modules for computing measures of semantic
 license:             ~
 generated_by:        ExtUtils::MakeMaker version 6.36
 distribution_type:   module
 requires:     
-    CGI:                           3.10
-    Digest::SHA1:                  2.10
-    File::Find:                    1.05
-    File::Spec:                    3.12
-    Getopt::Long:                  2.34
-    IO:                            1.21
+    CGI:                           0
+    Digest::SHA1:                  0
+    File::Find:                    0
+    File::Spec:                    0
+    Getopt::Long:                  0
+    IO:                            0
     Text::Similarity:              0.02
     WordNet::QueryData:            1.40
 meta-spec:

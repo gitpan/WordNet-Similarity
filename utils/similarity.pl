@@ -1,7 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# similarity.pl version 2.01
-# (Last updated $Id: similarity.pl,v 1.23 2007/10/11 07:24:36 sidz1979 Exp $)
+# similarity.pl version 2.02
+# (Last updated $Id: similarity.pl,v 1.24 2008/03/04 10:01:40 sidz1979 Exp $)
 #
 # This program is a command line interface to WordNet::Similarity
 #
@@ -12,17 +12,14 @@
 
 use strict;
 
-# 12/8/2003 JM
-# There doesn't seem to be any advantage to wrapping this in a BEGIN block
-
-#BEGIN
-#  {
-
 # Include the QueryData package.
 use WordNet::QueryData 1.40;
 
 # Include library to get Command-Line options.
 use Getopt::Long;
+
+# Include the WordNet::Similarity package.
+use WordNet::Similarity;
 	
 # If no Command-Line arguments given ... show minimal help screen ... exit.
 if($#ARGV < 0)
@@ -47,9 +44,6 @@ if(defined $opt_simpath)
     @INC = ($opt_simpath);
     push(@INC, @tmpINC);
   }
-
-
-#  } # end of BEGIN block
 
 # Declarations:
 my $wn;       # WordNet::QueryData object.
@@ -564,7 +558,8 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "similarity.pl  version 2.01\n";
+    print "similarity.pl  version 2.02\n";
+    print "WordNet::Similarity version ".($WordNet::Similarity::VERSION)."\n";
 
     # 12/8/2003 JM (#3)
     # Print version of module if the --type option was given.

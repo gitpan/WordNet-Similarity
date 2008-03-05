@@ -12,9 +12,9 @@
 # 3) simple getRelatedness queries are performed on valid words, invalid
 #    words, and words from different parts of speech
 
-##################### We start with some black magic to print on failure.
+# We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..8\n"; }
+BEGIN { $| = 1; print "1..9\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use WordNet::Similarity;
 use WordNet::QueryData;
@@ -22,140 +22,159 @@ use WordNet::Similarity::lch;
 $loaded = 1;
 print "ok 1\n";
 
-######################### End of black magic.
+use strict;
+use warnings;
 
-# Insert your test code below (better if it prints "ok 13"
-# (correspondingly "not ok 13") depending on the success of chunk 13
-# of the test code):
-
-############ Load QueryData
-
-$wn = WordNet::QueryData->new();
+# Load QueryData
+my $wn = WordNet::QueryData->new();
 if($wn)
 {
-    print "ok 2\n";
+  print "ok 2\n";
 }
 else
 {
-    print "not ok 2\n";
+  print "not ok 2\n";
 }
 
-############ Load lch
-
-$lch = WordNet::Similarity::lch->new($wn);
+# Load lch
+my $lch = WordNet::Similarity::lch->new($wn);
 if($lch)
 {
-    ($err, $errString) = $lch->getError();
-    if($err)
-    {
-        print "not ok 3\n";
-    }
-    else
-    {
-        print "ok 3\n";
-    }
+  my ($err, $errString) = $lch->getError();
+  if($err)
+  {
+    print "not ok 3\n";
+  }
+  else
+  {
+    print "ok 3\n";
+  }
 }
 else
 {
-    print "not ok 3\n";
+  print "not ok 3\n";
 }
 
-############ Load lch with undef QueryData.
-
-$badLch = WordNet::Similarity::lch->new(undef);
+# Load lch with undef QueryData.
+my $badLch = WordNet::Similarity::lch->new(undef);
 if($badLch)
 {
-    ($err, $errString) = $badLch->getError();
-    if($err < 2)
+  my ($err, $errString) = $badLch->getError();
+  if($err < 2)
+  {
+    print "not ok 4\n";
+  }
+  elsif($err == 2)
+  {
+    if($errString =~ /A WordNet::QueryData object is required/)
     {
-	print "not ok 4\n";
-    }
-    elsif($err == 2)
-    {
-	if($errString =~ /A WordNet::QueryData object is required/)
-	{
-	    print "ok 4\n";
-	}
-	else
-	{
-	    print "not ok 4\n";
-	}
+      print "ok 4\n";
     }
     else
     {
-	print "not ok 4\n";
+      print "not ok 4\n";
     }
+  }
+  else
+  {
+    print "not ok 4\n";
+  }
 }
 else
 {
-    print "not ok 4\n";
+  print "not ok 4\n";
 }
 
-############ GetRelatedness of same synset.
-
-$value1 = $lch->getRelatedness("object#n#1", "object#n#1");
-$value2 = $lch->getRelatedness("entity#n#1", "entity#n#1");
-if($value1 && $value1 =~ /[0-9]+(\.[0-9]+)?/
+# GetRelatedness of same synset.
+my $value1 = undef;
+my $value2 = undef;
+eval {$value1 = $lch->getRelatedness("object#n#1", "object#n#1");};
+eval {$value2 = $lch->getRelatedness("entity#n#1", "entity#n#1");};
+if($@)
+{
+  print "not ok 5\n";
+}
+elsif($value1 && $value1 =~ /[0-9]+(\.[0-9]+)?/
    && $value2 && $value2 =~ /[0-9]+(\.[0-9]+)?/)
 {
-    if(($value1 - $value2) < 0.0001)
-    {
-	print "ok 5\n";
-    }
-    else
-    {
-	print "not ok 5\n";
-    }
-}
-else
-{
+  if(($value1 - $value2) < 0.0001)
+  {
+    print "ok 5\n";
+  }
+  else
+  {
     print "not ok 5\n";
+  }
+}
+else
+{
+  print "not ok 5\n";
 }
 
-############ getRelatedness of badly formed synset.
-## (Tried getRelatedness of unknown synsets... "hjxlq#n#1", "pynbr#n#2"...
-##  QueryData complains... can't trap that error myself.)       '
-
-if(defined $lch->getRelatedness("hjxlq#n", "pynbr#n"))
+# getRelatedness of badly formed synset.
+$value1 = undef;
+eval {$value1 = $lch->getRelatedness("hjxlq#n", "pynbr#n");};
+if($@ || defined($value1))
 {
+  print "not ok 6\n";
+}
+else
+{
+  my ($err, $errString) = $lch->getError();
+  if($err == 1)
+  {
+    print "ok 6\n";
+  }
+  else
+  {
     print "not ok 6\n";
-}
-else
-{
-    ($err, $errString) = $lch->getError();
-    if($err == 1)
-    {
-	print "ok 6\n";
-    }
-    else
-    {
-	print "not ok 6\n";
-    }
+  }
 }
 
-############ Relatedness across parts of speech.
-
+# Relatedness across parts of speech.
 $lch->{'trace'} = 1;
-if($lch->getRelatedness("object#n#1", "run#v#1") >= 0)
+$value1 = undef;
+eval {$value1 = $lch->getRelatedness("object#n#1", "run#v#1");};
+if($value1 >= 0)
 {
-    print "not ok 7\n";
+  print "not ok 7\n";
 }
 else
 {
-    print "ok 7\n";
+  print "ok 7\n";
 }
 
-############ Test traces.
+# Test traces.
 # JM 1-6-04
 # we changed how words from different parts of speech are handled
 #if($m->getTraceString() !~ /Relatedness 0 across parts of speech/)
-
-if (($lch->getError())[0] != 1)
+if(($lch->getError())[0] != 1)
 {
-    print "not ok 8\n";
+  print "not ok 8\n";
 }
 else
 {
-    print "ok 8\n";
+  print "ok 8\n";
 }
 
+# Testing self-similarity of tilde
+eval {$value1 = $lch->getRelatedness("tilde#n#1", "tilde#n#1");};
+if($@)
+{
+  print "not ok 9\n";
+}
+elsif(defined($value1))
+{
+  if(($value1 - $value2) < 0.0001)
+  {
+    print "ok 9\n";
+  }
+  else
+  {
+    print "not ok 9\n";
+  }
+}
+else
+{
+  print "not ok 9\n";
+}

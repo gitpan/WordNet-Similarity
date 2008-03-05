@@ -7,6 +7,33 @@ SYNOPSIS
     version is released.
 
 DESCRIPTION
+  Version 2.02 (Released 03/04/2008)
+    *   03/04/08
+
+        (1) Applied patch from Ben Haskell to fix a bug report (submitted by
+            Quang Do Xuan) about failing self-similarity of tilde#n#1 using
+            wup and lch measures. (Sid)
+
+        (2) Added tests for above bug to t/wup.t and t/lch.t. (Sid)
+
+        (3) Added WordNet::Similarity package version info to similarity.pl
+            --version. (Sid)
+
+    *   01/31/08
+
+        (1) Changed some default options in the similarity_server.conf
+            configuration. (Sid)
+
+        (2) Reformatted some of the similarity_server code. (Sid)
+
+    *   01/10/08
+
+        (1) Reduced version requirements of some of the PREREQ_PM modules.
+            (Sid)
+
+        (2) Changed WordNet::QueryData requirements to v1.40 in the
+            documentation. (Sid)
+
   Version 2.01 (Released 10/14/2007)
     *   10/13/07
 
