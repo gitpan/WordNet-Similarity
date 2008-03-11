@@ -59,7 +59,7 @@ samples/sample.pl
 samples/stoplist.txt
 samples/vector-pairs-relation.dat
 samples/vector-relation.dat
-samples/wn21compounds.txt
+samples/wn30compounds.txt
 t/access.t
 t/config/all.t
 t/config/invalid.t

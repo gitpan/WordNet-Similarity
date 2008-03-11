@@ -19,7 +19,7 @@ my $rawtextFreq = File::Spec->catfile ('utils', 'rawtextFreq.pl');
 # where's the null device?           '
 my $devnull = File::Spec->devnull;
 my $corpus = 'GPL.txt';
-my $compfile = File::Spec->catfile ('samples', 'wn21compounds.txt');
+my $compfile = File::Spec->catfile ('samples', 'wn30compounds.txt');
 my $stopfile = File::Spec->catfile ('samples', 'stoplist.txt');
 
 ok (-e $devnull);

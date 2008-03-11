@@ -529,7 +529,7 @@ sub showPageStart
        alt="University of Minnesota Duluth" /></a>
    </div>
 
-  <h1>WordNet::Similarity web interface</h1>
+  <h1>WordNet::Similarity</h1>
   <p>Read an overview of
     <a href="http://search.cpan.org/dist/WordNet-Similarity/doc/intro.pod">WordNet::Similarity</a>.
   </p>

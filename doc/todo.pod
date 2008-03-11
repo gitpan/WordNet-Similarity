@@ -1,10 +1,11 @@
 =head1 NAME 
 
-TODO Possible changes for WORDNET::SIMILARITY
+ToDo Possible changes for WordNet::Similarity
 
 =head1 SYNOPSIS
 
 A list of things to do for WordNet Similarity. 
+Last modified: $Id: todo.pod,v 1.82 2008/03/07 23:26:56 tpederse Exp $
 
 =head1 DESCRIPTION
 
@@ -18,37 +19,44 @@ all of the recently completed items  should be moved into changelog.pod.
 
 =item * 
 
-update hso to support new relations in WordNet 2.0
+Update hso to support new derivational relations introduced in 
+WordNet 2.0
 
 =item *
 
-update hso to support the use of a hypothetical root node. Currently (as 
+Update hso to support the use of a hypothetical root node. Currently (as 
 of version 0.06 and 0.07) its paths (for hypernyms) are limited to a 
 particular taxonomy. This might be problematic when it comes to nouns, 
-which are split into 9(?) separate taxonomies within wordnet. And of
+which are split into 9(?) separate taxonomies within WordNet. And of
 course verbs are split into hundreds of taxonomies. Right now when hso
 is on a hypernym path it isn't able to cross "up and over". Seems like it 
 should be able to do so. 
 
+Note that as of WordNet 3.0 the nouns have been joined into a single 
+hierarchy, so perhaps hso will behave differently there. 
+
 =item * 
 
-re-write hso to make it faster and more generic. check to see if hso uses  
-hypo root node, and consider adding ability to turn on/off. 
+Re-write hso to make it faster and more generic. check to see if hso 
+uses hypo root node, and consider adding ability to turn on/off. 
+
+Note that as of WordNet 3.0 the hypo root node is only relevant for 
+verbs, since nouns have been joined into a single large hierarchy. 
 
 =item *
 
-re-write *Freq.pl programs to reduce redundancy and make faster. At 
+Re-write *Freq.pl programs to reduce redundancy and make faster. At 
 present there are bugs in all of these programs. Create test cases that 
 are manually verified and included in testing directory. 
 
 =item * 
 
-support --trace option on info content programs to allow for wps format to 
-be displayed in addition to (or instead of?) offset. 
+Support --trace option on info content programs to allow for wps format 
+to be displayed in addition to (or instead of?) offset. 
 
 =item * 
 
-run profiles of rawtextFreq.pl and BNCFreq.pl to determine where time is 
+Run profiles of rawtextFreq.pl and BNCFreq.pl to determine where time is 
 being spent. Brown, SemCor and Treebank all seem to run reasonably 
 quickly (20 minutes, 5 minutes, and 40 minutes, respectively). Run 1 
 million words worth of BNC in order to compare with Brown and Treebank.
@@ -73,13 +81,18 @@ Consider adjusting stoplists to use regular expressions.
 
 =item * 
 
-speed up lesk, and make it more generic. string matching is the  big 
+Speed up lesk, and make it more generic. string matching is the  big 
 offender with respect to speed, and wordnet specific  stuff is the   
 problem with respect to generality. 
 
 =item * 
 
-update lesk/vector to support new relations in WordNet 2.0
+Update lesk/vector to support new derivational relations introduced in 
+WordNet 2.0
+
+=item *
+
+Use info content programs to create new cntlist files for WordNet? 
 
 =back
 
@@ -89,7 +102,7 @@ update lesk/vector to support new relations in WordNet 2.0
 
 =item *
 
-edge/path and jcn are both distance measures. To convert them to 
+Edge/path and jcn are both distance measures. To convert them to 
 similarity measures, we currently use 1/distance. This shifts the scale of 
 the measures and changes the relative distance between pairs. Alternatives
 are to use -dist or maxdist-dist. Computation of maxdist for path is much 
@@ -100,7 +113,7 @@ root node (either hypo or "real").
 
 =item * 
 
-check if warnings are issued when there are version clashes between info  
+Check if warnings are issued when there are version clashes between info  
 content files and wordnet version. 
 
 =back
@@ -132,8 +145,8 @@ changelog.pod
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee, 
-and Jason Michelizzi. 
+Copyright (c) 2005-2008, Ted Pedersen, Siddharth Patwardhan, Satanjeev 
+Banerjee, and Jason Michelizzi. 
 
 Permission is granted to copy, distribute and/or modify this  document  
 under the terms of the GNU Free Documentation License, Version 1.2 or any  

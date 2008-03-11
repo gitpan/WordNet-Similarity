@@ -23,13 +23,13 @@ you plan on using the res, lin, or jcn measures.
 The file Infocontent/README contains a complete description of the files  
 that are available, and how they were created. Make sure you download the
 version of the information content files that is for your version of
-WordNet (for e.g WordNet v2.1).
+WordNet (for e.g WordNet v3.0).
 
 WordNet Compounds
 =================
 
-The file wn21compounds.txt contains a list of "WordNet compounds" as 
-found in version 2.1 of WordNet. A WordNet compound is any multi word  
+The file wn30compounds.txt contains a list of "WordNet compounds" as 
+found in version 3.0 of WordNet. A WordNet compound is any multi word  
 expression that appears in WordNet that includes a _. These are mainly  
 nouns, and include proper nouns (winston_churchill), foreign words  
 (ipso_facto), expressions (face_to_face), etc. 

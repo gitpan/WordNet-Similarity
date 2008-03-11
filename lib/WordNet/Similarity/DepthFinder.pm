@@ -1,5 +1,5 @@
 # WordNet::Similarity::DepthFinder version 2.01
-# (Last updated $Id: DepthFinder.pm,v 1.16 2007/10/09 12:05:39 sidz1979 Exp $)
+# (Last updated $Id: DepthFinder.pm,v 1.19 2008/03/08 00:09:36 tpederse Exp $)
 #
 # Module containing code to find the depths of (noun and verb) synsets in
 # the WordNet 'is-a' taxonomies
@@ -13,29 +13,34 @@ WordNet taxonomies
 
 =head1 SYNOPSIS
 
-use WordNet::QueryData;
+ use WordNet::QueryData;
+ my $wn = WordNet::QueryData->new;
+ defined $wn or die "Construction of WordNet::QueryData failed";
 
-use WordNet::Similarity::DepthFinder;
+ use WordNet::Similarity::DepthFinder;
 
-my $wn = WordNet::QueryData->new;
+ my $obj = WordNet::Similarity::DepthFinder->new ($wn);
+ my ($err, $errString) = $obj->getError ();
+ $err and die $errString;
 
-defined $wn or die "Construction of WordNet::QueryData failed";
+ my $wps1 = 'car#n#4';
+ my $wps2 = 'oil#n#1';
 
-my $obj = WordNet::Similarity::DepthFinder->new ($wn);
+ my $offset1 = $wn -> offset ($wps1);
+ my $offset2= $wn -> offset ($wps2);
 
-my ($err, $errString) = $obj->getError ();
+ my @roots = $obj->getTaxonomies ($offset1, 'n');
+ my $taxonomy_depth = $obj->getTaxonomyDepth ($roots[0], 'n');
+ print "The maximum depth of the taxonomy where $wps1 is found is $taxonomy_depth\n";
 
-$err and die $errString;
+ my @depths = $obj->getSynsetDepth ($offset1, 'n');
+ print "The depth of $offset1 is $depths[0]->[0]\n";
 
-my @roots = $obj->getTaxonomyRoot (2855301, 'n');
+ my @lcsbyic = $obj -> getLCSbyDepth($wps1,$wps2,'n','wps');
+ print "$wps1 and $wps2 have LCS $lcsbyic[0]->[0] with Depth $lcsbyic[0]->[1]\n";
 
-my $taxonomy_depth = $obj->getTaxonomyDepth ($roots[0], 'n');
-
-print "The maximum depth of the car#n#4's taxonomy is $taxonomy_depth\n";
-
-my @depths = $obj->getSynsetDepth (2855301, 'n');
-
-print "The depth of car#n#4 is $depths[0]->[0]\n";
+ my @lcsbyic = $obj -> getLCSbyDepth($offset1,$offset2,'n','offset');
+ print "$offset1 and $offset2 have LCS $lcsbyic[0]->[0] with Depth $lcsbyic[0]->[1]\n";
 
 =head1 DESCRIPTION
 

@@ -1,5 +1,5 @@
 # WordNet::Similarity::ICFinder.pm version 1.03
-# (Last updated $Id: ICFinder.pm,v 1.16 2007/10/09 12:05:39 sidz1979 Exp $)
+# (Last updated $Id: ICFinder.pm,v 1.18 2008/03/11 00:53:06 tpederse Exp $)
 #
 # A generic (and abstract) information content measure--this is not a
 # real measure.  The res, lin, and jcn measures inherit from this class.
@@ -14,15 +14,50 @@ of concepts in WordNet
 
 =head1 SYNOPSIS
 
-use WordNet::Similarity::ICFinder;
+ use WordNet::QueryData;
+ my $wn = WordNet::QueryData->new;
+ defined $wn or die "Construction of WordNet::QueryData failed";
 
-my $module = new WordNet::Similarity::ICFinder;
+ use WordNet::Similarity::ICFinder;
+ my $obj = WordNet::Similarity::ICFinder->new ($wn);
+ my ($err, $errString) = $obj->getError ();
+ $err and die $errString;
 
-my $ic = $module->IC ('dog#n#1', 'n', 'wps');
+ my $wps1 = 'cat#n#1';
+ my $wps2 = 'feline#n#1';
 
-my $p = $module->probability (14429, 'v', 'offset');
+ my $offset1 = $wn -> offset ($wps1);
+ my $offset2 = $wn -> offset ($wps2);
 
-my $freq = $module->getFrequency (2340529, 'v', 'offset');
+ # using the wps mode
+
+ my $ic   = $obj->IC ($wps1, 'n', 'wps');
+ my $prob = $obj->probability ($wps1, 'n', 'wps');
+ my $freq = $obj->getFrequency ($wps1, 'n', 'wps');
+ print "$wps1 has frequency $freq, probability $prob, and IC $ic\n";
+
+ my $ic   = $obj->IC ($wps2, 'n', 'wps');
+ my $prob = $obj->probability ($wps2, 'n', 'wps');
+ my $freq = $obj->getFrequency ($wps2, 'n', 'wps');
+ print "$wps2 has frequency $freq, probability $prob, and IC $ic\n";
+
+ my @lcsbyic = $obj -> getLCSbyIC($wps1,$wps2,'n','wps');
+ print "$wps1 and $wps2 have LCS $lcsbyic[0]->[0] with IC $lcsbyic[0]->[1]\n";
+
+ # doing the same thing in the offset mode
+
+ my $ic   = $obj->IC ($offset1, 'n', 'offset');
+ my $prob = $obj->probability ($offset1, 'n', 'offset');
+ my $freq = $obj->getFrequency ($offset1, 'n', 'offset');
+ print "$offset1 has frequency $freq, probability $prob, and IC $ic\n";
+
+ my $ic   = $obj->IC ($offset2, 'n', 'offset');
+ my $prob = $obj->probability ($offset2, 'n', 'offset');
+ my $freq = $obj->getFrequency ($offset2, 'n', 'offset');
+ print "$offset2 has frequency $freq, probability $prob, and IC $ic\n";
+
+ my @lcsbyic = $obj -> getLCSbyIC($offset1,$offset2,'n','wps');
+ print "$offset1 and $offset2 have LCS $lcsbyic[0]->[0] with IC $lcsbyic[0]->[1]\n";
 
 =head1 DESCRIPTION
 

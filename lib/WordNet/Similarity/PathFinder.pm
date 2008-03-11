@@ -1,5 +1,5 @@
 # WordNet::Similarity::PathFinder version 1.01
-# (Last updated $Id: PathFinder.pm,v 1.36 2007/10/10 01:47:24 sidz1979 Exp $)
+# (Last updated $Id: PathFinder.pm,v 1.38 2008/03/11 00:31:10 tpederse Exp $)
 #
 # Module containing path-finding code for the various measures of semantic
 # relatedness.
@@ -13,33 +13,41 @@ WordNet::Similarity::PathFinder - module to implement path finding methods
 
 =head1 SYNOPSIS
 
-  use WordNet::QueryData;
+ use WordNet::QueryData;
+ my $wn = WordNet::QueryData->new;
 
-  my $wn = WordNet::QueryData->new;
+ use WordNet::Similarity::PathFinder;
+ my $obj = WordNet::Similarity::PathFinder->new ($wn);
 
-  use WordNet::Similarity::PathFinder;
+ my $wps1 = 'winston_churchill#n#1';
+ my $wps2 = 'england#n#1';
 
-  my $obj = WordNet::Similarity::PathFinder->new ($wn);
+ # parseWps returns reference to an array that contains 
+ # word1 pos1 sense1 offset1 word2 pos2 sense2 offset2
 
-  my $result = $obj->parseWps($wps1, $wps2);
+ my $result = $obj->parseWps($wps1, $wps2);
+ print "@$result\n";
 
-  my @paths = $obj->getShortestPath("dog#n#1", "cat#n#1", "n", "wps");
+ # path is a reference to an array that contains the path between
+ # wps1 and wps2 expressed as a series of wps values
 
-  my ($length, $path) = @{shift @paths};
+ my @paths = $obj->getShortestPath($wps1, $wps2, 'n', 'wps');
+ my ($length, $path) = @{shift @paths};
+ defined $path or die "No path between synsets";
+ print "shortest path between $wps1 and $wps2 is $length edges long\n";
+ print "@$path\n";
 
-  defined $path or die "No path between synsets";
+ my $offset1 = $wn -> offset($wps1);
+ my $offset2 = $wn -> offset($wps2);
 
-  my @paths = $obj->getAllPaths("worship#v#1", "adore#v#1", "v", "wps");
+ # path is a reference to an array that contains the path between
+ # offset1 and offset2 expressed as a series of offset values
 
-  my ($length, $path) = @{shift @paths};
-
-  defined $path or die "No path between synsets";
-
-  my @paths = $obj->getShortestPath("02895418", "02724985", "n", "offset");
-
-  my ($length, $path) = @{shift @paths};
-
-  defined $path or die "No path between synsets";
+ my @paths = $obj->getShortestPath($offset1, $offset2, 'n', 'offset');
+ my ($length, $path) = @{shift @paths};
+ defined $path or die "No path between synsets";
+ print "shortest path between $offset1 and $offset2 is $length edges  long\n";
+ print "@$path\n";
 
 =head1 DESCRIPTION
 
@@ -729,55 +737,6 @@ sub getDepth
 __END__
 
 =back
-
-=head2 Usage
-
-The semantic relatedness modules in this distribution are built as classes.
-The classes define four methods that are useful in finding relatedness
-values for pairs of synsets.
-
-  new()
-  getRelatedness()
-  getError()
-  getTraceString()
-
-=head3 Typical Usage Examples
-
-To create an object of the Resnik measure, we would have the following
-lines of code in the Perl program.
-
-   use WordNet::Similarity::path;
-   $object = WordNet::Similarity::path->new($wn, '~/path.conf');
-
-The reference of the initialized object is stored in the scalar variable
-'$object'. '$wn' contains a WordNet::QueryData object that should have been
-created earlier in the program. The second parameter to the 'new' method is
-the path of the configuration file for the path measure. If the 'new'
-method is unable to create the object, '$object' would be undefined. This, as
-well as any other error/warning may be tested.
-
-   die "Unable to create path object.\n" unless defined $object;
-   ($err, $errString) = $object->getError();
-   die $errString."\n" if($err);
-
-To create a Leacock-Chodorow measure object, using default values, i.e. no
-configuration file, we would have the following:
-
-   use WordNet::Similarity::lch;
-   $measure = WordNet::Similarity::lch->new($wn);
-
-To find the semantic relatedness of the first sense of the noun 'car' and
-the second sense of the noun 'bus' using the path measure, we would write
-the following piece of code:
-
-   $relatedness = $object->getRelatedness('car#n#1', 'bus#n#2');
-
-To get traces for the above computation:
-
-   print $object->getTraceString();
-
-However, traces must be enabled using configuration files. By default
-traces are turned off.
 
 =head2 Discussion
 

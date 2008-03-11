@@ -10,6 +10,55 @@ is released.
 
 =head1 DESCRIPTION
 
+=head2 Version 2.03 (Released 03/11/2008)
+
+=over
+
+=item *
+
+03/07/08
+
+=over
+
+=item (1)
+
+Removed all reference to WordNet::QueryData from Makefile.PL. This is
+based on the following advice present in the ExtUtils::MakeMaker
+documentation: "Module installation tools have ways of resolving umet
+dependencies but to do that they need a Makefile". By checking for
+WordNet::QueryData during 'perl Makefile.PL', we are preventing any
+opportunity for dependency resolution. (Sid)
+
+=item (2)
+
+The WordNet path (if specified by the WNHOME option during 'perl
+Makefile.PL') is not checked for validity beforehand, and is now
+directly provided as-is to build/Infocontent.PL and build/Depthfiles.PL.
+In case of a WNHOME error, now 'make' should fail instead of 'perl
+Makefile.PL' (which is more appropriate). (Sid)
+
+=item (3)
+
+Corrected a typo in DepthFinder.pm synopsis that refered to 
+getTaxonomyRoot rather than getTaxonomies. Removed some cut and 
+paste documentation from the templated used for GlossFinder.pm and 
+PathFinder.pm (Ted)
+
+=item (4) 
+
+Made synopsis examples WordNet version independent by not hard coding 
+offsets, etc. Did this in Depthfinder.pm, PathFinder.pm, ICFinder, and 
+GlossFinder.pm (Ted)
+
+=item (5) 
+
+Made minor changes in path names and file names in the /samples 
+directory and the /config-files subdirectory. (Ted)
+
+=back
+
+=back
+
 =head2 Version 2.02 (Released 03/04/2008)
 
 =over

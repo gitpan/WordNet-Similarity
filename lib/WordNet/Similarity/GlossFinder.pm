@@ -1,5 +1,5 @@
 # WordNet::Similarity::GlossFinder version 2.01
-# (Last updated $Id: GlossFinder.pm,v 1.8 2007/10/09 12:05:39 sidz1979 Exp $)
+# (Last updated $Id: GlossFinder.pm,v 1.11 2008/03/11 00:54:52 tpederse Exp $)
 #
 # Module containing gloss-finding code for the various measures of semantic
 # relatedness (lesk, vector).
@@ -15,13 +15,28 @@ and vector)
 =head1 SYNOPSIS
 
   use WordNet::QueryData;
-
   my $wn = WordNet::QueryData->new;
+  defined $wn or die "Construction of WordNet::QueryData failed";
 
   use WordNet::Similarity::GlossFinder;
-
   my $obj = WordNet::Similarity::GlossFinder->new ($wn);
+  my ($err, $errString) = $obj->getError ();
+  $err and die $errString;
 
+  my $wps1 = 'england#n#1';
+  my $wps2 = 'winston_churchill#n#1';
+
+  # get the glosses of these two synsets, since we are not using a 
+  # configuation file to specify relations, we will only get the 
+  # immediate glosses of the two wps entries. The default weight and
+  # relation appear in $weight and $relation - these can be modified
+  # via a configuration file. 
+
+  my ($wps1gloss, $wps2gloss, $weight, $relation ) = $obj -> getSuperGlosses ($wps1, $wps2);
+  print "$wps1gloss->[0]\n";
+  print "$wps2gloss->[0]\n";
+  print "$weight->[0]\n";
+  print "$relation->[0]\n";
 
 =head1 DESCRIPTION
 
@@ -476,55 +491,6 @@ sub _loadRelationFile
 1;
 
 __END__
-
-=head2 Usage
-
-The semantic relatedness modules in this distribution are built as classes.
-The classes define four methods that are useful in finding relatedness
-values for pairs of synsets.
-
-  new()
-  getRelatedness()
-  getError()
-  getTraceString()
-
-=head3 Typical Usage Examples
-
-To create an object of the Resnik measure, we would have the following
-lines of code in the Perl program.
-
-   use WordNet::Similarity::path;
-   $object = WordNet::Similarity::path->new($wn, '~/path.conf');
-
-The reference of the initialized object is stored in the scalar variable
-'$object'. '$wn' contains a WordNet::QueryData object that should have been
-created earlier in the program. The second parameter to the 'new' method is
-the path of the configuration file for the path measure. If the 'new'
-method is unable to create the object, '$object' would be undefined. This, as
-well as any other error/warning may be tested.
-
-   die "Unable to create path object.\n" unless defined $object;
-   ($err, $errString) = $object->getError();
-   die $errString."\n" if($err);
-
-To create a Leacock-Chodorow measure object, using default values, i.e. no
-configuration file, we would have the following:
-
-   use WordNet::Similarity::lch;
-   $measure = WordNet::Similarity::lch->new($wn);
-
-To find the semantic relatedness of the first sense of the noun 'car' and
-the second sense of the noun 'bus' using the path measure, we would write
-the following piece of code:
-
-   $relatedness = $object->getRelatedness('car#n#1', 'bus#n#2');
-
-To get traces for the above computation:
-
-   print $object->getTraceString();
-
-However, traces must be enabled using configuration files. By default
-traces are turned off.
 
 =head2 Discussion
 
