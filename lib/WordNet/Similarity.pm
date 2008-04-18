@@ -1,9 +1,42 @@
-# WordNet::Similarity.pm version 2.03
-# (Last updated $Id: Similarity.pm,v 1.47 2008/03/07 16:45:00 sidz1979 Exp $)
+# WordNet::Similarity.pm version 2.04
+# (Last updated $Id: Similarity.pm,v 1.49 2008/03/27 06:21:17 sidz1979 Exp $)
 #
 # Module containing the version information and pod
 # for the WordNet::Similarity package, and all measures are
 # derived from this class.
+#
+# Copyright (c) 2005,
+#
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
+#
+# Jason Michelizzi, Univeristy of Minnesota Duluth
+# mich0212 at d.umn.edu
+#
+# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+# banerjee+ at cs.cmu.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+#
+# The Free Software Foundation, Inc., 
+# 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+#
+# ------------------------------------------------------------------
 
 package WordNet::Similarity;
 
@@ -88,7 +121,7 @@ use Exporter;
 #  print "Root: ROOT\n";         # wrong!
 #  print "Root: ".ROOT."\n";     # right
 #  m/ROOT/;                      # wrong!
-#  $pattern = ROOT; m/$pattern/; #okay
+#  $pattern = ROOT; m/$pattern/; # okay
 use constant ROOT => "*Root*";
 use constant ROOT_N => "*Root*#n#1";
 use constant ROOT_V => "*Root*#v#1";
@@ -115,7 +148,7 @@ our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '2.03';
+$VERSION = '2.04';
 
 # a hash to contain the module-specific configuration options.
 our %config_options;
@@ -1108,7 +1141,7 @@ traces are turned off.
   mich0212 at d.umn.edu
 
   Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-  satanjee+ at cs.cmu.edu
+  banerjee+ at cs.cmu.edu
 
 =head1 BUGS
 
@@ -1162,77 +1195,3 @@ at L<http://www.gnu.org/licenses/gpl.txt> and is included in this
 distribution as GPL.txt.
 
 =cut
-
- =head2 new()
-
-The first thing that is done in order to use one of the semantic
-relatedness measures is to create an object of the measure. This is done by
-calling the 'new' method of that measure or module. For all the semantic
-relatedness measures provided in this package, the 'new' method takes two
-parameters --
-    (a) a WordNet::QueryData object (REQUIRED)
-    (b) the name of a configuration file for that module (Optional)
-This method initializes an object of the requested measure, using the
-configuration file data, or with default values if a configuration file is
-not provided. A reference to this object is returned by the 'new' method
-and must be saved by the calling program, if any of the other methods of
-this module are to be called. It is possible to create multiple objects of
-the same module (possibly initialized differently by specifying different
-configuration files for each). The format of the configuration files is
-discussed later in this documentation.
-
-An 'undef' value returned by the 'new' method, indicates that it was unable
-to create an object. It is also possible that non-fatal errors occur during
-the creation of the object. In this case an object is created by the 'new'
-method using default conditions. However, a non-fatal error condition flag
-is set within the object, which can be retrieved using the getError()
-method. It is advisable to check for this error condition after the
-creation of every such object.
-
- =head2 getRelatedness()
-
-The 'getRelatedness' method is called on the created object to determine
-the semantic relatedness of two concepts (synsets in WordNet) as computed
-by that measure. The input parameters are two WordNet synsets, represented
-in the word#pos#sense format returned/used by WordNet::QueryData. In this
-format each synset is represented by a word from that synset, its
-part-of-speech and its sense number. For example, if the second sense of
-'teacher' as a noun occurs in a synset containing synonyms for 'teacher',
-then this synset can be represented by the string 'teacher#n#2'. The
-'getRelatedness' method takes as input two strings of this form and returns
-a floating point value, which is the semantic relatedness of these (as
-computed by the measure).
-
- =head2 getError()
-
-During a call to either the 'new' method or the 'getRelatedness' method
-of a measure, if a fatal or non-fatal error occurs, the module sets an
-error flag within the created object and sets an error string within (the
-exception to this is when the module is unable to create an object upon a
-call to the 'new' method, in which case it simply returns 'undef'). Both
-the error condition flag and the error string can be retrieved using the
-'getError' method on the created object. The method is called without any
-parameters and it returns an array containing the error flag as the first
-element and the error string as the second element. The error flag can take
-the values 0, 1 or 2. A value of 0 indicates that there was no error or
-warning since the last call to 'getError'. 1 indicates that there was/were
-non-fatal error(s) (warnings) since the last call to 'getError'. A value of
-2 usually indicates that the errors were serious enough to warrant the
-termination of the program. However, how these errors are handled is
-completely upto the programmer writing the Perl program. It is advisable that the
-error flag be checked after every call to either 'new' or 'getRelatedness',
-but this is not a necessary step and the error condition may be tested at
-less regular intervals also.
-
- =head2 getTraceString()
-
-If traces are enabled, a trace string generated during the last call to the
-'getRelatedness' method is stored within the object. This trace string can
-be retrieved using the 'getTraceString' method. This method is called with
-no parameters and returns a scalar containing the most recently generated
-trace string. By default traces are not enabled. Traces can be enabled by
-specifying this as an option in the configuration file for the
-measure. Instructions for writing configuration files for the measures
-follow later in the documentation.
-
- =cut

@@ -12,9 +12,9 @@ doc/utils.pod
 FDL.txt
 GPL.txt
 INSTALL
-lib/get_wn_info.pm
-lib/stem.pm
-lib/vectorFile.pm
+lib/WordNet/get_wn_info.pm
+lib/WordNet/stem.pm
+lib/WordNet/vectorFile.pm
 lib/WordNet/lesk-relation.dat
 lib/WordNet/Similarity.pm
 lib/WordNet/Tools.pm
@@ -60,6 +60,7 @@ samples/stoplist.txt
 samples/vector-pairs-relation.dat
 samples/vector-relation.dat
 samples/wn30compounds.txt
+SIGNATURE
 t/access.t
 t/config/all.t
 t/config/invalid.t
@@ -437,12 +438,11 @@ utils/rawtextFreq.pl
 utils/semCorFreq.pl
 utils/semCorRawFreq.pl
 utils/similarity.pl
+utils/similarity_server.pl
 utils/treebankFreq.pl
 utils/wnDepths.pl
 utils/wordVectors.pl
 web/cgi-bin/similarity.cgi
-web/cgi-bin/similarity_server.conf
-web/cgi-bin/similarity_server.pl
 web/cgi-bin/wps.cgi
 web/docs/explanations.html
 web/docs/index.html
@@ -453,4 +453,4 @@ web/docs/rootnode.html
 web/docs/sim-style.css
 web/index.html
 web/README
-META.yml                                 Module meta-data (added by MakeMaker)
+META.yml

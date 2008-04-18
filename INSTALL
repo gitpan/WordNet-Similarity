@@ -1,5 +1,5 @@
 NAME
-    install.pod - how to install WordNet::Similarity
+    INSTALL - [documentation] How to install WordNet::Similarity
 
 SYNOPSIS
      perl Makefile.PL
@@ -13,15 +13,17 @@ SYNOPSIS
 DESCRIPTION
   Prerequisites
     You need to have WordNet (version 3.0) installed, WordNet::QueryData
-    (version 1.40 or later), and Text::Similarity installed. [NOTE: However,
-    if you're using WordNet 3.0, you must use WordNet::QueryData v1.46 or
-    above. WordNet::QueryData v1.40 through v1.45 can only be used with
-    WordNet 2.1.]
+    (version 1.40 or later), and Text::Similarity (version 0.04 or later)
+    installed.
 
-    WordNet is available at http://wordnet.princeton.edu, WordNet::QueryData
-    is available from http://search.cpan.org/dist/WordNet-QueryData, and
-    Text::Similarity is available from
-    http://search.cpan.org/dist/Text-Similarity.
+     [NOTE: However, if you're using WordNet 3.0, you must use
+     WordNet::QueryData v1.46 or above. WordNet::QueryData v1.40 through
+     v1.45 can only be used with WordNet 2.1.]
+
+    WordNet is available at <http://wordnet.princeton.edu>,
+    WordNet::QueryData is available from
+    <http://search.cpan.org/dist/WordNet-QueryData>, and Text::Similarity is
+    available from <http://search.cpan.org/dist/Text-Similarity>.
 
     You should set the WNHOME environment variable to the location where you
     have WordNet installed; see the WordNet::QueryData documentation for
@@ -123,7 +125,7 @@ DESCRIPTION
 
     2.  WordNet: All the measures are based on WordNet. WordNet must be
         installed on your system. WordNet is freely downloadable from
-        http://wordnet.princeton.edu. WordNet version 3.0 was used during
+        <http://wordnet.princeton.edu>. WordNet version 3.0 was used during
         the development and testing of the package. Unfortunately, due to
         major changes in WordNet (and WordNet::QueryData) from version 2.0
         to 2.1, this version of WordNet::Similarity supports only WordNet
@@ -135,7 +137,7 @@ DESCRIPTION
     3.  WordNet::QueryData: This is the Perl interface to WordNet written by
         Jason Rennie. QueryData should be accessible on the @INC path of
         Perl. (Can be freely downloaded from
-        http://search.cpan.org/dist/WordNet-QueryData). QueryData 1.46 was
+        <http://search.cpan.org/dist/WordNet-QueryData>). QueryData 1.46 was
         used during the development. Also we observed that that due to some
         major changes in QueryData from its previous versions, this software
         does not work with the earlier versions of QueryData. If you have an
@@ -145,7 +147,10 @@ DESCRIPTION
     4.  Text::Similarity: This module is used by the
         WordNet::Similarity::lesk measure for finding runs of word overlaps
         in glosses. The Text::Similarity module can be downloaded from
-        http://search.cpan.org/dist/Text-Similarity.
+        <http://search.cpan.org/dist/Text-Similarity>.
+
+        Version 0.04 or better is required in order to be compatible with
+        Perl version 5.6 and better.
 
   Optional Tests
     Running 'make install' after make will run a short series of tests.
@@ -205,6 +210,13 @@ DESCRIPTION
      make install
      exit
 
+SEE ALSO
+    intro.pod
+
+    Mailing list: <http://groups.yahoo.com/group/wn-similarity>
+
+    Project Home page: <http://wn-similarity.sourceforge.net>
+
 AUTHORS
      Ted Pedersen, University of Minnesota Duluth
      tpederse at d.umn.edu
@@ -215,14 +227,10 @@ AUTHORS
      Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
      banerjee+ at cs.cmu.edu
 
-     Jason Michelizzi, University of Minnesota Duluth
-     mich0212 at d.umn.edu
+     Jason Michelizzi
 
-SEE ALSO
-    intro.pod modules.pod
-
-COPYRIGHT AND LICENSE
-    Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev
+COPYRIGHT
+    Copyright (c) 2005-2008, Ted Pedersen, Siddharth Patwardhan, Satanjeev
     Banerjee, and Jason Michelizzi
 
     Permission is granted to copy, distribute and/or modify this document

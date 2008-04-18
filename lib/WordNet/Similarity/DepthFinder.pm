@@ -1,8 +1,35 @@
-# WordNet::Similarity::DepthFinder version 2.01
-# (Last updated $Id: DepthFinder.pm,v 1.19 2008/03/08 00:09:36 tpederse Exp $)
+# WordNet::Similarity::DepthFinder version 2.04
+# (Last updated $Id: DepthFinder.pm,v 1.20 2008/03/27 06:21:17 sidz1979 Exp $)
 #
 # Module containing code to find the depths of (noun and verb) synsets in
 # the WordNet 'is-a' taxonomies
+#
+# Copyright (c) 2005,
+#
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
+#
+# Jason Michelizzi, Univeristy of Minnesota Duluth
+# mich0212 at d.umn.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+#
+# The Free Software Foundation, Inc., 
+# 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+#
+# ------------------------------------------------------------------
 
 package WordNet::Similarity::DepthFinder;
 
@@ -57,7 +84,7 @@ use WordNet::Similarity::PathFinder;
 
 our @ISA = qw/WordNet::Similarity::PathFinder/;
 
-our $VERSION = '2.01';
+our $VERSION = '2.04';
 
 WordNet::Similarity::addConfigOption ("taxonomyDepthsFile", 1, "p", undef);
 WordNet::Similarity::addConfigOption ("synsetDepthsFile", 1, "p", undef);

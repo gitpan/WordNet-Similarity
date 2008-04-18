@@ -1,40 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# semCorRawFreq.pl version 2.01
-# (Last updated $Id: semCorRawFreq.pl,v 1.9 2007/10/09 12:05:41 sidz1979 Exp $)
-#
-# This program reads SemCor files and computes the frequency
-# counts for each synset in WordNet, ignoring the sense tags
-# in the corpus (treating it like a raw text corpus). These
-# frequency counts are used by various measures of semantic 
-# relatedness to calculate the information content values of
-# concepts. The output is generated in a format as required
-# by the WordNet::Similarity modules for computing semantic 
-# relatedness.
-#
-# Copyright (c) 2005
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse at d.umn.edu
-#
-# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-# banerjee+ at cs.cmu.edu
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd at cs.utah.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# semCorRawFreq.pl version 2.04
+# (Last updated $Id: semCorRawFreq.pl,v 1.13 2008/04/13 09:27:52 sidz1979 Exp $)
 #
 # -----------------------------------------------------------------------------
 
@@ -511,21 +478,46 @@ EOU
 # Subroutine to print the version information
 sub printVersion
 {
-    print "semCorRawFreq.pl version 2.01\n";
-    print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan.\n";
+    print "semCorRawFreq.pl version 2.04\n";
+    print "Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan.\n";
 }
 
 __END__
 
 =head1 NAME
 
-semCorRawFreq.pl
+semCorRawFreq.pl - Compute Information Content from SemCor corpus (raw
+form, without using sense-tags)
 
 =head1 SYNOPSIS
 
-semCorRawFreq.pl --outfile FILE [--stopfile FILE] [--resnik]
-  [--wnpath PATH] [--smooth SCHEME] {--stdin | --infile FILE [--infile FILE ...]}
- | --help | --version
+  semCorRawFreq.pl --outfile FILE [--stopfile FILE] [--resnik]
+   [--wnpath PATH] [--smooth SCHEME] {--stdin 
+   | --infile FILE [--infile FILE ...]}
+   | --help | --version
+
+=head1 DESCRIPTION
+
+This program reads SemCor files and computes the frequency
+counts for each synset in WordNet, ignoring the sense tags
+in the corpus (treating it like a raw text corpus). These
+frequency counts are used by various measures of semantic 
+relatedness to calculate the information content values of
+concepts. The output is generated in a format as required
+by the WordNet::Similarity modules for computing semantic 
+relatedness.
+
+The SemCor data we use comes from Rada Mihalcea, who has
+mapped SemCor from its original version to each successive
+version of WordNet. In this program we ignore the 
+SenseTags and simply treat SemCor as raw text. This is
+to allow for the comparison of the effect of counting
+from sense tags (as done in L<semCorFreq.pl>) versus
+raw or plain word forms (as done here). 
+
+A more detailed description of how information content is calculated can
+be found in L<rawtextFreq.pl>. This program uses exactly the same
+techniques as described there.
 
 =head1 OPTIONS
 
@@ -567,5 +559,53 @@ B<--help>
 B<--version>
 
     Display version information
+
+=head1 BUGS
+
+Report to WordNet::Similarity mailing list :
+ L<http://groups.yahoo.com/group/wn-similarity>
+
+=head1 SEE ALSO
+
+L<WordNet::Similarity>
+
+SemCor Download (from Rada Mihalcea): 
+
+ L<http://www.cs.unt.edu/~rada/downloads.html#semcor>
+
+WordNet home page : 
+ L<http://wordnet.princeton.edu>
+
+WordNet::Similarity home page :
+ L<http://wn-similarity.sourceforge.net>
+
+=head1 AUTHORS
+
+ Ted Pedersen, University of Minnesota, Duluth
+ tpederse at d.umn.edu
+
+ Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+ banerjee+ at cs.cmu.edu
+
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
+
+=head1 COPYRIGHT
+
+Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee, and 
+Siddharth Patwardhan
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 =cut

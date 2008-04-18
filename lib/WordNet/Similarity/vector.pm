@@ -1,10 +1,40 @@
-# WordNet::Similarity::vector.pm version 2.01
-# (Last updated $Id: vector.pm,v 1.22 2007/10/09 12:05:39 sidz1979 Exp $)
+# WordNet::Similarity::vector.pm version 2.04
+# (Last updated $Id: vector.pm,v 1.24 2008/03/27 06:21:17 sidz1979 Exp $)
 #
 # Module accepts two WordNet synsets and returns a floating point
 # number that indicates how similar those two synsets are, using a
 # gloss vector overlap measure based on "context vectors" described by
 # Schütze (1998).
+#
+# Copyright (c) 2005,
+#
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
+#
+# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+# banerjee+ at cs.cmu.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+#
+# The Free Software Foundation, Inc., 
+# 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+#
+# ------------------------------------------------------------------
 
 package WordNet::Similarity::vector;
 
@@ -46,16 +76,16 @@ the cosine of their representative gloss vectors.
 =cut
 
 use strict;
-use get_wn_info;
-use stem;
-use vectorFile;
+use WordNet::get_wn_info;
+use WordNet::stem;
+use WordNet::vectorFile;
 use WordNet::Similarity;
 use File::Spec;
 use vars qw($VERSION @ISA);
 
 @ISA = qw(WordNet::Similarity);
 
-$VERSION = '2.01';
+$VERSION = '2.04';
 
 WordNet::Similarity::addConfigOption("relation", 0, "p", undef);
 WordNet::Similarity::addConfigOption("vectordb", 0, "p", undef);
@@ -154,12 +184,12 @@ sub initialize
     # the stop hash
     if($self->{stem})
     {
-	$gwi = get_wn_info->new($wn, 1, %stopHash);
+	$gwi = WordNet::get_wn_info->new($wn, 1, %stopHash);
 	$self->{gwi} = $gwi;
     }
     else
     {
-	$gwi = get_wn_info->new($wn, 0, %stopHash);
+	$gwi = WordNet::get_wn_info->new($wn, 0, %stopHash);
 	$self->{gwi} = $gwi;
     }
 
@@ -210,7 +240,7 @@ sub initialize
     }
 
     # Get the documentCount, dimensions and vectors...
-    ($documentCount, $readDims, $readVectors) = vectorFile->readVectors($vectorDB);
+    ($documentCount, $readDims, $readVectors) = WordNet::vectorFile->readVectors($vectorDB);
     if(!defined $documentCount || !defined $readDims || !defined $readVectors)
     {
 	$self->{errorString} .= "\nError (WordNet::Similarity::vector->initialize()) - ";

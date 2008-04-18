@@ -1,7 +1,34 @@
-# WordNet::Similarity::random.pm version 1.03
-# (Last updated $Id: random.pm,v 1.14 2006/02/19 19:11:09 sidz1979 Exp $)
+# WordNet::Similarity::random.pm version 2.04
+# (Last updated $Id: random.pm,v 1.15 2008/03/27 06:21:17 sidz1979 Exp $)
 #
 # Random semantic distance generator module.
+#
+# Copyright (c) 2005,
+#
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+#
+# The Free Software Foundation, Inc., 
+# 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+#
+# ------------------------------------------------------------------
 
 package WordNet::Similarity::random;
 
@@ -56,7 +83,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.03';
+$VERSION = '2.04';
 
 WordNet::Similarity::addConfigOption ('maxrand', 1, 'f', 1.0);
 

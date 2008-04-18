@@ -1,39 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# BNCFreq.pl version 2.01
-# (Last updated $Id: BNCFreq.pl,v 1.12 2007/10/09 12:05:41 sidz1979 Exp $)
-#
-# This program reads the BNCorpus and computes the frequency counts
-# for each synset in WordNet. These frequency counts are used by 
-# various measures of semantic relatedness to calculate the information 
-# content values of concepts. The output is generated in a format as
-# required by the WordNet::Similarity modules for computing semantic
-# relatedness.
-#
-# Copyright (c) 2005
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse at d.umn.edu
-#
-# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-# banerjee+ at cs.cmu.edu
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd at cs.utah.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-#
+# BNCFreq.pl version 2.04
+# (Last updated $Id: BNCFreq.pl,v 1.16 2008/04/13 09:27:52 sidz1979 Exp $)
 #
 # -----------------------------------------------------------------------------
 
@@ -508,20 +476,36 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "BNCFreq.pl version 2.01\n";
-    print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan.\n";
+    print "BNCFreq.pl version 2.04\n";
+    print "Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan.\n";
 }
 
 __END__
 
 =head1 NAME
 
-BNCFreq.pl
+BNCFreq.pl - Compute Information Content based on British National Corpus (World Edition)
 
 =head1 SYNOPSIS
 
-BNCFreq.pl [--outfile=OUTFILE [--stopfile=STOPFILE]
- [--wnpath=WNPATH] [--resnik] [--smooth=SCHEME] PATH | --help --version]
+ BNCFreq.pl [--outfile=OUTFILE [--stopfile=STOPFILE]
+	 [--wnpath=WNPATH] [--resnik] [--smooth=SCHEME] PATH 
+	| --help --version]
+
+=head1 DESCRIPTION
+
+This program reads the British National Corpus (World Edition, December
+2000) and computes the frequency counts
+for each synset in WordNet. These frequency counts are used by the
+Lin, Resnik, and Jiang & Conrath
+measures of semantic relatedness to calculate the information 
+content values of concepts. The output is generated in a format as
+required by the L<WordNet::Similarity> modules for computing semantic
+relatedness.
+
+A more detailed description of how information content is calculated can 
+be found in L<rawtextFreq.pl>. This program uses exactly the same 
+techniques as described there. 
 
 =head1 OPTIONS
 
@@ -562,5 +546,55 @@ B<PATH>
 
     Path to the root of the texts of the corpus.  (e.g.,
     /home/sid/BNC-word/Texts).
+
+=head1 BUGS
+
+Report to WordNet::Similarity mailing list :
+ L<http://groups.yahoo.com/group/wn-similarity>
+
+=head1 SEE ALSO
+
+L<WordNet::Similarity>
+
+Please note that the BNC World Edition has been superceded by the 
+BNC XML Edition. Please contact the BNC for more information about
+the continued availabiliy of BNC World: 
+
+ L<http://www.natcorp.ox.ac.uk/>
+
+WordNet home page : 
+ L<http://wordnet.princeton.edu>
+
+WordNet::Similarity home page :
+ L<http://wn-similarity.sourceforge.net>
+
+=head1 AUTHORS
+
+ Ted Pedersen, University of Minnesota, Duluth
+ tpederse at d.umn.edu
+
+ Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+ banerjee+ at cs.cmu.edu
+
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
+
+=head1 COPYRIGHT
+
+Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee, and 
+Siddharth Patwardhan
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 =cut

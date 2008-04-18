@@ -1,8 +1,38 @@
-# WordNet::Similarity::PathFinder version 1.01
-# (Last updated $Id: PathFinder.pm,v 1.38 2008/03/11 00:31:10 tpederse Exp $)
+# WordNet::Similarity::PathFinder version 2.04
+# (Last updated $Id: PathFinder.pm,v 1.39 2008/03/27 06:21:17 sidz1979 Exp $)
 #
 # Module containing path-finding code for the various measures of semantic
 # relatedness.
+#
+# Copyright (c) 2005,
+#
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
+#
+# Jason Michelizzi, Univeristy of Minnesota Duluth
+# mich0212 at d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+#
+# The Free Software Foundation, Inc., 
+# 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+#
+# ------------------------------------------------------------------
 
 package WordNet::Similarity::PathFinder;
 
@@ -86,7 +116,7 @@ use File::Spec;
 
 our @ISA = qw/WordNet::Similarity/;
 
-our $VERSION = '1.01';
+our $VERSION = '2.04';
 
 WordNet::Similarity::addConfigOption ('rootNode', 0, 'i', 1);
 

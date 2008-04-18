@@ -1,45 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# semCorFreq.pl version 2.01
-# (Last updated $Id: semCorFreq.pl,v 1.8 2007/10/09 12:05:41 sidz1979 Exp $)
-#
-# A helper tool perl program for WordNet::Similarity. This 
-# program is used to generate the frequency count data
-# files (information content files) which are used by the 
-# Jiang Conrath, Resnik and Lin measures to calculate the
-# information content of synsets in WordNet.
-#
-# This program is used to generate the frequency count data 
-# files which are used by the Jiang Conrath, Resnik and Lin 
-# measures to calculate the information content of a synset in 
-# WordNet. The output is generated in a format as required by
-# the WordNet::Similarity modules for computing semantic
-# relatedness.
-#
-# Copyright (c) 2005,
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse at d.umn.edu
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd at cs.utah.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to 
-#
-# The Free Software Foundation, Inc., 
-# 59 Temple Place - Suite 330, 
-# Boston, MA  02111-1307, USA.
+# semCorFreq.pl version 2.04
+# (Last updated $Id: semCorFreq.pl,v 1.12 2008/04/13 09:27:52 sidz1979 Exp $)
 #
 # -----------------------------------------------------------------
 
@@ -437,8 +399,8 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "semCorFreq.pl version 2.01\n";
-    print "Copyright (c) 2005, Ted Pedersen and Siddharth Patwardhan.\n";
+    print "semCorFreq.pl version 2.04\n";
+    print "Copyright (c) 2005-2008, Ted Pedersen and Siddharth Patwardhan.\n";
 }
 
 1;
@@ -447,11 +409,36 @@ __END__
 
 =head1 NAME
 
-semCorFreq.pl
+semCorFreq.pl - Compute Information Content from SemCor sense-tagged corpus 
 
 =head1 SYNOPSIS
 
-semCorFreq.pl [{ --outfile FILE [--wnpath PATH] [--smooth SCHEME] | --help | --version }]
+ semCorFreq.pl [{ --outfile FILE [--wnpath PATH] [--smooth SCHEME] 
+	| --help | --version }]
+
+=head1 DESCRIPTION
+
+This program is used to generate the default information
+content file (ic-semcor.dat) that is used by 
+WordNet::Similarity in the Jiang Conrath, Resnik and Lin 
+measures. 
+
+It uses the cntlist file as provided by WordNet as the 
+source of frequency counts. These are derived from sense tagged
+corpora which include a portion of the Brown Corpus and
+the Red Badge of Courage. This collection of of sense tagged
+text is referred to as SemCor, and is not distributed by
+WordNet any longer. Also, note that the cntlist file is 
+no longer officially supported by WordNet, so the information 
+provided therein may not be reliable. 
+
+The SemCor data we use comes from Rada Mihalcea, who has
+mapped SemCor from its original version to each successive
+version of WordNet. In this program we ignore the
+SenseTags and simply treat SemCor as raw text. This is
+to allow for the comparison of the effect of counting
+from sense tags (as done in L<semCorFreq.pl>) versus
+raw or plain word forms (as done here).
 
 =head1 OPTIONS
 
@@ -477,4 +464,48 @@ B<--version>
 
     Display version information
 
+=head1 BUGS
+
+Report to WordNet::Similarity mailing list :
+ L<http://groups.yahoo.com/group/wn-similarity>
+
+=head1 SEE ALSO
+
+L<WordNet::Similarity>
+
+SemCor Download (from Rada Mihalcea):
+ L<http://www.cs.unt.edu/~rada/downloads.html#semcor>
+
+WordNet home page : 
+ L<http://wordnet.princeton.edu>
+
+WordNet::Similarity home page :
+ L<http://wn-similarity.sourceforge.net>
+
+=head1 AUTHORS
+
+ Ted Pedersen, University of Minnesota, Duluth
+ tpederse at d.umn.edu
+
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
+
+=head1 COPYRIGHT
+
+Copyright (c) 2005-2008, Ted Pedersen and Siddharth Patwardhan
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
 =cut
+

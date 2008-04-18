@@ -1,8 +1,35 @@
-# WordNet::Similarity::hso.pm version 2.01
-# (Last updated $Id: hso.pm,v 1.15 2007/10/09 12:05:39 sidz1979 Exp $)
+# WordNet::Similarity::hso.pm version 2.04
+# (Last updated $Id: hso.pm,v 1.16 2008/03/27 06:21:17 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Hirst and St-Onge (1998).
+#
+# Copyright (c) 2005,
+#
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+#
+# The Free Software Foundation, Inc., 
+# 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+#
+# ------------------------------------------------------------------
 
 package WordNet::Similarity::hso;
 
@@ -58,7 +85,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-our $VERSION = '2.01';
+our $VERSION = '2.04';
 
 =item $hso->setPosList()
 

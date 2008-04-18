@@ -1,13 +1,9 @@
 #! /usr/local/bin/perl -w
-
-# wnDepths.pl version 2.02
-# (Last updated $Id: wnDepths.pl,v 1.31 2008/03/04 08:37:11 sidz1979 Exp $)
-
-# A program to generate a list of the depths of the top-level nodes
-# in the WordNet IS-A taxonomies.  The program can also produce a
-# file with the depth of each synset.
 #
-# --------------------------------------------------------------------
+# wnDepths.pl version 2.04
+# (Last updated $Id: wnDepths.pl,v 1.35 2008/04/13 09:27:52 sidz1979 Exp $)
+#
+# ---------------------------------------------------------------------
 
 use strict;
 use warnings;
@@ -424,7 +420,7 @@ sub showUsage {
 sub showHelp {
   showUsage ();
   print "Options:\n";
-  print "\t--wnpath=PATH    PATH is the path to WordNet.  The default is\n";
+  print "\t--wnpath=PATH    PATH is the path to WordNet. The default is\n";
   print "\t                 /usr/local/WordNet-3.0/dict on Unix and\n";
   print "\t                 C:\\WordNet\\3.0\\dict on Windows\n";
   print "\t--outfile=FILE   File to which the maximum depths of the taxon-\n";
@@ -439,8 +435,8 @@ sub showHelp {
 }
 
 sub showVersion {
-  print "wnDepths.pl version 2.02\n";
-  print "Copyright (c) 2005, Ted Pedersen, Jason Michelizzi and Siddharth Patwardhan\n\n";
+  print "wnDepths.pl version 2.04\n";
+  print "Copyright (c) 2005-2008, Ted Pedersen, Jason Michelizzi and Siddharth Patwardhan\n\n";
   print "This program comes with ABSOLUTELY NO WARRANTY.  This program\n";
   print "is free software, and you are welcome to redistribute it under\n";
   print "certain conditions.  See the file GPL.txt for warranty and\n";
@@ -453,12 +449,13 @@ __END__
 
 =head1 NAME
 
-wnDepths.pl - find depths of WordNet taxonomies
+wnDepths.pl - Find the depths of WordNet taxonomies
 
 =head1 SYNOPSIS
 
-wnDepths.pl [[--wnpath=PATH] [--outfile=FILE|-] [--depthfile=FILE] [--wps] [--verbose]]
-| --help | --version]
+  wnDepths.pl [[--wnpath=PATH] [--outfile=FILE|-] 
+		[--depthfile=FILE] [--wps] [--verbose]]
+		| --help | --version]
 
 =head1 DESCRIPTION
 
@@ -502,37 +499,34 @@ B<--version>
 
 Show version information.
 
+=head1 BUGS
+
+Report to WordNet::Similarity mailing list :
+ L<http://groups.yahoo.com/group/wn-similarity>
+
+=head1 SEE ALSO
+
+L<WordNet::Similarity>
+
+WordNet home page : 
+ L<http://wordnet.princeton.edu>
+
+WordNet::Similarity home page :
+ L<http://wn-similarity.sourceforge.net>
+
 =head1 AUTHORS
 
  Ted Pedersen, University of Minnesota Duluth
  tpederse at d.umn.edu
 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
+ Jason Michelizzi
 
  Siddharth Patwardhan, University of Utah, Salt Lake City
  sidd at cs.utah.edu
 
-=head1 BUGS
-
-None.
-
-To report a bug, go to http://groups.yahoo.com/group/wn-similarity or
-send an e-mail to "S<tpederse at d.umn.edu>".
-
-=head1 SEE ALSO
-
-WordNet::Similarity(3)
-
-http://wordnet.princeton.edu
-
-http://wn-similarity.sourceforge.net
-
-http://groups.yahoo.com/group/wn-similarity
-
 =head1 COPYRIGHT
 
-Copyright (c) 2005, Ted Pedersen, Jason Michelizzi and Siddharth Patwardhan
+Copyright (c) 2005-2008, Ted Pedersen, Jason Michelizzi and Siddharth Patwardhan
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

@@ -1,40 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# compounds.pl version 2.01
-# (Last updated $Id: compounds.pl,v 1.10 2007/10/09 12:05:41 sidz1979 Exp $)
-#
-# Program to generate a list of all compound words
-# present in WordNet.
-#
-# Copyright (c) 2005
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse at d.umn.edu
-#
-# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-# banerjee+ at cs.cmu.edu
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd at cs.utah.edu
-#
-# Jason Michelizzi, University of Minnesota, Duluth
-# mich0212 at d.umn.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to:
-#
-#    The Free Software Foundation, Inc.,
-#    59 Temple Place - Suite 330,
-#    Boston, MA  02111-1307, USA.
+# compounds.pl version 2.04
+# (Last updated $Id: compounds.pl,v 1.12 2008/04/13 09:27:52 sidz1979 Exp $)
 #
 # -----------------------------------------------------------------------------
 
@@ -175,8 +142,8 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "compounds.pl version 2.01\n";
-    print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.\n";
+    print "compounds.pl version 2.04\n";
+    print "Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.\n";
 }
 
 __END__
@@ -187,7 +154,7 @@ compounds.pl - extract compound words (collocations) from WordNet
 
 =head1 SYNOPSIS
 
-compounds.pl [--wnpath=PATH | --help | --version]
+ compounds.pl [--wnpath=PATH | --help | --version]
 
 =head1 DESCRIPTION
 
@@ -201,9 +168,21 @@ B<--wnpath>=I<path>
     Location of the WordNet data files (e.g.,
     /usr/local/WordNet-3.0/dict)
 
+=head1 BUGS
+
+Report to WordNet::Similarity mailing list :
+ L<http://groups.yahoo.com/group/wn-similarity>
+
+=head1 SEE ALSO
+
+L<WordNet::Similarity>
+
+WordNet::Similarity home page :
+ L<http://wn-similarity.sourceforge.net>
+
 =head1 AUTHORS
 
- Ted Pedersen, University of Minnesota Duluth
+ Ted Pedersen, University of Minnesota, Duluth
  tpederse at d.umn.edu
 
  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
@@ -212,19 +191,24 @@ B<--wnpath>=I<path>
  Siddharth Patwardhan, University of Utah, Salt Lake City
  sidd at cs.utah.edu
 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
+=head1 COPYRIGHT
 
-=head1 BUGS
+Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee, and
+Siddharth Patwardhan
 
-None
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-=head1 COPYRIGHT AND LICENSE
-
-Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.
-
-This program is free software; you may redistribute and/or modify it
-under the terms of the GNU General Public License; either version 2 of
-the License, or (at your option) any later version.
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, 
+USA.
 
 =cut
+

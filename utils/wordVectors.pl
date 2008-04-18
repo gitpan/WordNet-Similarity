@@ -1,34 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# wordVectors.pl version 2.01
-# (Last updated $Id: wordVectors.pl,v 1.14 2007/10/09 12:05:41 sidz1979 Exp $)
-#
-# Program to create word vectors (co-occurrence vectors) for all
-# words in WordNet glosses.
-#
-# Copyright (c) 2005
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse at d.umn.edu
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd at cs.utah.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to: 
-#
-#    The Free Software Foundation, Inc., 
-#    59 Temple Place - Suite 330, 
-#    Boston, MA  02111-1307, USA.
+# wordVectors.pl version 2.04
+# (Last updated $Id: wordVectors.pl,v 1.18 2008/04/13 09:27:52 sidz1979 Exp $)
 #
 # -----------------------------------------------------------------------------
 
@@ -36,7 +9,7 @@ use strict;
 use Getopt::Long;
 use WordNet::QueryData;
 use WordNet::Tools;
-use vectorFile;
+use WordNet::vectorFile;
 
 # Declarations!
 my $wn;              # WordNet::QueryData object.
@@ -304,7 +277,7 @@ print STDERR "\n";
 
 # Now that everything has been computed, write to file...
 print STDERR "Writing data to file... ";
-my $errCode = vectorFile->writeVectors($ARGV[0], $saveDocCount, $saveDims, $saveMatrix);
+my $errCode = WordNet::vectorFile->writeVectors($ARGV[0], $saveDocCount, $saveDims, $saveMatrix);
 if(!defined $errCode || $errCode == 0)
 {
     print STDERR "Error writing data to file.\n";
@@ -432,22 +405,24 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "wordVectors.pl version 2.01\n";
-    print "Copyright (c) 2005, Ted Pedersen and Siddharth Patwardhan.\n";
+    print "wordVectors.pl version 2.04\n";
+    print "Copyright (c) 2005-2008, Ted Pedersen and Siddharth Patwardhan.\n";
 }
 
 __END__
 
 =head1 NAME
 
-wordVectors.pl - write word vectors from WordNet glosses to a file.
+wordVectors.pl - Write word vectors from WordNet glosses to a file for use by vector
+and vector_pairs measures
 
 =head1 SYNOPSIS
 
-wordVectors.pl [[--stopfile STOPLIST]
-  [--wnpath WNPATH] [--noexamples] [--cutoff VALUE] [--rhigh RHIGH] 
-  [--rlow RLOW] [--chigh CHIGH] [--clow CLOW] DBFILE 
- | --help | --version]
+ wordVectors.pl [[--stopfile STOPLIST]
+	  [--wnpath WNPATH] [--noexamples] [--cutoff VALUE] 
+ 	  [--rhigh RHIGH] [--rlow RLOW] 
+	  [--chigh CHIGH] [--clow CLOW] DBFILE 
+          | --help | --version]
 
 =head1 DESCRIPTION
 
@@ -507,5 +482,49 @@ B<--help>
 B<--version>
 
     Displays version information.
+
+
+=head1 BUGS
+
+Report to WordNet::Similarity mailing list :
+ L<http://groups.yahoo.com/group/wn-similarity>
+
+=head1 SEE ALSO
+
+L<WordNet::Similarity>
+
+WordNet home page : 
+ L<http://wordnet.princeton.edu>
+
+WordNet::Similarity home page :
+ L<http://wn-similarity.sourceforge.net>
+
+=head1 AUTHORS
+
+ Ted Pedersen, University of Minnesota, Duluth
+ tpederse at d.umn.edu
+
+ Siddharth Patwardhan, University of Utah, Salt Lake City
+ sidd at cs.utah.edu
+
+=head1 COPYRIGHT
+
+Copyright (c) 2005-2008, Ted Pedersen and Siddharth Patwardhan
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to:
+
+    The Free Software Foundation, Inc., 
+    59 Temple Place - Suite 330, 
+    Boston, MA  02111-1307, USA.
 
 =cut

@@ -1,8 +1,38 @@
-# WordNet::Similarity::res.pm version 1.01
-# (Last updated $Id: res.pm,v 1.20 2005/12/11 22:37:02 sidz1979 Exp $)
+# WordNet::Similarity::res.pm version 2.04
+# (Last updated $Id: res.pm,v 1.21 2008/03/27 06:21:17 sidz1979 Exp $)
 #
 # Semantic Similarity Measure package implementing the measure
 # described by Resnik (1995).
+#
+# Copyright (c) 2005,
+#
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
+#
+# Jason Michelizzi, Univeristy of Minnesota Duluth
+# mich0212 at d.umn.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+#
+# The Free Software Foundation, Inc., 
+# 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+#
+# ------------------------------------------------------------------
 
 package WordNet::Similarity::res;
 
@@ -48,7 +78,7 @@ use WordNet::Similarity::ICFinder;
 
 our @ISA = qw/WordNet::Similarity::ICFinder/;
 
-our $VERSION = '1.01';
+our $VERSION = '2.04';
 
 # The 'new' method for this class is supplied by WordNet::Similarity
 

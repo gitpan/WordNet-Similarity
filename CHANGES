@@ -1,22 +1,70 @@
 NAME
-    CHANGES Revision history for WordNet-Similarity
-
-SYNOPSIS
-    A list of changes to the WordNet::Similarity package. These are copied
-    from the Recently Completed Items in the file todo.pod when a new
-    version is released.
+    CHANGES - Revision history for WordNet::Similarity
 
 DESCRIPTION
+  Version 2.04 (Released 04/19/2008)
+    *   04/17/08
+
+        (1) Reorganized similarity_server initialization. (Sid)
+
+        (2) The similarity server now prints more intuitive messages. (Sid)
+
+        (3) Attached timestamps to log messages. (Sid)
+
+        (4) Added additional checks to input strings from clients. (Sid)
+
+    *   04/12/08
+
+        (1) Added more detailed description of information content to
+            rawtextFreq.pl, and made minor copy editing and formatting
+            changes to other /utils files (TDP)
+
+        (2) Made minor copy editing and formatting changes to files in /doc
+            (TDP)
+
+    *   04/10/08
+
+        (1) Moved get_wn_info, stem and vectorFile modules under WordNet,
+            i.e., they are now WordNet::get_wn_info, WordNet::stem and
+            WordNet::vectorFile. (Sid)
+
+        (2) Updated all the modules and programs using the above modules.
+            (Sid)
+
+        (3) Added copyright notices in all module and program headers. (Sid)
+
+        (4) Added method getCompoundsList() to WordNet::Tools. (Sid)
+
+        (5) Made a more distrtibutable version of simialrity_server. The
+            similarity_server is now "daemonized", and is installed in
+            /usr/bin along with the other utils. (Sid)
+
+    *   03/23/08
+
+        (1) Added SIGNATURE to distrribution to enable package verification.
+            (Sid)
+
+        (2) Updated MANIFEST to reflect new SIGNATURE. (Sid)
+
+        (3) Set the LICENSE to gpl in META.yml and Makefile.PL. (Sid)
+
+    *   03/17/08
+
+        (1) Added NO_META option to Makefile.PL to prevent automatic
+            generation of META.yml during 'make dist'. (Sid)
+
+        (2) Removed unused variable "loaded" from Makefile.PL. (Sid)
+
   Version 2.03 (Released 03/11/2008)
     *   03/07/08
 
-        (1) Removed all reference to WordNet::QueryData from Makefile.PL.
+        (1) Removed all references to WordNet::QueryData from Makefile.PL.
             This is based on the following advice present in the
             ExtUtils::MakeMaker documentation: "Module installation tools
-            have ways of resolving umet dependencies but to do that they
-            need a Makefile". By checking for WordNet::QueryData during
-            'perl Makefile.PL', we are preventing any opportunity for
-            dependency resolution. (Sid)
+            have ways of resolving unmet dependencies but to do that they
+            need a Makefile". By checking for the presence of
+            WordNet::QueryData during 'perl Makefile.PL', we are preventing
+            any opportunity for automated dependency resolution. (Sid)
 
         (2) The WordNet path (if specified by the WNHOME option during 'perl
             Makefile.PL') is not checked for validity beforehand, and is now
@@ -636,7 +684,7 @@ DESCRIPTION
             repeated options in configuration file, as in
 
                 trace::0
-                trace::1 
+                trace::1
 
             bad values in configuration file, as in
 
@@ -751,7 +799,7 @@ DESCRIPTION
             what we make changes to. Then specific example files can be
             created via copy and paste. Make sure all possible options for a
             measure are included, and that the explanations describe all
-            possible values as well as default handling. (JM) (TDP updated
+            possible values as well as default handling. (JM)(TDP updated
             all-options.conf on 12/10/03, use this as source of cut and
             paste).
 
@@ -789,7 +837,7 @@ DESCRIPTION
     *   12/01/2003
 
         (1) Adjust Makefile.PL to account for new contents of samples
-            directory. Added entries to MANIFEST as well. JM
+            directory. Added entries to MANIFEST as well. (JM)
 
         (2) update samples/sample.pl to run with the new files (and
             organization) provided in the samples directory. This was also a
@@ -1098,20 +1146,16 @@ DESCRIPTION
             'configuration files'.
 
 AUTHORS
-      Ted Pedersen, University of Minnesota Duluth
+      Ted Pedersen, University of Minnesota, Duluth
       tpederse at d.umn.edu
-  
+
       Siddharth Patwardhan, University of Utah, Salt Lake City
       sidd at cs.utah.edu
 
       Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
       banerjee+ at cs.cmu.edu
 
-      Jason Michelizzi, University of Minnesota Duluth
-      mich0212 at d.umn.edu
-
-BUGS
-    None.
+      Jason Michelizzi
 
 SEE ALSO
     todo.pod

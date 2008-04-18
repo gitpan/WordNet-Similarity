@@ -1,8 +1,35 @@
-# WordNet::Similarity::GlossFinder version 2.01
-# (Last updated $Id: GlossFinder.pm,v 1.11 2008/03/11 00:54:52 tpederse Exp $)
+# WordNet::Similarity::GlossFinder version 2.04
+# (Last updated $Id: GlossFinder.pm,v 1.13 2008/03/27 06:21:17 sidz1979 Exp $)
 #
 # Module containing gloss-finding code for the various measures of semantic
 # relatedness (lesk, vector).
+#
+# Copyright (c) 2005,
+#
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+#
+# The Free Software Foundation, Inc., 
+# 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+#
+# ------------------------------------------------------------------
 
 package WordNet::Similarity::GlossFinder;
 
@@ -62,11 +89,11 @@ use strict;
 use warnings;
 use WordNet::Similarity;
 use File::Spec;
-use get_wn_info;
+use WordNet::get_wn_info;
 
 our @ISA = qw/WordNet::Similarity/;
 
-our $VERSION = '2.01';
+our $VERSION = '2.04';
 
 WordNet::Similarity::addConfigOption("relation", 0, "p", undef);
 WordNet::Similarity::addConfigOption("stop", 0, "p", undef);
@@ -176,12 +203,12 @@ sub configure
     # the stop hash
     if($self->{stem})
     {
-	$gwi = get_wn_info->new($wn, 1, %stopHash);
+	$gwi = WordNet::get_wn_info->new($wn, 1, %stopHash);
 	$self->{gwi} = $gwi;
     }
     else
     {
-	$gwi = get_wn_info->new($wn, 0, %stopHash);
+	$gwi = WordNet::get_wn_info->new($wn, 0, %stopHash);
 	$self->{gwi} = $gwi;
     }
 

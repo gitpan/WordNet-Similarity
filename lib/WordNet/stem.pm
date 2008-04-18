@@ -1,5 +1,5 @@
-# stem.pm version 1.03
-# (Last updated $Id: stem.pm,v 1.7 2006/02/19 19:11:09 sidz1979 Exp $)
+# WordNet::stem.pm version 2.04
+# (Last updated $Id: stem.pm,v 1.1 2008/03/27 05:13:01 sidz1979 Exp $)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
@@ -32,20 +32,20 @@
 #
 # ------------------------------------------------------------------
 
-package stem;
+package WordNet::stem;
 
 =head1 NAME
 
-stem - Module that find the stem of a word or the stems of a string 
-of words, using WordNet.
+WordNet::stem - Module that find the stem of a word or the stems of a
+string of words, using WordNet.
 
 =head1 SYNOPSIS
 
-  use stem;
+  use WordNet::stem;
 
   my $wn = WordNet::QueryData->new();
 
-  my $stemmer = stem->new($wn)
+  my $stemmer = WordNet::stem->new($wn)
 
   my @stems = $stemmer->stemWord($word);
 
@@ -75,7 +75,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.03';
+$VERSION = '2.04';
 
 =item new
 

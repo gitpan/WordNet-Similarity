@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-WordNet::Similarity - modules for computing semantic relatedness.
+modules - [documentation] Overview of WordNet::Similarity measure modules
 
 =head1 DESCRIPTION
 
@@ -19,7 +19,7 @@ in the Perl system directory, can be directly used by Perl programs.
 
 A UML diagram showing how all the classes are organized is available from
 
-http://www.d.umn.edu/~tpederse/Docs/wn-similarity-v0.13-uml.pdf
+L<http://www.d.umn.edu/~tpederse/Docs/wn-similarity-v0.13-uml.pdf>
 
 =head2 Using the relatedness modules
 
@@ -114,7 +114,6 @@ specifying this as an option in the configuration file for the
 measure. Instructions for writing configuration files for the measures
 follow later in this section.
 
-
 =head2 Examples of typical usage
 
 To create an object of the Resnik measure, we would have the following
@@ -145,7 +144,7 @@ the second sense of the noun 'bus' using the resnik measure, we would write
 the following piece of code:
 
    $relatedness = $object->getRelatedness('car#n#1', 'bus#n#2');
- 
+
 To get traces for the above computation:
 
    print $object->getTraceString();
@@ -179,7 +178,6 @@ to each of the modules. For instance, 'man WordNet::Similarity::res' or
 'perldoc WordNet::Similarity::res' should display the documentation for the
 Resnik module.
 
-
 =head2 Information Content
 
 Three of the measures provided within the package require information
@@ -201,31 +199,31 @@ modules, is used. A description of the format of these files follows. The
 FIRST LINE of this file must contain the version of WordNet that the file
 was created with. This should be present as a string of the form 
 
-wnver::<hashcode>
+ wnver::<hashcode>
 
 For example, if WordNet version 2.1 with a hash-code
 LL1BZMsWkr0YOuiewfbiL656+Q4 was used for creation of the information
 content file, the following line would be present at the start of the
 information content file.
 
-wnver::LL1BZMsWkr0YOuiewfbiL656+Q4
+ wnver::LL1BZMsWkr0YOuiewfbiL656+Q4
 
 The rest of the file contains on each line a WordNet synset offset,
 part-of-speech and a frequency count, in the form
 
-<offset><part-of-speech> <frequency> [ROOT]
+ <offset><part-of-speech> <frequency> [ROOT]
 
 without any leading or trailing spaces. For example, one of the lines of an
 information content file may be as follows.
 
-63723n 667
+ 63723n 667
 
 where '63723' is a 'noun' synset offset and 667 is its frequency
 count. Suppose the noun synset with offset 1740 is the root node of one of 
 the noun taxonomies and has a frequency count of 17625. Then this synset
 would appear in an information content file as follows:
 
-1740n 17625 ROOT
+ 1740n 17625 ROOT
 
 The ROOT tags are extremely significant in determining the top of the 
 hierarchies and must not be omitted. Typically, frequency counts for the
@@ -250,14 +248,14 @@ The file used by lch has the version of WordNet that was used when generating
 the file on the first line of the file, similar to the information content
 files.  For example:
 
-wnver::LL1BZMsWkr0YOuiewfbiL656+Q4
+ wnver::LL1BZMsWkr0YOuiewfbiL656+Q4
 
 The remaining lines of the file give the part of speech for each taxonomy,
 the offset of the root of each taxonomy, and the maximum depth of the
 taxonomy.  For example, the taxonomy that has the root entity#n#1 has
 this line:
 
-n 00001740 17
+ n 00001740 17
 
 The file used by wup has also has the version of WordNet that was used when
 generating the file on the first line of the file.  The remaining lines
@@ -265,7 +263,7 @@ have the part of speech for the synset, the offset of the synset, and a
 list of depths and offsets of taxonomy roots.  For example, the synset 
 amphibious_landing#n#1, has the following line:
 
-n 00052540 4:00025950 4:00026194 5:00026194
+ n 00052540 4:00025950 4:00026194 5:00026194
 
 The first item is the part of speech, the second is the offset of
 amphibious_landing#n#1.  The next item, '4:00025950' means that there
@@ -279,15 +277,17 @@ of the second taxonomy.
 
 =head1 SEE ALSO
 
-http://groups.yahoo.com/group/wn-similarity
+L<intro.pod> 
 
-http://search.cpan.org/dist/WordNet-Similarity
+Mailing list: 
+ L<http://groups.yahoo.com/group/wn-similarity>
 
-http://wn-similarity.sourceforge.net
+Project Home page:
+ L<http://wn-similarity.sourceforge.net>
 
 =head1 AUTHORS
 
- Ted Pedersen, University of Minnesota Duluth
+ Ted Pedersen, University of Minnesota, Duluth
  tpederse at d.umn.edu
 
  Siddharth Patwardhan, University of Utah, Salt Lake City
@@ -295,14 +295,13 @@ http://wn-similarity.sourceforge.net
 
  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
  banerjee+ at cs.cmu.edu
- 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
+
+ Jason Michelizzi
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee, 
-and Jason Michelizzi
+Copyright (c) 2005-2008, Ted Pedersen, Siddharth Patwardhan, Satanjeev 
+Banerjee, and Jason Michelizzi
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2

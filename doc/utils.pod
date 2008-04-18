@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-utils.pod - WordNet::Similarity supporting utilities
+UTILS - [documentation] WordNet::Similarity supporting utilities 
 
 =head1 SYNOPSIS
 
@@ -59,17 +59,17 @@ Switch to select the type of similarity measure
 to be used while calculating the semantic
 relatedness. The following strings are defined.
 
-  WordNet::Similarity::path         Simple node-counts (inverted).
-  WordNet::Similarity::wup          The Wu Palmer measure.
-  WordNet::Similarity::lch          The Leacock Chodorow measure.
-  WordNet::Similarity::jcn          The Jiang Conrath measure.
-  WordNet::Similarity::res          The Resnik measure.
-  WordNet::Similarity::lin          The Lin measure.
-  WordNet::Similarity::hso          The Hirst St-Onge measure.
-  WordNet::Similarity::lesk         Extended gloss overlap measure.
-  WordNet::Similarity::vector       Gloss Vector measure.
-  WordNet::Similarity::vector_pairs Gloss Vector measure (pairwise).
-  WordNet::Similarity::random       A random-number "measure".
+  L<WordNet::Similarity::path>         Simple node-counts (inverted).
+  L<WordNet::Similarity::wup>          The Wu Palmer measure.
+  L<WordNet::Similarity::lch>          The Leacock Chodorow measure.
+  L<WordNet::Similarity::jcn>          The Jiang Conrath measure.
+  L<WordNet::Similarity::res>          The Resnik measure.
+  L<WordNet::Similarity::lin>          The Lin measure.
+  L<WordNet::Similarity::hso>          The Hirst St-Onge measure.
+  L<WordNet::Similarity::lesk>         Extended gloss overlap measure.
+  L<WordNet::Similarity::vector>       Gloss Vector measure.
+  LWordNet::Similarity::vector_pairs>  Gloss Vector measure (pairwise).
+  L<WordNet::Similarity::random>       A random-number "measure".
 
 =item --config
 
@@ -78,7 +78,7 @@ contains the configuration that is used by the
 WordNet::Similarity modules during initialization. The format
 of this file is specific to each modules and is specified in
 the module man pages and in the documentation of the
-WordNet::Similarity package.
+WordNet::Similarity package. See L<config.pod> for more details.
 
 =item --allsenses
 
@@ -167,9 +167,9 @@ within double quotes.
 
 For example:
 
-similarity.pl --type WordNet::Similarity::jcn school private_school
+ similarity.pl --type WordNet::Similarity::jcn school private_school
 
-similarity.pl --type WordNet::Similarity::lch "interest rate" bank
+ similarity.pl --type WordNet::Similarity::lch "interest rate" bank
 
 Here 'private school' and 'interest rate' are the compound words intended
 in the two examples, respectively. 
@@ -190,15 +190,15 @@ the word#pos#sense format. Here 'pos' is exactly one of 'n', 'v', 'a' or
 
 For example:
 
-similarity.pl --type WordNet::Similarity::jcn school#n child#n
+ similarity.pl --type WordNet::Similarity::jcn school#n child#n
 
-similarity.pl --type WordNet::Similarity::lesk "interest rate#n" bank#nv
+ similarity.pl --type WordNet::Similarity::lesk "interest rate#n" bank#nv
 
-similarity.pl --type WordNet::Similarity::hso telephone talk#v
+ similarity.pl --type WordNet::Similarity::hso telephone talk#v
 
-similarity.pl --type WordNet::Similarity::vector_pairs word#n#2 newspaper#v
+ similarity.pl --type WordNet::Similarity::vector_pairs word#n#2 newspaper#v
 
-similarity.pl --type WordNet::Similarity::random chat#n#1 talk#v#2
+ similarity.pl --type WordNet::Similarity::random chat#n#1 talk#v#2
 
 - Interpreting the output
 
@@ -289,7 +289,7 @@ Displaying the relatedness between the verb form of 'talk' and all
 parts of speech of 'speaker', with traces using the extended gloss
 overlap measure.
 
-similarity.pl --type WordNet::Similarity::lesk --trace speaker talk#v
+ similarity.pl --type WordNet::Similarity::lesk --trace speaker talk#v
 
 =item (6)
 
@@ -322,12 +322,12 @@ information content files. A number of programs have been provided in the
 '/utils' subdirectory to generate information content files from various
 different corpora of text available. 
 
-  BNCFreq.pl        -- from the BNC corpus. 
-  brownFreq.pl      -- from the Brown corpus. 
-  semCorFreq.pl     -- from SemCor X.X (using the sense tags). 
-  semCorRawFreq.pl  -- from SemCor X.X (ignoring the sense tags). 
-  treebankFreq.pl   -- from the Treebank corpus.
-  rawtextFreq.pl    -- from raw text.
+  L<BNCFreq.pl>        -- from the BNC corpus. 
+  L<brownFreq.pl>      -- from the Brown corpus. 
+  L<semCorFreq.pl>     -- from SemCor X.X (using the sense tags). 
+  L<semCorRawFreq.pl>  -- from SemCor X.X (ignoring the sense tags). 
+  L<treebankFreq.pl>   -- from the Treebank corpus.
+  L<rawtextFreq.pl>    -- from raw text.
 
 All the six have a similar interface, however there are slight differences
 in the way the programs are called on the command-line due to the
@@ -338,11 +338,11 @@ exact usage and help.
 
 =head3 Usage
 
-<utility> [{--outfile OUTFILE 
+ <utility> [{--outfile OUTFILE 
            [--stopfile STOPFILE] [--wnpath WNPATH] 
            [--resnik] [--smooth SCHEME] PATH
-          | --help 
-          | --version }]
+           | --help 
+           | --version }]
 
 Here <utility> is one of the Perl programs provided, that generates an
 information content file from a large corpus of text. This program computes
@@ -506,7 +506,7 @@ information content file is infoBNC.dat.
 
 Frequency counts generated from the Brown corpus, using a stop-list.
 
-brownFreq.pl --outfile infoBrown.dat --stopfile stop.txt /home/sid/Brown/*
+ brownFreq.pl --outfile infoBrown.dat --stopfile stop.txt /home/sid/Brown/*
 
 Uses the file 'stop.txt' containing stop words -- words that are
 ignored while counting the frequencies.
@@ -559,53 +559,53 @@ Options:
 
 =over
 
---stopfile
+=item --stopfile
 
 Option specifying a list of stopwords to not be
 considered while counting.
 
---wnpath
+=item --wnpath
 
 WNPATH specifies the path of the WordNet data files.
 Ordinarily, this path is determined from the $WNHOME
 environment variable. But this option overides this
 behavior.
 
---noexamples
+=item --noexamples
 
 Removes examples from the glosses before processing.
 
---cutoff
+=item --cutoff
 
 Option used to restrict the dimensions of the word
 vectors with an tf/idf cutoff. VALUE is the cutoff
 above which is an acceptable tf/idf value of a word.
 
---rhigh
+=item --rhigh
 
 RHIGH is the upper frequency cutoff of the words
 selected to have a word-vector entry in the database.
 
---rlow
+=item --rlow
 
 RLOW is the lower frequency cutoff of the words
 selected to have a word-vector entry in the database.
 
---chigh
+=item --chigh
 
 CHIGH is the upper frequency cutoff of words that form
 the dimensions of the word-vectors.
 
---clow
+=item --clow
 
 CLOW is the lower frequency cutoff of words that form
 the dimensions of the word-vectors.
 
---help
+=item --help
 
 Displays help screen.
 
---version
+=item --version
 
 Displays version information.
 
@@ -660,9 +660,22 @@ show version information
 
 =back
 
-=head1 COPYRIGHT AND LICENSE
+=head1 AUTHORS
 
-Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee,
+ Ted Pedersen, University of Minnesota, Duluth
+ tpederse at d.umn.edu
+
+ Siddharth Patwardhan, University of Utah
+ sidd at cs.utah.edu
+
+ Satanjeev Banerjee, Carnegie-Mellon University
+ banerjee+ at cs.cmu.edu
+
+ Jason Michelizzi 
+
+=head1 COPYRIGHT
+
+Copyright (c) 2005 - 2008, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee,
 and Jason Michelizzi
 
 Permission is granted to copy, distribute and/or modify this document

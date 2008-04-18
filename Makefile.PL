@@ -1,5 +1,5 @@
 # This -*- perl -*- script writes the Makefile for WordNet::Similarity
-# (Last updated $Id: Makefile.PL,v 1.40 2008/03/07 22:06:49 sidz1979 Exp $)
+# (Last updated $Id: Makefile.PL,v 1.44 2008/04/11 12:53:12 sidz1979 Exp $)
 #
 # Generates the Makefile for the WordNet::Similarity CPAN modules.
 #
@@ -14,12 +14,11 @@ use strict;
 
 my $short_tests = 't/access.t t/res.t t/lin.t t/jcn.t t/path.t t/lch.t t/wup.t t/lesk.t t/vector_pairs.t t/vector.t t/hso.t t/random.t t/wn30loop.t t/config/rootnode.t';
 my $long_tests = 't/*.t t/config/*.t t/utils/*.t';
-my $loaded = 0;
 my $opt_WNHOME;
 my @programs_to_install = qw(BNCFreq.pl brownFreq.pl compounds.pl
                              rawtextFreq.pl semCorRawFreq.pl semCorFreq.pl
                              similarity.pl  treebankFreq.pl wordVectors.pl
-                             wnDepths.pl);
+                             wnDepths.pl similarity_server.pl);
 
 # Get the WNHOME option from the command line
 my @tmpArgs = @ARGV;
@@ -43,20 +42,26 @@ WriteMakefile('NAME'         => 'WordNet::Similarity',
                                  'Digest::SHA1'       => '0',
                                  'File::Spec'         => '0',
                                  'File::Find'         => '0',
+                                 'File::Temp'         => '0',
                                  'Getopt::Long'       => '0',
                                  'CGI'                => '0',
                                  'IO'                 => '0'},
               'PL_FILES'     => {'build/Infocontent.PL' => '$(INST_LIB)/WordNet/ic-semcor.dat',
                                  'build/Depthfiles.PL'  => '$(INST_LIB)/WordNet/synsetdepths.dat'},
               'CONFIGURE'    => \&configSub,
-              'VERSION_FROM' => 'lib/WordNet/Similarity.pm', # finds $VERSION
+              'VERSION_FROM' => 'lib/WordNet/Similarity.pm',
               'EXE_FILES'    => [ map "utils/$_", @programs_to_install ],
               'dist'         => {'COMPRESS' => 'gzip -9f', 'SUFFIX' => 'gz'},
               'realclean'    => {'FILES' => 'build/wnpath.txt'},
-              ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
-               ('ABSTRACT_FROM'   => 'lib/WordNet/Similarity.pm', # retrieve abstract from module
-                'AUTHOR'          => 'Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee, Jason Michelizzi') : ())
-              );
+              ($] >= 5.005 ?
+               ('ABSTRACT_FROM'   => 'lib/WordNet/Similarity.pm',
+                'AUTHOR'          => 'Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee, Jason Michelizzi') : ()
+              ),
+              ($ExtUtils::MakeMaker::VERSION ge '6.30_00' ?
+               ('LICENSE'         => 'gpl') : ()
+              ),
+              'NO_META'      => 'true'
+             );
 
 print STDERR <<"EOIN";
 

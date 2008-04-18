@@ -1,5 +1,35 @@
-# WordNet::Tools v2.01
-# (Last updated $Id: Tools.pm,v 1.1 2007/10/09 12:05:39 sidz1979 Exp $)
+# WordNet::Tools v2.04
+# (Last updated $Id: Tools.pm,v 1.3 2008/04/11 09:24:35 sidz1979 Exp $)
+#
+# This module provides some WordNet tools for use with the
+# WordNet::Similarity modules.
+#
+# Copyright (c) 2005,
+#
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+#
+# The Free Software Foundation, Inc., 
+# 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+#
+# ------------------------------------------------------------------
 
 package WordNet::Tools;
 
@@ -46,7 +76,7 @@ use WordNet::QueryData;
 use Digest::SHA1  qw(sha1_base64);
 
 our @ISA = qw(Exporter);
-our $VERSION = '2.01';
+our $VERSION = '2.04';
 
 =item WordNet::Tools->new($wn)
 
@@ -152,6 +182,26 @@ sub compoundify
   return $string;
 }
 
+=item $wntools->getCompoundsList()
+
+This method returns the list of compound words present in WordNet.
+
+Parameters: none
+
+Returns: reference to an array of compounds.
+
+=cut
+
+# Return the list of WordNet compounds
+# Since a deep-copy is performed, this method can be slow. Consequently,
+# this method should be used sparingly
+sub getCompoundsList
+{
+  my $self = shift;
+  my @cList = keys(%{$self->{compounds}});
+  return \@cList;
+}
+
 =item $wntools->hashCode()
 
 This is method returns a unique identifier representing a specific
@@ -205,16 +255,35 @@ WordNet::QueryData(3)
 
 =head1 AUTHORS
 
-Ted Pedersen, tpederse at d.umn.edu
+  Ted Pedersen, University of Minnesota, Duluth
+  tpederse at d.umn.edu
 
-Siddharth Patwardhan, sidd at cs.utah.edu
+  Siddharth Patwardhan, University of Utah, Salt Lake City
+  sidd at cs.utah.edu
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2005 by Ted Pedersen and Siddharth Patwardhan
+Copyright (c) 2005, Ted Pedersen and Siddharth Patwardhan
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.3 or,
-at your option, any later version of Perl 5 you may have available.
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to
+
+    The Free Software Foundation, Inc.,
+    59 Temple Place - Suite 330,
+    Boston, MA  02111-1307, USA.
+
+Note: a copy of the GNU General Public License is available on the web
+at L<http://www.gnu.org/licenses/gpl.txt> and is included in this
+distribution as GPL.txt.
 
 =cut

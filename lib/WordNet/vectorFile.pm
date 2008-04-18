@@ -1,5 +1,5 @@
-# vectorFile.pm version 1.03
-# (Last updated $Id: vectorFile.pm,v 1.5 2006/02/19 19:11:09 sidz1979 Exp $)
+# WordNet::vectorFile.pm version 2.04
+# (Last updated $Id: vectorFile.pm,v 1.1 2008/03/27 05:13:01 sidz1979 Exp $)
 #
 # Package used by WordNet::Similarity::vector module that
 # computes semantic relatedness of word senses in WordNet
@@ -31,19 +31,20 @@
 # 59 Temple Place - Suite 330, 
 # Boston, MA  02111-1307, USA.
 
-package vectorFile;
+package WordNet::vectorFile;
 
 =head1 NAME
 
-vectorFile - Provides access to the word vectors database.
+WordNet::vectorFile - Provides access to the word vectors database (used
+by the vector and vector_pairs WordNet::Similarity measures).
 
 =head1 SYNOPSIS
 
-  use vectorFile;
+  use WordNet::vectorFile;
 
-  my ($dCount, $dims, $vecRef) = vectorFile->readVectors($filename);
+  my ($dCount, $dims, $vecRef) = WordNet::vectorFile->readVectors($filename);
 
-  vectorFile->writeVectors($fname, $dCount, $dims, $vecRef);
+  WordNet::vectorFile->writeVectors($fname, $dCount, $dims, $vecRef);
 
 =head1 DESCRIPTION
 
@@ -71,7 +72,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '1.03';
+$VERSION = '2.04';
 
 =item readVectors
 

@@ -1,37 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# (Last updated $Id: rankFormat.pl,v 1.2 2007/10/10 07:32:27 sidz1979 Exp $)
-#
-# Program to rank the output of similarity.pl based on the semantic
-# relatedness of the word pairs. The output is in a format that can
-# processed by the rank.pl program of the Text::NSP package. The rank.pl
-# program takes two lists of ranked pairs of words and computes the
-# correlation between them according to Spearman's correlation
-# coefficient.
-#
-# Copyright (c) 2006
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse at d.umn.edu
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd at cs.utah.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to: 
-#
-#    The Free Software Foundation, Inc., 
-#    59 Temple Place - Suite 330, 
-#    Boston, MA  02111-1307, USA.
+# rankFormat.pl version 2.04
+# (Last updated $Id: rankFormat.pl,v 1.5 2008/04/13 09:27:52 sidz1979 Exp $)
 #
 # -----------------------------------------------------------------------------
 
@@ -117,28 +87,34 @@ sub printUsage
 # Subroutine to print the version information
 sub printVersion
 {
-    print "rankFormat.pl version 2.01\n";
-    print "Copyright (c) 2006, Ted Pedersen and Siddharth Patwardhan.\n";
+    print "rankFormat.pl version 2.04\n";
+    print "Copyright (c) 2006-2008, Ted Pedersen and Siddharth Patwardhan.\n";
 }
 
 __END__
 
 =head1 NAME
 
-rankFormat.pl - Program to rank the output of similarity.pl.
+rankFormat.pl - Measure the correlation between two different rankings
+of word pairs measured for semantic relatedness. 
 
 =head1 SYNOPSIS
 
-rankFormat.pl [FILE... | --help | --version]
+ rankFormat.pl [FILE... | --help | --version]
 
 =head1 DESCRIPTION
 
 Program to rank the output of similarity.pl based on the semantic
 relatedness of the word pairs. The output is in a format that can
-processed by the rank.pl program of the Text::NSP package. The rank.pl
+processed by the rank.pl program of the L<Text::NSP> package. The rank.pl
 program takes two lists of ranked pairs of words and computes the
 correlation between them according to Spearman's correlation
-coefficient.
+coefficient. 
+
+This can be used for comparing the output of two different measures
+on the same set of word pairs, or for comparing the output of
+similarity.pl with a human created gold standard (such as the
+Miller and Charles 30 word pair data). 
 
 =head1 OPTIONS
 
@@ -150,6 +126,22 @@ B<--version>
 
     Displays version information.
 
+=head1 BUGS
+
+Report to WordNet::Similarity mailing list :
+ L<http://groups.yahoo.com/group/wn-similarity>
+
+=head1 SEE ALSO
+
+WordNet home page : 
+ L<http://wordnet.princeton.edu>
+
+WordNet::Similarity home page :
+ L<http://wn-similarity.sourceforge.net>
+
+More info about Text::NSP 
+ L<http://ngram.sourceforge.net>
+
 =head1 AUTHORS
 
  Ted Pedersen, University of Minnesota Duluth
@@ -158,25 +150,9 @@ B<--version>
  Siddharth Patwardhan, University of Utah, Salt Lake City
  sidd at cs.utah.edu
 
-=head1 BUGS
-
-=head1 SEE ALSO
-
-perl(1)
-
-WordNet::Similarity(3)
-
-http://wordnet.princeton.edu
-
-http://wn-similarity.sourceforge.net
-
-http://groups.yahoo.com/group/wn-similarity
-
-http://ngram.sourceforge.net
-
 =head1 COPYRIGHT
 
-Copyright (c) 2006, Ted Pedersen and Siddharth Patwardhan
+Copyright (c) 2006-2008, Ted Pedersen and Siddharth Patwardhan
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the

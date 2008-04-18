@@ -1,12 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# similarity.pl version 2.02
-# (Last updated $Id: similarity.pl,v 1.24 2008/03/04 10:01:40 sidz1979 Exp $)
-#
-# This program is a command line interface to WordNet::Similarity
-#
-# Complete documentation is available at the end of this file, or
-# via perldoc similarity.pl
+# similarity.pl version 2.04
+# (Last updated $Id: similarity.pl,v 1.28 2008/04/13 09:27:52 sidz1979 Exp $)
 #
 # ---------------------------------------------------------------------
 
@@ -558,7 +553,7 @@ sub showHelp
 # Subroutine to display version information.
 sub showVersion
 {
-    print "similarity.pl  version 2.02\n";
+    print "similarity.pl  version 2.04\n";
     print "WordNet::Similarity version ".($WordNet::Similarity::VERSION)."\n";
 
     # 12/8/2003 JM (#3)
@@ -571,21 +566,21 @@ sub showVersion
       print "$opt_type  version ".$opt_type->VERSION()."\n";
     }
 
-    print "Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee and Jason Michelizzi.\n";
+    print "Copyright (c) 2005-2008, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee and Jason Michelizzi.\n";
 }
 
 __END__
 
 =head1 NAME
 
-similarity.pl - command line interface to WordNet::Similarity
+similarity.pl - Command line interface to WordNet::Similarity
 
 =head1 SYNOPSIS
 
 similarity.pl [--type=TYPE [--config=CONFIGFILE] [--allsense] [--offsets] [--trace] 
               [--wnpath=PATH] [--simpath=SIMPATH] {--interact | --file=FILENAME | WORD1 WORD2}
-               | --help
-               | --version]
+              | --help
+              | --version]
 
 =head1 DESCRIPTION
 
@@ -659,6 +654,21 @@ B<--help>
 B<--version>
     show version information
 
+=head1 BUGS
+
+Report to WordNet::Similarity mailing list :
+ L<http://groups.yahoo.com/group/wn-similarity>
+
+=head1 SEE ALSO
+
+L<WordNet::Similarity>
+
+WordNet home page : 
+ L<http://wordnet.princeton.edu>
+
+WordNet::Similarity home page :
+ L<http://wn-similarity.sourceforge.net>
+
 =head1 AUTHORS
 
  Ted Pedersen, University of Minnesota Duluth
@@ -670,26 +680,11 @@ B<--version>
  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
  banerjee+ at cs.cmu.edu
 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
-
-=head1 BUGS
-
-=head1 SEE ALSO
-
-perl(1)
-
-WordNet::Similarity(3)
-
-http://wordnet.princeton.edu
-
-http://wn-similarity.sourceforge.net
-
-http://groups.yahoo.com/group/wn-similarity
+ Jason Michelizzi
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev
+Copyright (c) 2005-2008, Ted Pedersen, Siddharth Patwardhan, Satanjeev
 Banerjee and Jason Michelizzi
 
 This program is free software; you can redistribute it and/or modify it

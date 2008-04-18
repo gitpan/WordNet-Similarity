@@ -1,41 +1,7 @@
 #! /usr/local/bin/perl -w
 #
-# rawtextFreq.pl version 2.01
-# (Last updated $Id: rawtextFreq.pl,v 1.17 2007/10/09 12:05:41 sidz1979 Exp $)
-#
-# This program reads raw text and computes the frequency counts
-# for each synset in WordNet. These frequency counts are used by
-# various measures of semantic relatedness to calculate the information
-# content values of concepts. The output is generated in a format as
-# required by the WordNet::Similarity modules for computing
-# semantic relatedness.
-#
-# Copyright (c) 2005
-#
-# Ted Pedersen, University of Minnesota, Duluth
-# tpederse at d.umn.edu
-#
-# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
-# banerjee+ at cs.cmu.edu
-#
-# Siddharth Patwardhan, University of Utah, Salt Lake City
-# sidd at cs.utah.edu
-#
-# Jason Michelizzi, University of Minnesota, Duluth
-# mich0212 at d.umn.edu
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# rawtextFreq.pl version 2.04
+# (Last updated $Id: rawtextFreq.pl,v 1.23 2008/04/13 09:27:52 sidz1979 Exp $)
 #
 # -----------------------------------------------------------------------------
 
@@ -576,22 +542,22 @@ EOT
 # Subroutine to print the version information
 sub printVersion
 {
-    print "rawtextFreq.pl version 2.01\n";
-    print "Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.\n";
+    print "rawtextFreq.pl version 2.04\n";
+    print "Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.\n";
 }
 
 __END__
 
 =head1 NAME
 
-rawtextFreq.pl - Perl program for finding the frequencies of words in raw text
-files
+rawtextFreq.pl - Compute Information Content from Raw / Plain Text
 
 =head1 SYNOPSIS
 
-rawtextFreq.pl --outfile OUTFILE [--stopfile=STOPFILE]
-               {--stdin | --infile FILE [--infile FILE ...]} [--wnpath WNPATH]
-               [--resnik] [--smooth=SCHEME] | --help | --version
+ rawtextFreq.pl --outfile OUTFILE [--stopfile=STOPFILE]
+               {--stdin | --infile FILE [--infile FILE ...]} 
+		[--wnpath WNPATH] [--resnik] [--smooth=SCHEME] 
+		| --help | --version
 
 =head1 OPTIONS
 
@@ -647,6 +613,142 @@ B<--infile>=I<PATTERN>
     This option may be given more than once (if more than one file
     should be used).
 
+=head1 DESCRIPTION 
+
+This program reads a corpus of plain text and computes frequency 
+counts from that corpus and then uses those to determine the 
+information content of each synset in WordNet. In brief it does this 
+by first assigning counts to each synset for which it obtains
+a frequency count in the corpus, and then those counts are 
+propagated up the WordNet hierarchy. More details on this process
+can be found in the documentation of the lin, res, and jcn measures
+in L<WordNet::Similarity> and in the publication by Patwardhan, et. al. 
+(2003) referred to below. 
+
+The utility programs L<BNCFreq.pl>, L<SemCorRawFreq.pl>, 
+L<treebankFreq.pl>, L<brownFreq.pl> all function in exactly the same 
+way as this plain text program (rawtextFreq.pl), except that they 
+include the ability to deal with the format of the corpus with which
+they are used.
+
+None of these programs requires sense-tagged text; instead they simply  
+distribute the counts of the observed form of word to all the synsets 
+in the corpus to which it could be associated. The different forms of a 
+word are found via the validForms and querySense methods of 
+L<WordNet::QueryData>. 
+
+For example, if the observed word is 'bank', then a count is given to 
+the synsets associated with the financial institution, a river shore, 
+the act of turning a plane, etc. 
+
+=head2 Distributing Counts to Synsets
+
+If the corpora is sense-tagged, then distributing the counts of 
+sense-tagged words to synsets is trivial; you increment the count of 
+each synset for which you have a sense tagged instance. It is very hard 
+to obtain large quantities of sense tagged text, so in general it is not 
+feasible to obtain information content values from large sense-tagged 
+corpora. 
+
+As such this program and the related *Freq.pl utilities are all trying 
+to increment the counts of synsets based on the occurence of raw 
+untagged word forms. In this case it is less obvious how to proceed. 
+This program supports two methods for distributing the counts of an 
+observed word forms in untagged text to synsets. 
+
+One is our default method, and we refer to the other as Resnik 
+counting. In our default counting scheme, each synset receives 
+the total count of each word form associated with it. 
+
+Suppose the word 'bank' can be associated with six different 
+synets. In our default scheme each of those synsets would receive
+a count for each occurrence of 'bank'. In Resnik counting, the
+count would be divided between the possible synsets, so
+in this case each synset would get one sixth (1/6) of the total
+count. 
+
+=head2 How are These Counts Used? 
+
+This program maps word forms to synsets. These synset counts are then
+propagated up the WordNet hierarchy to arrive at Information Content 
+values for each synset, which are then used by the Lin (lin), Resnik 
+(res), and Jiang & Conrath (jcn) measures of semantic similarity. 
+
+By default these measures use counts derived from the cntlist file
+provided by WordNet, which is based on frequency counts 
+from the sense-tagged SemCor corpus. This consists of approximately
+200,000 sense tagged tokens taken from the Brown Corpus and 
+the Red Badge of Courage. 
+
+A file called ic-semcor.dat is created during installation of 
+L<WordNet::Similarity> from cntlist. In fact, the util program 
+semCorFreq.pl is used to do this. This is the only one of the *Freq.pl 
+utility programs that uses sense tagged text, and in fact it only uses 
+the counts from cntlist, not the actual sense tagged text. 
+
+This program simply creates an alternative version of the ic-semcor.dat 
+file based on counts obtained from raw untagged text. 
+
+=head2 Why Use This Program?
+
+The default information content file (ic-semcor.dat) is based on SemCor, 
+which includes sense tagged portions of the Brown Corpus and the Red 
+Badge of Courage. It has the advantage of being sense tagged, but is 
+from a rather limited domain and is somewhat small in size (200,000 
+sense tagged tokens). 
+
+If you are working in a different domain or have access to a larger 
+quantity of corpora, you might find that this program provides 
+information content values that better reflect your underlying domain or 
+problem. 
+
+=head2 How can these counts be reliable if they aren't based on sense tagged text? 
+
+Remember once the counts are given to a synset, those counts
+are propogated upwards, so that each synset receives the counts of
+its children. These are then used in the calculation of the information
+content of each synset, which is simply :
+
+	information content (synset) = - log [probability (synset)]
+
+More details on this calculation and how they are used in the res,
+lin, and jcn measures can be found in the WordNet::Similarity module
+doumentation, and in the following publication:
+
+ Using Measures of Semantic Relatedness for Word Sense Disambiguation 
+ (Patwardhan, Banerjee and Pedersen) - Appears in the Proceedings of 
+ the Fourth International Conference on Intelligent Text Processing and 
+ Computational Linguistics, pp. 241-257, February 17-21, 2003, Mexico City.
+ L<http://www.d.umn.edu/~tpederse/Pubs/cicling2003-3.pdf>
+
+We believe that a propagation effect will result in concentrations or
+clusters of information content values in the WordNet hierarchy. For 
+example, if you have a text about banking, while the different counts of
+"bank" will be dispersed around WordNet, there will also be other
+financial terms that occur with bank that will occur near the financial
+synset in WordNet, and lead to a concentration of counts in that
+region of WordNet. It is best to view this as a conjecture or hypothesis
+at this time. Evidence for or against would be most interesting.
+
+You can use raw text of any kind in this program. We sometimes use
+text from Project Gutenburg, for example the Complete Works of 
+Shakespeare, available from L<http://www.gutenberg.org/ebooks/100> 
+
+=head1 BUGS
+
+Report to WordNet::Similarity mailing list :
+ L<http://groups.yahoo.com/group/wn-similarity>
+
+=head1 SEE ALSO
+
+L<utils.pod>
+
+WordNet home page : 
+ L<http://wordnet.princeton.edu>
+
+WordNet::Similarity home page :
+ L<http://wn-similarity.sourceforge.net>
+
 =head1 AUTHORS
 
  Ted Pedersen, University of Minnesota, Duluth
@@ -658,16 +760,11 @@ B<--infile>=I<PATTERN>
  Siddharth Patwardhan, University of Utah, Salt Lake City
  sidd at cs.utah.edu
 
- Jason Michelizzi, University of Minnesota, Duluth
- mich0212 at d.umn.edu
+ Jason Michelizzi
 
-=head1 BUGS
+=head1 COPYRIGHT 
 
-None.
-
-=head1 COPYRIGHT AND LICENSE
-
-Copyright (c) 2005, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi
+Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

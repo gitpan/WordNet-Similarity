@@ -1,11 +1,6 @@
 =head1 NAME 
 
-ToDo Possible changes for WordNet::Similarity
-
-=head1 SYNOPSIS
-
-A list of things to do for WordNet Similarity. 
-Last modified: $Id: todo.pod,v 1.82 2008/03/07 23:26:56 tpederse Exp $
+TODO - Todo list for WordNet::Similarity
 
 =head1 DESCRIPTION
 
@@ -13,7 +8,7 @@ As these items are completed, move them down into Recently Completed
 Items,  make sure to date and initial. When we have  a version release,  
 all of the recently completed items  should be moved into changelog.pod. 
 
-=head2 FOR FUTURE VERSIONS
+=head1 TODO LIST FOR FUTURE VERSIONS
 
 =over
 
@@ -96,9 +91,9 @@ Use info content programs to create new cntlist files for WordNet?
 
 =back
 
-=head2 GOOD IDEAS FOR FUTURE WORK, DO WHEN POSSIBLE
+=head1 WISH LIST FOR FUTURE RELEASES, DO WHEN POSSIBLE
 
-=over 4
+=over 
 
 =item *
 
@@ -118,9 +113,6 @@ content files and wordnet version.
 
 =back
 
-=head2 RECENTLY COMPLETED ITEMS
-
-
 =head1 AUTHORS
 
  Ted Pedersen, University of Minnesota Duluth
@@ -132,16 +124,13 @@ content files and wordnet version.
  Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
  banerjee+ at cs.cmu.edu
 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
+ Jason Michelizzi
 
-=head1 BUGS
-
-None.
+Last modified: $Id: todo.pod,v 1.83 2008/04/12 17:41:52 tpederse Exp $
 
 =head1 SEE ALSO
 
-changelog.pod
+L<changelog.pod>
 
 =head1 COPYRIGHT
 

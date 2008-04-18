@@ -1,5 +1,5 @@
-# get_wn_info.pm version 2.01
-# (Last updated $Id: get_wn_info.pm,v 1.12 2007/10/09 12:05:39 sidz1979 Exp $)
+# WordNet::get_wn_info.pm version 2.04
+# (Last updated $Id: get_wn_info.pm,v 1.1 2008/03/27 05:13:01 sidz1979 Exp $)
 #
 # Package used by WordNet::Similarity::lesk module that
 # computes semantic relatedness of word senses in WordNet
@@ -32,17 +32,17 @@
 #
 # ------------------------------------------------------------------
 
-package get_wn_info;
+package WordNet::get_wn_info;
 
 =head1 NAME
 
-get_wn_info - Provides access to glosses related to a concept in WordNet
+WordNet::get_wn_info - Provides access to glosses related to a concept in WordNet
 
 =head1 SYNOPSIS
 
-  use get_wn_info;
+  use WordNet::get_wn_info;
 
-  my $gwn = get_wn_info->new($wn, 0);
+  my $gwn = WordNet::get_wn_info->new($wn, 0);
 
   my $hypHash = $gwn->hype($synsHash, 0);
 
@@ -60,7 +60,7 @@ particular concpets in WordNet.
 
 =cut
 
-use stem;
+use WordNet::stem;
 use strict;
 use Exporter;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
@@ -73,11 +73,11 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '2.01';
+$VERSION = '2.04';
 
 =item new
 
-Creates a new get_wn_info object.
+Creates a new WordNet::get_wn_info object.
 
 Parameters: $wn, $stemFlag
 
@@ -111,7 +111,7 @@ sub new
 
     if($stemmingReqd)
     {
-	$stemmer = stem->new($wn);
+	$stemmer = WordNet::stem->new($wn);
 	$self->{'stemmer'} = $stemmer;
     }
 

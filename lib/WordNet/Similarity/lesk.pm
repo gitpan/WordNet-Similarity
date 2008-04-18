@@ -1,10 +1,40 @@
-# WordNet::Similarity::lesk.pm version 1.03
-# (Last updated $Id: lesk.pm,v 1.28 2006/04/05 20:12:55 sidz1979 Exp $)
+# WordNet::Similarity::lesk.pm version 2.04
+# (Last updated $Id: lesk.pm,v 1.29 2008/03/27 06:21:17 sidz1979 Exp $)
 #
 # Module to accept two WordNet synsets and to return a floating point
 # number that indicates how similar those two synsets are, using an
 # adaptation of the Lesk method as outlined in <ACL/IJCAI/EMNLP paper,
 # Satanjeev Banerjee, Ted Pedersen>
+#
+# Copyright (c) 2005,
+#
+# Ted Pedersen, University of Minnesota Duluth
+# tpederse at d.umn.edu
+#
+# Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
+# banerjee+ at cs.cmu.edu
+#
+# Siddharth Patwardhan, University of Utah, Salt Lake City
+# sidd at cs.utah.edu
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+#
+# The Free Software Foundation, Inc., 
+# 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+#
+# ------------------------------------------------------------------
 
 package WordNet::Similarity::lesk;
 
@@ -55,7 +85,7 @@ use File::Spec;
 use WordNet::Similarity::GlossFinder;
 
 our @ISA = qw(WordNet::Similarity::GlossFinder);
-our $VERSION = '1.03';
+our $VERSION = '2.04';
 
 WordNet::Similarity::addConfigOption ("normalize", 0, "i", 0);
 

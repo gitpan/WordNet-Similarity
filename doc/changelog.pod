@@ -1,14 +1,124 @@
 =head1 NAME
 
-CHANGES Revision history for WordNet-Similarity
-
-=head1 SYNOPSIS
-
-A list of changes to the WordNet::Similarity package. These are copied 
-from the Recently Completed Items in the file todo.pod when a new version 
-is released. 
+CHANGES - Revision history for WordNet::Similarity
 
 =head1 DESCRIPTION
+
+=head2 Version 2.04 (Released 04/19/2008)
+
+=over
+
+=item *
+
+04/17/08
+
+=over
+
+=item (1)
+
+Reorganized similarity_server initialization. (Sid)
+
+=item (2)
+
+The similarity server now prints more intuitive messages. (Sid)
+
+=item (3)
+
+Attached timestamps to log messages. (Sid)
+
+=item (4)
+
+Added additional checks to input strings from clients. (Sid)
+
+=back
+
+=item *
+
+04/12/08
+
+=over
+
+=item (1)
+
+Added more detailed description of information content to
+rawtextFreq.pl, and made minor copy editing and formatting changes to
+other /utils files (TDP)
+
+=item (2)
+
+Made minor copy editing and formatting changes to files in /doc (TDP)
+
+=back
+
+=item *
+
+04/10/08
+
+=over
+
+=item (1)
+
+Moved get_wn_info, stem and vectorFile modules under WordNet, i.e., they
+are now WordNet::get_wn_info, WordNet::stem and WordNet::vectorFile. (Sid)
+
+=item (2)
+
+Updated all the modules and programs using the above modules. (Sid)
+
+=item (3)
+
+Added copyright notices in all module and program headers. (Sid)
+
+=item (4)
+
+Added method getCompoundsList() to WordNet::Tools. (Sid)
+
+=item (5)
+
+Made a more distrtibutable version of simialrity_server. The
+similarity_server is now "daemonized", and is installed in /usr/bin
+along with the other utils. (Sid)
+
+=back
+
+=item *
+
+03/23/08
+
+=over
+
+=item (1)
+
+Added SIGNATURE to distrribution to enable package verification. (Sid)
+
+=item (2)
+
+Updated MANIFEST to reflect new SIGNATURE. (Sid)
+
+=item (3)
+
+Set the LICENSE to gpl in META.yml and Makefile.PL. (Sid)
+
+=back
+
+=item *
+
+03/17/08
+
+=over
+
+=item (1)
+
+Added NO_META option to Makefile.PL to prevent automatic generation of
+META.yml during 'make dist'. (Sid)
+
+=item (2)
+
+Removed unused variable "loaded" from Makefile.PL. (Sid)
+
+=back
+
+=back
 
 =head2 Version 2.03 (Released 03/11/2008)
 
@@ -22,12 +132,12 @@ is released.
 
 =item (1)
 
-Removed all reference to WordNet::QueryData from Makefile.PL. This is
+Removed all references to WordNet::QueryData from Makefile.PL. This is
 based on the following advice present in the ExtUtils::MakeMaker
-documentation: "Module installation tools have ways of resolving umet
+documentation: "Module installation tools have ways of resolving unmet
 dependencies but to do that they need a Makefile". By checking for
-WordNet::QueryData during 'perl Makefile.PL', we are preventing any
-opportunity for dependency resolution. (Sid)
+the presence of WordNet::QueryData during 'perl Makefile.PL', we are
+preventing any opportunity for automated dependency resolution. (Sid)
 
 =item (2)
 
@@ -39,20 +149,20 @@ Makefile.PL' (which is more appropriate). (Sid)
 
 =item (3)
 
-Corrected a typo in DepthFinder.pm synopsis that refered to 
-getTaxonomyRoot rather than getTaxonomies. Removed some cut and 
-paste documentation from the templated used for GlossFinder.pm and 
+Corrected a typo in DepthFinder.pm synopsis that refered to
+getTaxonomyRoot rather than getTaxonomies. Removed some cut and
+paste documentation from the templated used for GlossFinder.pm and
 PathFinder.pm (Ted)
 
-=item (4) 
+=item (4)
 
-Made synopsis examples WordNet version independent by not hard coding 
-offsets, etc. Did this in Depthfinder.pm, PathFinder.pm, ICFinder, and 
+Made synopsis examples WordNet version independent by not hard coding
+offsets, etc. Did this in Depthfinder.pm, PathFinder.pm, ICFinder, and
 GlossFinder.pm (Ted)
 
-=item (5) 
+=item (5)
 
-Made minor changes in path names and file names in the /samples 
+Made minor changes in path names and file names in the /samples
 directory and the /config-files subdirectory. (Ted)
 
 =back
@@ -115,7 +225,8 @@ Reduced version requirements of some of the PREREQ_PM modules. (Sid)
 
 =item (2)
 
-Changed WordNet::QueryData requirements to v1.40 in the documentation. (Sid)
+Changed WordNet::QueryData requirements to v1.40 in the documentation.
+(Sid)
 
 =back
 
@@ -142,8 +253,8 @@ similarity_server.pl. (Sid)
 
 =item (3)
 
-Print WordNet hash-code instead of WordNet version, for similarity.cgi WordNet
-version information. (Sid)
+Print WordNet hash-code instead of WordNet version, for similarity.cgi
+WordNet version information. (Sid)
 
 =back
 
@@ -160,7 +271,8 @@ Updated the Pathfinder code to handle loops in the WordNet is-a hierarchy
 
 =item (2)
 
-Updated MANIFEST, changelog and documentation to reflect the new changes. (Sid)
+Updated MANIFEST, changelog and documentation to reflect the new changes.
+(Sid)
 
 =back
 
@@ -193,13 +305,14 @@ treedepths.dat. (Sid)
 
 =item (5)
 
-Added two "build" utilities -- build/Infocontent.PL and build/Depthfiles.PL
--- which are run during the 'make' step to generate data files. (Sid)
+Added two "build" utilities -- build/Infocontent.PL and
+build/Depthfiles.PL -- which are run during the 'make' step to generate
+data files. (Sid)
 
 =item (6)
 
-The default WordNet version is now v3.0. Changed all documentation, code and
-examples to reflect this. (Sid)
+The default WordNet version is now v3.0. Changed all documentation, code
+and examples to reflect this. (Sid)
 
 =item (7)
 
@@ -207,13 +320,13 @@ The package now requires WordNet::QueryData version 1.46 or above. (Sid)
 
 =item (8)
 
-Revised all tests and test-keys for the new code and new version of WordNet
-and QueryData. (Sid)
+Revised all tests and test-keys for the new code and new version of
+WordNet and QueryData. (Sid)
 
 =item (9)
 
-Removed the multiple pieces of code implementing "compoundify" and moved it all
-into a single method in WordNet::Tools. (Sid)
+Removed the multiple pieces of code implementing "compoundify" and moved
+it all into a single method in WordNet::Tools. (Sid)
 
 =back
 
@@ -251,8 +364,8 @@ to as WordNet::Similarity::edge (old name). (Sid)
 
 =item (1)
 
-Fixed wnDepths.pl man-page to display the wnpath option consistently in the
-usage and the description. (Sid)
+Fixed wnDepths.pl man-page to display the wnpath option consistently in
+the usage and the description. (Sid)
 
 =item (2)
 
@@ -356,8 +469,8 @@ Added tests for POD errors and for POD coverage. (Sid)
 
 =item (1)
 
-Changed "hash-style" constants (Perl v5.8) to single line constants (Perl v5.6)
-for compatibility with Perl v5.6.0. (Sid)
+Changed "hash-style" constants (Perl v5.8) to single line constants (Perl
+v5.6) for compatibility with Perl v5.6.0. (Sid)
 
 =back
 
@@ -416,8 +529,8 @@ Modified get_wn_info.pm with Wybo Wiersma's changes. (Sid)
 
 =item (2)
 
-Modified lesk.pm, vector.pm and vector_pairs.pm to be compatible with above
-changes. (Sid)
+Modified lesk.pm, vector.pm and vector_pairs.pm to be compatible with
+above changes. (Sid)
 
 =back
 
@@ -429,7 +542,8 @@ changes. (Sid)
 
 =item (1)
 
-Updated all utilities to use WordNet 2.1 (WordNet::QueryData 1.39 or above). (Sid)
+Updated all utilities to use WordNet 2.1 (WordNet::QueryData 1.39 or
+above). (Sid)
 
 =item (2)
 
@@ -485,17 +599,18 @@ Updated documentation to reflect above changes. (Sid)
 
 =item (1)
 
-tar file unpacked as WordNet-Similarity for June 12, v 0.15, now unpacks as
-WordNet-Similarity-0.15, which is consistent with all previous versions.
-(Ted)
+tar file unpacked as WordNet-Similarity for June 12, v 0.15, now unpacks
+as WordNet-Similarity-0.15, which is consistent with all previous
+versions. (Ted)
 
 =item (2)
 
-Similarity.pm version was shown as 0.14, is now 0.15. Our general convention
-for modules is that their version number only change when the module itself
-changes, so the module version number can tell you when was the last time a
-module changed. However, for Similarity.pm this is needlessly confusing, so
-it will always carry the same version number as the release. (Ted)
+Similarity.pm version was shown as 0.14, is now 0.15. Our general
+convention for modules is that their version number only change when the
+module itself changes, so the module version number can tell you when was
+the last time a module changed. However, for Similarity.pm this is
+needlessly confusing, so it will always carry the same version number as
+the release. (Ted)
 
 =back
 
@@ -517,7 +632,7 @@ Fixed a minor bug in MANIFEST. (Sid)
 
 =item (2)
 
-Updated modules.pod and developers.pod to reflect new software 
+Updated modules.pod and developers.pod to reflect new software
 architecture. (Jason)
 
 =back
@@ -540,7 +655,8 @@ Re-introduced the previous (non-pairwise-comparison) vector. (Sid)
 
 =item (2)
 
-Updated documentation and test cases to support the new vector measure. (Sid)
+Updated documentation and test cases to support the new vector measure.
+(Sid)
 
 =item (3)
 
@@ -607,19 +723,19 @@ data files installed by user. (Sid)
 
 =over
 
-=item (1) 
+=item (1)
 
 Reinstated default relation files for vector and lesk. In case
 the default relation files (vector-relation.dat and lesk-relation.dat) are
 missing, both modules would default to the glosexample-glosexample
 relation. (Sid)
 
-=item (2) 
+=item (2)
 
 Modified Makefile.PL to query the user before installing default
 data files. (Sid)
 
-=item (3) 
+=item (3)
 
 Removed infocontent file generation code from Makefile.PL. Now
 Makefile.PL simply calls utilities from the /utils directory (wnDepths.pl,
@@ -629,9 +745,10 @@ files. (Sid)
 =item (4)
 
 Installation process now generates a default word vectors
-file. The vectordb configuration variable for vector is now optional. (Sid)
+file. The vectordb configuration variable for vector is now optional.
+(Sid)
 
-=item (5) 
+=item (5)
 
 Earlier, the WNHOME option was given to Makefile.PL as --WNHOME
 <path>, whereas the PREFIX option was written as PREFIX=<path>. This
@@ -652,12 +769,12 @@ Added some basic tests for vector in t/vector.t.
 
 =item (1)
 
-Created WordNet::Similarity::GlossFinder.pm, a super-class of 
+Created WordNet::Similarity::GlossFinder.pm, a super-class of
 WordNet::Similarity::vector and WordNet::Similarity::lesk. (Sid)
 
 =item (2)
 
-Removed default relation file for lesk. Vector and lesk both 
+Removed default relation file for lesk. Vector and lesk both
 default to glosexample-glosexample. (Sid)
 
 =back
@@ -704,15 +821,15 @@ Removed readDB.pl. (JM)
 
 =item (1)
 
-Modified string overlap finding in lesk to use the Text::OverlapFinder module.
-Removed string_compare.pm. This fixed an old bug where the relatedness
-of word1 and word2 wasn't always equal to the relatedness of word2 and word1.
-(JM)
+Modified string overlap finding in lesk to use the Text::OverlapFinder
+module. Removed string_compare.pm. This fixed an old bug where the
+relatedness of word1 and word2 wasn't always equal to the relatedness of
+word2 and word1. (JM)
 
 =item (2)
 
-Updated Makefile.PL, INSTALL, and doc/install.pod to reflect new dependency on
-Text::OverlapFinder. (JM)
+Updated Makefile.PL, INSTALL, and doc/install.pod to reflect new
+dependency on Text::OverlapFinder. (JM)
 
 =item (3)
 
@@ -728,15 +845,15 @@ Removed lib/dbInterface.pm and lib/string_compare.pm from MANIFEST. (JM)
 
 =item (1)
 
-Word vectors no longer stored in a BerkeleyDB database, a plain text file is
-now used. Modified wordVectors.pl, WordNet::Similarity::vector to use the plain
-text word vectors file. New module vectorFile.pm now used to access this plain text 
-database. Module dbInterace.pm is obsolete. (Sid)
+Word vectors no longer stored in a BerkeleyDB database, a plain text file
+is now used. Modified wordVectors.pl, WordNet::Similarity::vector to use
+the plain text word vectors file. New module vectorFile.pm now used to
+access this plain text database. Module dbInterace.pm is obsolete. (Sid)
 
 =item (2)
 
-Modified Makefile.PL to no longer check for BerkeleyDB dependency. All modules are
-installed. (Sid)
+Modified Makefile.PL to no longer check for BerkeleyDB dependency. All
+modules are installed. (Sid)
 
 =back
 
@@ -765,26 +882,26 @@ than 1.  This bug is discussed in the archives of the mailing list. (JM)
 
 =over
 
-=item *   
+=item *
 
 09/01/04
 
 =over
 
-=item (1) 
+=item (1)
 
-Modified vector to look like the other measures. It now is
-derived from WordNet::Similarity.pm. (Sid)
- 
-=item (2) 
+Modified vector to look like the other measures. It now is derived
+from WordNet::Similarity.pm. (Sid)
+
+=item (2)
 
 Updated the MANIFEST. (Sid)
- 
-=item (3) 
+
+=item (3)
 
 Fixed some minor typos in Makefile.PL. (Sid)
- 
-=item (4) 
+
+=item (4)
 
 Added single test case (for vector) to t/access.t. (Sid)
 
@@ -816,8 +933,8 @@ Updated documentation for the web interface. (JM)
 
 =item (1)
 
-Fixed over-counting problem in *Freq.pl programs.  Under certain conditions,
-word senses would sometimes get counted twice. (JM)
+Fixed over-counting problem in *Freq.pl programs.  Under certain
+conditions, word senses would sometimes get counted twice. (JM)
 
 =item (2)
 
@@ -825,7 +942,8 @@ Updated *Freq.pl programs to use WordNet 2.0. (JM)
 
 =item (3)
 
-Input files to rawtextFreq.pl are now specified with the --infile option. (JM)
+Input files to rawtextFreq.pl are now specified with the --infile option.
+(JM)
 
 =item (4)
 
@@ -862,8 +980,9 @@ Created a CGI-based web interface for the relatedness modules. (JM)
 
 =item (1)
 
-Fixed problem with path to Perl interpreter in Makefile.PL.  This was causing
-problems during installation if there was no /usr/local/bin/perl. (JM)
+Fixed problem with path to Perl interpreter in Makefile.PL.  This was
+causing problems during installation if there was no /usr/local/bin/perl.
+(JM)
 
 =item (2)
 
@@ -899,22 +1018,22 @@ tests for path/0.07 and edge/0.06.
 
 =item (1)
 
-make sure that every .pm and .pl file has the same GNU copyleft language. 
-Use PathFinder.pm as a template. 
+make sure that every .pm and .pl file has the same GNU copyleft language.
+Use PathFinder.pm as a template.
 
-=item (2) 
+=item (2)
 
-make sure that documentation is clear that vector and lesk require 
+make sure that documentation is clear that vector and lesk require
 different format relation files (ie they are not interchangeable).
 
 =item (3)
 
 convert README into a series of pod documents in doc directory. In
 the intro.pod, provide a table of contents like structure (much like
-perldoc perl does). 
+perldoc perl does).
 
-Make sure that each pod documents follows the cpan style (name, synopsis,  
-etc.) This should be true of any pod documentation in the package. 
+Make sure that each pod documents follows the cpan style (name, synopsis,
+etc.) This should be true of any pod documentation in the package.
 
 =item (4)
 
@@ -931,23 +1050,23 @@ the description of how to do a 'use lib' or -I may need adjustment.
 
 =item (1)
 
-Make developers.pod into a self contained document that provides a step by  
-step tutorial on how to write a measure of relatedness. The file  
-NewStats.txt in NSP provides an example of the style of presentation that  
-is expected. 
+Make developers.pod into a self contained document that provides a step by
+step tutorial on how to write a measure of relatedness. The file
+NewStats.txt in NSP provides an example of the style of presentation that
+is expected.
 
 =item (2)
 
-developers.pod should be a tutorial that explains how to create a new 
-measure. It should take the reader through a complete example, such as  
-creating a measure that returns the sum of the information content of  the  
-concpets found in the shortest path between two  concepts. This should  
-include an example of how to use all of the available configuration  
-options, and also adding a new one. 
+developers.pod should be a tutorial that explains how to create a new
+measure. It should take the reader through a complete example, such as
+creating a measure that returns the sum of the information content of the
+concpets found in the shortest path between two  concepts. This should
+include an example of how to use all of the available configuration
+options, and also adding a new one.
 
 =back
 
-=item * 
+=item *
 
 03/11/2004
 
@@ -955,14 +1074,14 @@ options, and also adding a new one.
 
 =item (1)
 
-document measure modules (lch.pm, wup.pm, etc.) with information about  
-effect of hypo root node. (Take discussion from email explaining why it  
-has an effect, and why it doesn't have an effect) and make it a part of  
-the .pm perldoc. This will eventually be used in thesis writing, so it  
-should be complete and  detailed. Of particular important is the behavior  
-of lch.pm, but all of the modules should have their expected behaviour  
-with and without the hypo  root node clearly documented. Also, you should  
-note what the behavior was in 0.06 for both nouns and verbs, and if this  
+document measure modules (lch.pm, wup.pm, etc.) with information about
+effect of hypo root node. (Take discussion from email explaining why it
+has an effect, and why it doesn't have an effect) and make it a part of
+the .pm perldoc. This will eventually be used in thesis writing, so it
+should be complete and  detailed. Of particular important is the behavior
+of lch.pm, but all of the modules should have their expected behaviour
+with and without the hypo  root node clearly documented. Also, you should
+note what the behavior was in 0.06 for both nouns and verbs, and if this
 has changed.
 
 =back
@@ -976,7 +1095,7 @@ has changed.
 =item (1)
 
 lch.pm does not yet support not having a hypo root. Remember that
-the lack of hypo root will change (potentially) the max path length found 
+the lack of hypo root will change (potentially) the max path length found
 for each taxonomy.
 
 =back
@@ -996,11 +1115,11 @@ and the max depths of taxonomies.
 
 =item (2)
 
-When wup.pm encounters two or more paths to the root, the trace output 
+When wup.pm encounters two or more paths to the root, the trace output
 "condenses" those paths into a single path. It would be better to show
 all paths in the trace (as res does, for example). Also, make sure that
 the depth reported in such cases is always the minimum (shortest path
-to root). 
+to root).
 
 =back
 
@@ -1012,26 +1131,26 @@ to root).
 
 =item (1)
 
-Modify wnDepths such that it shows both the depths of individual concepts, 
+Modify wnDepths such that it shows both the depths of individual concepts,
 as well as the max distance from a root node. In the case of multiple
 inheritance, wndepths should show the depth of the concept in each case,
-and also the relevant root node. wnDepths should sort these depths  
-from shortest to longest. The output of wndepths should be formatted like 
-infocontent.dat, anticipating an eventual merger. 
+and also the relevant root node. wnDepths should sort these depths
+from shortest to longest. The output of wndepths should be formatted like
+infocontent.dat, anticipating an eventual merger.
 
 =back
 
-=item * 
+=item *
 
 03/02/2004
 
-=over 
+=over
 
 =item (1)
 
-in docs, update/replace current discussion of modules. Include example 
-usage as well. Make sure that path length is clearly defined for  
-lch, edge, and wup. 
+in docs, update/replace current discussion of modules. Include example
+usage as well. Make sure that path length is clearly defined for
+lch, edge, and wup.
 
 =back
 
@@ -1043,11 +1162,11 @@ lch, edge, and wup.
 
 =item (1)
 
-In PathFinder.pm, Infocontent.pm, Similarity.pm, and LCSFinder.pm  
-each function should be documented in perldoc form such that their input, 
-output and basic functionality is described. This should then appear in 
-the DESCRIPTION portion of the perldoc. The SYNOPSIS should contain 
-examples or templates of each function being used. 
+In PathFinder.pm, Infocontent.pm, Similarity.pm, and LCSFinder.pm
+each function should be documented in perldoc form such that their input,
+output and basic functionality is described. This should then appear in
+the DESCRIPTION portion of the perldoc. The SYNOPSIS should contain
+examples or templates of each function being used.
 
 =back
 
@@ -1059,12 +1178,12 @@ examples or templates of each function being used.
 
 =item (1)
 
-redo random pairs testing such that we have 60 noun-noun pairs, 25 
+redo random pairs testing such that we have 60 noun-noun pairs, 25
 verb-verb pairs, and 15 mixed pairs.
 
 =back
 
-=item * 
+=item *
 
 02/20/2004
 
@@ -1072,8 +1191,8 @@ verb-verb pairs, and 15 mixed pairs.
 
 =item (1)
 
-Revisit the distance versus similarity issue in jcn.pm. It maybe be that  
-simply inverting the distance is too extreme a solution. One possibility 
+Revisit the distance versus similarity issue in jcn.pm. It maybe be that
+simply inverting the distance is too extreme a solution. One possibility
 is to make it a linear transformation via maxdist - dist instead. (JM -
 we'll stick with inverting the distance, but added a discussion of this
 issue to the documentation)
@@ -1088,7 +1207,7 @@ issue to the documentation)
 
 =item (1)
 
-document all multiple inheritance issues that are being handled for  
+document all multiple inheritance issues that are being handled for
 measures.
 
 =back
@@ -1101,7 +1220,7 @@ measures.
 
 =item (1)
 
-validateSynset should check wps format fairly closely, and issue 
+validateSynset should check wps format fairly closely, and issue
 descriptive errors if the wps is ill formed. Words can apparently be
 about anything (except #) but pos should be lower case nvra, and senses
 should be digits. Error messages should point out which field is the
@@ -1109,7 +1228,7 @@ problem, or if there are too few or too many fields.
 
 =item (2)
 
-place all hypo root handling node code in PathFinder.pm. The measures 
+place all hypo root handling node code in PathFinder.pm. The measures
 should not have any hypo root handling code in them.
 
 =item (3)
@@ -1117,24 +1236,24 @@ should not have any hypo root handling code in them.
 PathFinder.pm should include a function getAllPaths.pm that returns
 all paths between two concepts, their length, and their "tops" (the
 candidate LCSs). This should be used as the main source of input
-for the getLCS* functions, and for getShortestPath. 
+for the getLCS* functions, and for getShortestPath.
 
 =item (4)
 
 remove all "input verifcation" code from the measures. That should
-be inherited from Similarity.pm. 
+be inherited from Similarity.pm.
 
 =item (5)
 
-There is replicated code in the measure modules that checks validity of 
+There is replicated code in the measure modules that checks validity of
 input. This should be removed to a common module that can be called by
 all of the measures. Any other replicated code should be removed as well.
-The goal of 0.07 is to largely eliminate replicated code via the use of 
-inheritance, and to make the writing of new measures simpler. 
+The goal of 0.07 is to largely eliminate replicated code via the use of
+inheritance, and to make the writing of new measures simpler.
 
 =back
 
-=item * 
+=item *
 
 02/13/2004
 
@@ -1142,15 +1261,15 @@ inheritance, and to make the writing of new measures simpler.
 
 =item (1)
 
-add pod/perldoc to lib/ICFinder.pm. Should also be done for all other 
-files as they are modified for other reasons. In particular, introductory 
+add pod/perldoc to lib/ICFinder.pm. Should also be done for all other
+files as they are modified for other reasons. In particular, introductory
 material that appears in source code comments, author information, GPL,
 etc. should be moved into pod and removed from source code comments. See
-similarity.pl for an example. 
+similarity.pl for an example.
 
 =item (2)
 
-path should use getShortestPath from PathFinder.pm.	
+path should use getShortestPath from PathFinder.pm.
 
 =back
 
@@ -1162,19 +1281,19 @@ path should use getShortestPath from PathFinder.pm.
 
 =item (1)
 
-getLCSDepth, getLCSInfo, getLCSPath should appear in LCSFinder.pm, which 
+getLCSDepth, getLCSInfo, getLCSPath should appear in LCSFinder.pm, which
 should inherit from both ICFinder and Pathfiner.
 
-=item (2) 
+=item (2)
 
-The measures (lch, path, jcn, lin, res, wup) should  default to having  
-the hypo root node turned on (for both nouns and verbs). This will  
-eventually be true of hso, but is not currently. hypo root nodes could 
-also be used for lesk and vector, although they are not currently. 
+The measures (lch, path, jcn, lin, res, wup) should  default to having
+the hypo root node turned on (for both nouns and verbs). This will
+eventually be true of hso, but is not currently. hypo root nodes could
+also be used for lesk and vector, although they are not currently.
 
 =back
 
-=item * 
+=item *
 
 02/04/2004
 
@@ -1182,7 +1301,7 @@ also be used for lesk and vector, although they are not currently.
 
 =item (1)
 
-Wps and offsets will be supported internally. The user can request 
+Wps and offsets will be supported internally. The user can request
 either mode via an option to getRelatedness. offset is our default.
 profiling has shown wps to be somewhat faster, in that it makes fewer
 calls to getSense, although it does make some. For input, we only
@@ -1199,12 +1318,12 @@ we support wps and offset.
 
 =item (1)
 
-modify option in config files such that an option without a value reverts 
-to the default in all cases (except vectordb). 
+modify option in config files such that an option without a value reverts
+to the default in all cases (except vectordb).
 
 =back
 
-=item * 
+=item *
 
 01/24/2004
 
@@ -1212,12 +1331,12 @@ to the default in all cases (except vectordb).
 
 =item (1)
 
-Provide support for undefined values in the path finding and info content  
-measures (path, wup, lch, res, lin, jcn). If two concepts are not in the  
-same taxonomy then an error should be issued and a large negative 
-integer should be returned. This can occur in two cases, between the same 
-part of speech (noun-noun, verb-verb), or between nouns and verbs. Distinct 
-error messsages should be indicated in both cases.  
+Provide support for undefined values in the path finding and info content
+measures (path, wup, lch, res, lin, jcn). If two concepts are not in the
+same taxonomy then an error should be issued and a large negative
+integer should be returned. This can occur in two cases, between the same
+part of speech (noun-noun, verb-verb), or between nouns and verbs. Distinct
+error messsages should be indicated in both cases.
 
 =back
 
@@ -1232,10 +1351,10 @@ error messsages should be indicated in both cases.
 Clean up configuration file examples (in samples). Make them consistent
 by having a master list (all-options.conf) that is what we make changes
 to. Then specific example files can be created via copy and paste. Make
-sure all possible options for a measure are included, and that the 
-explanations describe all possible values as well as default handling. 
-(TDP updated all-options.conf on 12/10/03, use this as source of cut and 
-paste). 
+sure all possible options for a measure are included, and that the
+explanations describe all possible values as well as default handling.
+(TDP updated all-options.conf on 12/10/03, use this as source of cut and
+paste).
 
 =back
 
@@ -1247,35 +1366,35 @@ paste).
 
 =item (1)
 
-Create test scripts that can be run to verify the correctness of output  
-- they should include "correct" answers that can be compared to  
-(automatically) and rerun as the system changes. We should use 
+Create test scripts that can be run to verify the correctness of output
+- they should include "correct" answers that can be compared to
+(automatically) and rerun as the system changes. We should use
 the CPAN module Test::More, and create .t files in a /t directory that
-test specific situations/problems, etc. The .t files themselves should be 
+test specific situations/problems, etc. The .t files themselves should be
 documented with an explanation of what is being tested. We should have
 lots of smaller, specific .t tests (rather than a few big test files).
 Whenever a bug is found and fixed, a .t file should be created that
 tests the fix, and this should be mentioned in the source code comments
-where the fix is made (this fix is tested by t/xyz.t). 
+where the fix is made (this fix is tested by t/xyz.t).
 
 Make sure that the testing system can be easily extended/modified, and
-that it can support the use of multiple input files and configuration 
-files. We should have multiple *.t files to run our tests, and each module 
+that it can support the use of multiple input files and configuration
+files. We should have multiple *.t files to run our tests, and each module
 and utility should have at least its own *.t file (maybe more than one
-in some cases). We should also have *.t files that are dedicated to 
+in some cases). We should also have *.t files that are dedicated to
 particular situations that affect a number of measures (like what happens
 when info content is zero for one concept, what happens if one of
 the concepts being compared is the lcs of the other, what if the two
-concepts are the same (self similarity), and so forth. 
+concepts are the same (self similarity), and so forth.
 
 =item (2)
 
 Test cases for configuration file handling should include:
 
-repeated options in configuration file, as in 
+repeated options in configuration file, as in
 
     trace::0
-    trace::1 
+    trace::1
 
 bad values in configuration file, as in
 
@@ -1285,7 +1404,7 @@ bad options in configuration file, as in
 
     tracer::0
 
-=item (3) 
+=item (3)
 
 Test cases for similarity.pl should include:
 
@@ -1302,35 +1421,36 @@ Test cases for measures should include:
 show that wps and offset methods of path finding are equivalent
 
 check trace output for each of the measures. use wps format, as that
-is subject to fewer changes than offsets. 
+is subject to fewer changes than offsets.
 
-a "big" file of word pairs (maybe 100 pairs) that run all the measures 
-and  compare values to what is obtained in 0.6. If there are differences, 
+a "big" file of word pairs (maybe 100 pairs) that run all the measures
+and  compare values to what is obtained in 0.6. If there are differences,
 let's see what they are.
 
-=item (5) 
+=item (5)
 
 Test cases for information content programs should include:
 
 an information content file based on one of our resident text files
-that is large enough to be interesting (readme, gpl, etc.) as computed in  
-0.6/0.7 (should be the same). This can be used as a reference point when  
-we make changes in future. 
+that is large enough to be interesting (readme, gpl, etc.) as computed in
+0.6/0.7 (should be the same). This can be used as a reference point when
+we make changes in future.
 
 Information content computed with a very small number of concepts, to
-expose the counting problem that ted mentions below. 
+expose the counting problem that ted mentions below.
 
 =item (6)
 
-Test cases for wnDepth... 
+Test cases for wnDepth...
 
 Generate output for 0.07 to use as a point of reference. A few
 specific manual checks would be good too (leather_carp, entity, etc.)
 
 =item (7)
 
-run tests to determine where the system now provides different results 
-from version 0.06 - make sure to document these cases (that are different). 
+run tests to determine where the system now provides different results
+from version 0.06 - make sure to document these cases (that are
+different).
 
 =back
 
@@ -1358,7 +1478,7 @@ with.
 
 =item (1)
 
-modify option handling such that multiple occurrences of an option in 
+modify option handling such that multiple occurrences of an option in
 a config file cause an error. For example
 
   trace::
@@ -1377,7 +1497,7 @@ should cause an error.
 =item (1)
 
 SemCor1.7Freq.pl and SemTagFreq.pl need to be renamed. They are now
-called semCorRawFreq.pl and SemCorFreq.pl. semCorRawFreq.pl counts without  
+called semCorRawFreq.pl and SemCorFreq.pl. semCorRawFreq.pl counts without
 sense tags and  SemCorFreq.pl counts the  sense tags. (TDP)
 
 =back
@@ -1418,7 +1538,7 @@ that the input format is invalid, only one word. Also, I'm not sure
 what happens if you have more than two words on a line. An error of
 some sort would also be necessary in that case. Also, I am not sure if
 similarity.pl checks to see that the words pairs are "well formed", that
-is to say do they adhere to the word, word#pos, or word#pos#number 
+is to say do they adhere to the word, word#pos, or word#pos#number
 format. It would be good to have a simple check that verifies we have
 alphanumeric words, pos of n, v, a, or r, and numeric numbers.  (JM)
 
@@ -1437,15 +1557,15 @@ alphanumeric words, pos of n, v, a, or r, and numeric numbers.  (JM)
 Clean up configuration file examples (in samples). Make them consistent
 by having a master list (all-options.conf) that is what we make changes
 to. Then specific example files can be created via copy and paste. Make
-sure all possible options for a measure are included, and that the 
-explanations describe all possible values as well as default handling. (JM)
-(TDP updated all-options.conf on 12/10/03, use this as source of cut and 
-paste). 
+sure all possible options for a measure are included, and that the
+explanations describe all possible values as well as default handling.
+(JM)(TDP updated all-options.conf on 12/10/03, use this as source of cut
+and paste).
 
 =item (2)
 
-Determine if it is feasible (not too difficult or time consuming) to 
-modify  --version option so it can display both the version of  
+Determine if it is feasible (not too difficult or time consuming) to
+modify  --version option so it can display both the version of
 similarity.pl and the version of the module used when --type is specified.
 (JM -- version will show module version as well if a module is specified)
 
@@ -1483,16 +1603,17 @@ document caching for random (normally random uses an unlimited cache size)
 
 =item (2)
 
-determine a reasonable default cache size. Should not be unlimited. 
+determine a reasonable default cache size. Should not be unlimited.
 Current default is 1000, maybe it can be increased to 5000 or 10000.
-Let lesk with trace be the standard as to what is reasonable. (JM -- default
-is now 5,000).
+Let lesk with trace be the standard as to what is reasonable. (JM --
+default is now 5,000).
 
 =item (3)
 
 Improve error handling when processing config files.  Make sure the values
 specified are valid and that filenames refer to extant files.  All options
-should allow the value to be omitted, in which case the default is used. (JM)
+should allow the value to be omitted, in which case the default is used.
+(JM)
 
 =back
 
@@ -1505,14 +1626,14 @@ should allow the value to be omitted, in which case the default is used. (JM)
 =item (1)
 
 Adjust Makefile.PL to account for new contents of samples directory. Added
-entries to MANIFEST as well. JM
+entries to MANIFEST as well. (JM)
 
 =item (2)
 
 update samples/sample.pl to run with the new files (and organization)
 provided in the samples directory. This was also a problem in 0.06,
 where it did not run for hso properly due to a mismatch in the name
-specified in sample.pl and the configuration file. 
+specified in sample.pl and the configuration file.
 
 =item (3)
 
@@ -1522,7 +1643,7 @@ used in computing information content values (if any). JM
 
 =item (4)
 
-relation.dat is in lib/WordNet. Should be referred to as 
+relation.dat is in lib/WordNet. Should be referred to as
 lesk-relation.dat. Should also have vector-relation.dat I would
 think. (if not, what does vector do?).  JM (vector doesn't try
 finding a default relation file--it fails silently).
@@ -1533,9 +1654,9 @@ finding a default relation file--it fails silently).
 
 =item (6)
 
-In intro.pod, provide instruction on how to convert to html or whatever 
-if  user wishes (just point them to documentation that describes this  
-elsewhere even).  JM 
+In intro.pod, provide instruction on how to convert to html or whatever
+if  user wishes (just point them to documentation that describes this
+elsewhere even).  JM
 
 =back
 
@@ -1543,7 +1664,7 @@ elsewhere even).  JM
 
 11/28/2003
 
-=over 
+=over
 
 =item (1)
 
@@ -1556,7 +1677,7 @@ using/not using a unique root node.  (JM)
 
 =back
 
-=item * 
+=item *
 
 11/26/2003
 
@@ -1572,7 +1693,7 @@ changed version numbers to 0.07 in all modules and utils
 
 =item (3)
 
-fixed bug in wup: if user supplies car#n#1 and auto#n#1, the LCS found by  
+fixed bug in wup: if user supplies car#n#1 and auto#n#1, the LCS found by
 wup is motor_vehicle#n#1, not car#n#1
 
 =item (4)
@@ -1583,7 +1704,7 @@ added POD to all programs in /samples
 
 =item *
 
-11/24/2003 
+11/24/2003
 
 =over
 
@@ -1593,9 +1714,9 @@ added documentation (in the form of POD) to /doc
 
 =back
 
-=item * 
+=item *
 
-11/21/2003 
+11/21/2003
 
 =over
 
@@ -1605,9 +1726,9 @@ added /doc directory to contain documentation
 
 =back
 
-=item * 
+=item *
 
-11/18/2003 
+11/18/2003
 
 =over
 
@@ -1641,96 +1762,96 @@ added an INSTALL file
 
 =item (5)
 
-cleaned up /samples.  relation.dat is now named lesk-relation.dat and    
-added vector-relation.dat.  A sample config file is also provided for    
+cleaned up /samples.  relation.dat is now named lesk-relation.dat and
+added vector-relation.dat.  A sample config file is also provided for
 each measure (in /samples/config-files)
 
 =back
 
-=item * 
+=item *
 
-11/15/2003 
+11/15/2003
 
 =over
 
 =item (1)
 
-updated jcn, hso, random, and lesk to use the funcitions that have  
+updated jcn, hso, random, and lesk to use the funcitions that have
 been moved to Similarity.pm (such as the cache management functions).
 
 =item (2)
 
-cleaned up the /samples directory.  Removed outdated files.  Put     
+cleaned up the /samples directory.  Removed outdated files.  Put
 sample config files in samples/config-files.  Added README in /samples.
 
 =back
 
-=item * 
+=item *
 
-11/12/2003 
+11/12/2003
 
 =over
 
 =item (1)
 
-Added fetchFromCache() and storeToCache() to Similarity.pm to make 
+Added fetchFromCache() and storeToCache() to Similarity.pm to make
 caching easier and cleaner.
 
 =item (2)
 
-Updated wup, edge, lch, res, and lin to use fetchFromCache() and  
+Updated wup, edge, lch, res, and lin to use fetchFromCache() and
 storeToCache().
 
 =back
 
-=item * 
+=item *
 
-10/25/2003 
+10/25/2003
 
 =over
 
 =item (1)
 
-Reduced the amount of duplication code in the measure modules by    
-moving some common code to WordNet::Similarity.  WordNet::Similarity is 
-now a base class for all the measures.  Also added a module called 
-infocontent.pm from which all information content measures are descended 
-(i.e., res, lin, jcn).  
+Reduced the amount of duplication code in the measure modules by
+moving some common code to WordNet::Similarity.  WordNet::Similarity is
+now a base class for all the measures.  Also added a module called
+infocontent.pm from which all information content measures are descended
+(i.e., res, lin, jcn).
 
 =item (2)
 
-Removed @ symbol from all email addresses in all files (I think).     
+Removed @ symbol from all email addresses in all files (I think).
 This might help keep spammers from harvesting our email addresses.
 
 =back
 
-=back 
+=back
 
 =head2 Version 0.06
 
-=over 
+=over
 
 =item *
 
-10/18/2003 
+10/18/2003
 
 =over
 
 =item (1)
 
-Removed dependence of the vector measure on PDL. Implemented     
+Removed dependence of the vector measure on PDL. Implemented
 "in-house" sparse vector manipulation functions.
 
 =item (2)
 
-Modified the README with updated documentation of similarity.pl      
+Modified the README with updated documentation of similarity.pl
 (--interact option) and wordVectors.pl.
 
 =back
 
 =item *
 
-10/15/2003 
+10/15/2003
 
 =over
 
@@ -1742,7 +1863,7 @@ Changed Makefile.PL so that it checks for version 1.30 of QueryData
 
 =item *
 
-10/13/2003 
+10/13/2003
 
 =over
 
@@ -1756,20 +1877,20 @@ Added "maxCacheSize" option info to the man/pod documentation.
 
 =item (3)
 
-Used the new dataPath() method of QueryData 1.31 in all the 
+Used the new dataPath() method of QueryData 1.31 in all the
 utilities to obtain the path of the WordNet data files.
 
 =item (4)
 
-Modified Makefile.PL to check for PDL and BerkeleyDB dependency 
-during installation. vector.pm is not installed on failed 
+Modified Makefile.PL to check for PDL and BerkeleyDB dependency
+during installation. vector.pm is not installed on failed
 dependencies.
 
 =back
 
 =item *
 
-10/11/2003 
+10/11/2003
 
 =over
 
@@ -1781,7 +1902,7 @@ WordNet::QueryData::queryWord in hso.pm
 =item (2)
 
 made hso.pm check QueryData version.  queryWord was broken in
-QueryData 1.29 and earlier 
+QueryData 1.29 and earlier
 
 =item (3)
 
@@ -1795,7 +1916,7 @@ updated test scripts to work with WN 2.0 (and WN 1.7.1)
 
 =item *
 
-10/06/2003 
+10/06/2003
 
 =over
 
@@ -1807,7 +1928,7 @@ Added rootNode option to wup.pm
 
 =item *
 
-09/27/2003 
+09/27/2003
 
 =over
 
@@ -1839,7 +1960,7 @@ Updated the MANIFEST.
 
 =item *
 
-09/21/2003 
+09/21/2003
 
 =over
 
@@ -1853,21 +1974,21 @@ Added option to wup to specify a cache size in a configuration file.
 
 =item (3)
 
-similarity.pl now 'use's QueryData 1.30 or later. Previous  versions 
-of QueryData will not work.  t/access.t also 'use's  QueryData 1.30.   
-get_wn_info.pm and lesk.pm both check for QueryData 1.30 and will die if  
+similarity.pl now 'use's QueryData 1.30 or later. Previous  versions
+of QueryData will not work.  t/access.t also 'use's  QueryData 1.30.
+get_wn_info.pm and lesk.pm both check for QueryData 1.30 and will die if
 it not found.
 
 =item (4)
 
-Reorganized the bibliography in README and slightly re-worded part      
+Reorganized the bibliography in README and slightly re-worded part
 of the introduction.
 
 =back
 
 =item *
 
-09/18/2003 
+09/18/2003
 
 =over
 
@@ -1900,7 +2021,7 @@ Added t/wup.t and lib/WordNet/Similarity/wup.pm to MANIFEST
 
 =item *
 
-09/05/2003 
+09/05/2003
 
 =over
 
@@ -1922,48 +2043,48 @@ Updated the perldocs for the measures.
 
 =item (5)
 
-Incorporated some new features into the 'wordVectors.pl' utility. 
+Incorporated some new features into the 'wordVectors.pl' utility.
 These features were used for thesis experiments.
 
 =item (6)
 
-Added documentation about the Lesk and Vector relation files (they      
+Added documentation about the Lesk and Vector relation files (they
 have different formats now).
 
 =back
 
 =back
 
-=head2 Version 0.05 
+=head2 Version 0.05
 
 =over 4
 
-=item * 
+=item *
 
-06/03/2003 
+06/03/2003
 
 =over
 
 =item (1)
 
-Added new measure of semantic relatedness, based on co-occurrence  
+Added new measure of semantic relatedness, based on co-occurrence
 vectors of WordNet glosses.
 
 =item (2)
 
-Set up the package so that similarity.pl and the other perl  
+Set up the package so that similarity.pl and the other perl
 utilities get installed in "/usr/local/bin".
 
 =item (3)
 
-Complete rewrite of similarity.pl with cleaner code and added 
+Complete rewrite of similarity.pl with cleaner code and added
 functionality:
 
 =over
 
 =item (a)
 
-Multiple parts of speech can be specified as car#nv (noun and verb  
+Multiple parts of speech can be specified as car#nv (noun and verb
 forms of car) or cool#nar (noun, adjective and adverb forms of
 cool).
 
@@ -1989,7 +2110,7 @@ Enforced limit on the cache size of modules.
 
 =item (5)
 
-Updated README to reflect the changes and to specify options for  
+Updated README to reflect the changes and to specify options for
 local installs of similarity.pl and the other utilities.
 
 =item (6)
@@ -2007,7 +2128,7 @@ Improved jcn and lin tracing ("bird-crane" problem obvious now).
 
 =item (9)
 
-Added new utility wordVectors.pl required for 
+Added new utility wordVectors.pl required for
 WordNet::Similarity::vector module.
 
 =back
@@ -2020,7 +2141,7 @@ WordNet::Similarity::vector module.
 
 =item *
 
-05/02/2003 
+05/02/2003
 
 =over
 
@@ -2043,23 +2164,23 @@ handling in jcn and lin.
 
 =item (5)
 
-New utility rawtextFreq.pl, to generate information content files 
+New utility rawtextFreq.pl, to generate information content files
 from plain text.
 
 =item (6)
 
-similarity.pl supports option to specify part-of-speech of input 
+similarity.pl supports option to specify part-of-speech of input
 words while measuring relatedness.
 
 =item (7)
 
-Added option to specify (conifuration / information content) file in      
-similarity.pl. 
+Added option to specify (conifuration / information content) file in
+similarity.pl.
 
 =item (8)
 
-Added Resnik counting option to the information content generation 
-utilities. 
+Added Resnik counting option to the information content generation
+utilities.
 
 =item (9)
 
@@ -2067,8 +2188,8 @@ More documentation on information content utilities.
 
 =item (10)
 
-Added Add-1 smoothing option to the information content generation 
-utilities. 
+Added Add-1 smoothing option to the information content generation
+utilities.
 
 =back
 
@@ -2078,7 +2199,7 @@ utilities.
 
 =over
 
-=item * 
+=item *
 
 03/10/2003
 
@@ -2102,7 +2223,7 @@ Added test cases for all modules.
 
 =item *
 
-02/10/2003 
+02/10/2003
 
 =over
 
@@ -2132,17 +2253,17 @@ jcn, res and lin measures now support verb hierarchies.
 
 =item (7)
 
-Information content files can now be specified as parameters to the 
-modules. 
+Information content files can now be specified as parameters to the
+modules.
 
 =item (8)
 
-Tools provided to build information content files from various 
+Tools provided to build information content files from various
 publicly available corpora.
 
 =item (9)
 
-Various parameters now control the behavior of the modules. These    
+Various parameters now control the behavior of the modules. These
 parameters are passed to the modules through 'configuration files'.
 
 =back
@@ -2151,38 +2272,33 @@ parameters are passed to the modules through 'configuration files'.
 
 =head1 AUTHORS
 
-  Ted Pedersen, University of Minnesota Duluth
+  Ted Pedersen, University of Minnesota, Duluth
   tpederse at d.umn.edu
-  
+
   Siddharth Patwardhan, University of Utah, Salt Lake City
   sidd at cs.utah.edu
 
   Satanjeev Banerjee, Carnegie Mellon University, Pittsburgh
   banerjee+ at cs.cmu.edu
 
-  Jason Michelizzi, University of Minnesota Duluth
-  mich0212 at d.umn.edu
-
-=head1 BUGS
-
-None.
+  Jason Michelizzi
 
 =head1 SEE ALSO
 
-todo.pod
+L<todo.pod>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee 
+Copyright (c) 2005, Ted Pedersen, Siddharth Patwardhan, Satanjeev Banerjee
 and Jason Michelizzi
 
-Permission is granted to copy, distribute and/or modify this  document  
-under the terms of the GNU Free Documentation License, Version 1.2 or  any  
-later version published by the Free Software Foundation; with no  
+Permission is granted to copy, distribute and/or modify this  document
+under the terms of the GNU Free Documentation License, Version 1.2 or  any
+later version published by the Free Software Foundation; with no
 Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
 
-Note: a copy of the GNU Free Documentation License is available on the web   
-at L<http://www.gnu.org/copyleft/fdl.html> and is included in this    
-distribution as FDL.txt. 
+Note: a copy of the GNU Free Documentation License is available on the web
+at L<http://www.gnu.org/copyleft/fdl.html> and is included in this
+distribution as FDL.txt.
 
 =cut
