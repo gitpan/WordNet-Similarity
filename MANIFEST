@@ -19,6 +19,7 @@ lib/WordNet/lesk-relation.dat
 lib/WordNet/Similarity.pm
 lib/WordNet/Tools.pm
 lib/WordNet/Similarity/DepthFinder.pm
+lib/WordNet/Similarity/FrequencyCounter.pm
 lib/WordNet/Similarity/GlossFinder.pm
 lib/WordNet/Similarity/hso.pm
 lib/WordNet/Similarity/ICFinder.pm

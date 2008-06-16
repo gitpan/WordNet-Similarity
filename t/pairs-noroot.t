@@ -1,7 +1,7 @@
-#!/usr/local/bin/perl
+#! /usr/bin/perl -w
 
-# pairs-noroot.t version 2.01
-# (Updated 1/15/2004 -- Jason)
+# pairs-noroot.t version 2.05
+# ($Id: pairs-noroot.t,v 1.8 2008/05/30 23:12:42 sidz1979 Exp $)
 
 # Copyright (C) 2004
 

@@ -47,9 +47,10 @@ machine).
 Quick Installation Instructions
 -------------------------------
 
-This guide assumes that you are using the Apache webserver.  If you are
-using a different server, then the setup process will probably vary
-a little.
+This guide assumes that you are using the Apache webserver as installed
+on a Fedora/RedHat based Linux distribution. If you are using a 
+different server or Linux distribution, then the setup process will 
+probably vary a little.
 
 Step 1
 ------
@@ -65,6 +66,9 @@ your webserver (e.g., /usr/local/apache2/htdocs). In order to keep your
 system somewhat organized, you may want to put them in a subdirectory in  
 your html directory (e.g., /usr/local/apache2/htdocs/similarity). These 
 instructions generally assume the latter. 
+
+Note that if you are using Ubuntu Linux, your cgi-bin directory is 
+typically found at /usr/lib/cgi-bin and documents are found in /var/www
 
 Step 2
 ------
@@ -87,7 +91,7 @@ wps.cgi
      in the 'doc' directory in the distribution. For example, if you
      have the .cgi files in /usr/local/apache2/cgi-bin/similarity and 
      the HTML files in /usr/local/apache2/htdocs/similarity, then you  
-     would set $doc_base to '../../htdocs/similarity'.  Note: this  
+     would set $doc_base to '../../similarity'.  Note: this  
      variable is not (closely) related to Apache's DOCUMENT_ROOT setting.
 
 - wps.cgi

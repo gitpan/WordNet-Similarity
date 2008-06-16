@@ -1,5 +1,5 @@
-# WordNet::Tools v2.04
-# (Last updated $Id: Tools.pm,v 1.3 2008/04/11 09:24:35 sidz1979 Exp $)
+# WordNet::Tools v2.05
+# (Last updated $Id: Tools.pm,v 1.5 2008/06/04 18:38:01 sidz1979 Exp $)
 #
 # This module provides some WordNet tools for use with the
 # WordNet::Similarity modules.
@@ -75,8 +75,10 @@ use Exporter;
 use WordNet::QueryData;
 use Digest::SHA1  qw(sha1_base64);
 
+use constant MAX_COMPOUND_SIZE => 9;
+
 our @ISA = qw(Exporter);
-our $VERSION = '2.04';
+our $VERSION = '2.05';
 
 =item WordNet::Tools->new($wn)
 
@@ -148,7 +150,7 @@ sub compoundify
 
   # get all the words into an array
   @wordsArray = ();
-  while($block =~ /(\w+)/g)
+  while($block =~ /([a-zA-Z0-9_\.\-\/\']+)/g)
   {
     push(@wordsArray, $1);
   }
@@ -159,7 +161,7 @@ sub compoundify
 
   while($firstPointer <= $#wordsArray)
   {
-    $secondPointer = (($#wordsArray > ($firstPointer + 7)) ? ($firstPointer + 7) : ($#wordsArray));
+    $secondPointer = (($#wordsArray > ($firstPointer + MAX_COMPOUND_SIZE - 1)) ? ($firstPointer + MAX_COMPOUND_SIZE - 1) : ($#wordsArray));
     $done = 0;
     while(($secondPointer > $firstPointer) && !$done)
     {

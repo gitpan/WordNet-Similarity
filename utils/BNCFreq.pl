@@ -1,36 +1,27 @@
-#! /usr/local/bin/perl -w
+#! /usr/bin/perl -w
 #
-# BNCFreq.pl version 2.04
-# (Last updated $Id: BNCFreq.pl,v 1.16 2008/04/13 09:27:52 sidz1979 Exp $)
+# BNCFreq.pl version 2.05
+# (Last updated $Id: BNCFreq.pl,v 1.18 2008/06/02 23:26:42 sidz1979 Exp $)
 #
 # -----------------------------------------------------------------------------
-
-# Variable declarations
-my $wn;
-my $wntools;
-my $wnver;
-my $line;
-my $sentence;
-my $rootPath;
-my $outfile;
-my @parts;
-my %stopWords;
-my %offsetFreq;
-my %newFreq;
-my %topHash;
 
 # Some modules used
 use strict;
 use Getopt::Long;
 use WordNet::QueryData;
 use WordNet::Tools;
+use WordNet::Similarity::FrequencyCounter;
+
+# Variable declarations
+my %stopWords;
+my %offsetFreq;
 
 # First check if no commandline options have been provided... in which case
 # print out the usage notes!
-if ( $#ARGV == -1 )
+if ($#ARGV == -1)
 {
-    &minimalUsageNotes();
-    exit;
+  &minimalUsageNotes();
+  exit;
 }
 
 # Now get the options!
@@ -40,94 +31,91 @@ our ($opt_version, $opt_help, $opt_stopfile, $opt_outfile, $opt_wnpath, $opt_res
 # If the version information has been requested
 if(defined $opt_version)
 {
-    &printVersion();
-    exit;
+  &printVersion();
+  exit;
 }
 
 # If detailed help has been requested
 if(defined $opt_help)
 {
-    &printHelp();
-    exit;
+  &printHelp();
+  exit;
 }
 
 # Get the output filename... exit gracefully, if not specified.
-if(defined $opt_outfile)
+if(!defined $opt_outfile)
 {
-    $outfile = $opt_outfile;
-}
-else
-{
-    &minimalUsageNotes();
-    exit;
+  &minimalUsageNotes();
+  exit;
 }
 
 # Get the PATH of the BNC texts...
+my $rootPath;
 if($#ARGV < 0)
 {
-    &minimalUsageNotes();
-    exit;
+  &minimalUsageNotes();
+  exit;
 }
 else
 {
-    $rootPath = shift;
-    if(!(-e $rootPath && -d $rootPath))
-    {
-	print STDERR "Unable to open $rootPath.\n";
-	&minimalUsageNotes();
-	exit;
-    }
+  $rootPath = shift;
+  if(!(-e $rootPath && -d $rootPath))
+  {
+    print STDERR "Unable to open $rootPath.\n";
+    &minimalUsageNotes();
+    exit;
+  }
 }
 
 # Get the path to WordNet...
 my ($wnPCPath, $wnUnixPath);
 if(defined $opt_wnpath)
 {
-    $wnPCPath = $opt_wnpath;
-    $wnUnixPath = $opt_wnpath;
+  $wnPCPath = $opt_wnpath;
+  $wnUnixPath = $opt_wnpath;
 }
 elsif (defined $ENV{WNSEARCHDIR})
 {
-    $wnPCPath = $ENV{WNSEARCHDIR};
-    $wnUnixPath = $ENV{WNSEARCHDIR};
+  $wnPCPath = $ENV{WNSEARCHDIR};
+  $wnUnixPath = $ENV{WNSEARCHDIR};
 }
 elsif (defined $ENV{WNHOME})
 {
-    $wnPCPath = $ENV{WNHOME} . "\\dict";
-    $wnUnixPath = $ENV{WNHOME} . "/dict";
+  $wnPCPath = $ENV{WNHOME} . "\\dict";
+  $wnUnixPath = $ENV{WNHOME} . "/dict";
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
-    $wnUnixPath = "/usr/local/WordNet-3.0/dict";
+  $wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
+  $wnUnixPath = "/usr/local/WordNet-3.0/dict";
 }
 
 # Load the stop words if specified
 if(defined $opt_stopfile)
 {
-    print STDERR "Loading stoplist... ";
-    open (WORDS, "$opt_stopfile") || die ("Couldnt open $opt_stopfile.\n");
-    while (<WORDS>)
-    {
-	s/[\r\f\n]//g;
-	$stopWords{$_} = 1;
-    }
-    close WORDS;
-    print STDERR "done.\n";
+  print STDERR "Loading stoplist... ";
+  open(WORDS, "$opt_stopfile") || die("Couldnt open $opt_stopfile.\n");
+  while (<WORDS>)
+  {
+    s/[\r\f\n]//g;
+    $stopWords{$_} = 1;
+  }
+  close WORDS;
+  print STDERR "done.\n";
 }
 
 # Load up WordNet
 print STDERR "Loading WordNet... ";
-$wn=(defined $opt_wnpath)? (WordNet::QueryData->new($opt_wnpath)):(WordNet::QueryData->new());
+my $wn=(defined $opt_wnpath)? (WordNet::QueryData->new($opt_wnpath)):(WordNet::QueryData->new());
 die "Unable to create WordNet::QueryData object.\n" if(!$wn);
 $wnPCPath = $wnUnixPath = $wn->dataPath() if($wn->can('dataPath'));
-$wntools = WordNet::Tools->new($wn);
+my $wntools = WordNet::Tools->new($wn);
 die "Unable to create WordNet::Tools object.\n" if(!$wntools);
 print STDERR "done.\n";
 
 # Load the topmost nodes of the hierarchies
 print STDERR "Loading topmost nodes of the hierarchies... ";
-&createTopHash();
+my $topHash = WordNet::Similarity::FrequencyCounter::createTopHash($wn);
 print STDERR "done.\n";
 
 # Read the input, form sentences and process each
@@ -137,129 +125,124 @@ my @levelOneFiles = map {"$rootPath/$_"} grep(!/^\.\.?\z/, readdir(ROOTDIR));
 closedir(ROOTDIR);
 foreach my $levelOnePath (@levelOneFiles)
 {
-    if(-d $levelOnePath && opendir(L1PATH, $levelOnePath))
+  if(-d $levelOnePath && opendir(L1PATH, $levelOnePath))
+  {
+    my @levelTwoFiles = map {"$levelOnePath/$_"} grep(!/^\.\.?\z/, readdir(L1PATH));
+    closedir(L1PATH);
+    foreach my $levelTwoPath (@levelTwoFiles)
     {
-	my @levelTwoFiles = map {"$levelOnePath/$_"} grep(!/^\.\.?\z/, readdir(L1PATH));
-	closedir(L1PATH);
-	foreach my $levelTwoPath (@levelTwoFiles)
-	{
-	    if(-d $levelTwoPath && opendir(L2PATH, $levelTwoPath))
-	    {
-		my @levelThreeFiles = map {"$levelTwoPath/$_"} grep(!/^\.\.?\z/, readdir(L2PATH));
-		closedir(L2PATH);
-		foreach my $levelThreeFile (@levelThreeFiles)
-		{
-		    if(-f $levelThreeFile)
-		    {
-			&lineProcess($levelThreeFile);
-		    }
-		}
-	    }
-	}
+      if(-d $levelTwoPath && opendir(L2PATH, $levelTwoPath))
+      {
+        my @levelThreeFiles = map {"$levelTwoPath/$_"} grep(!/^\.\.?\z/, readdir(L2PATH));
+        closedir(L2PATH);
+        foreach my $levelThreeFile (@levelThreeFiles)
+        {
+          if(-f $levelThreeFile)
+          {
+            &lineProcess($levelThreeFile);
+          }
+        }
+      }
     }
+  }
 }
 
 # Smoothing!
 if(defined $opt_smooth)
 {
-    print STDERR "Smoothing... ";
-    if($opt_smooth eq 'ADD1')
+  print STDERR "Smoothing... ";
+  if($opt_smooth eq 'ADD1')
+  {
+    foreach my $pos ("noun", "verb")
     {
-	foreach my $pos ("noun", "verb")
-	{
-	    my $localpos = $pos;
-
-	    if(!open(IDX, $wnUnixPath."/data.$pos"))
-	    {
-		if(!open(IDX, $wnPCPath."/$pos.dat"))
-		{
-		    print STDERR "Unable to open WordNet data files.\n";
-		    exit;
-		}
-	    }
-	    $localpos =~ s/(^[nv]).*/$1/;
-	    while(<IDX>)
-	    {
-		last if(/^\S/);
-	    }
-	    my ($offset) = split(/\s+/, $_, 2);
-	    $offset =~ s/^0*//;
-	    $offsetFreq{$localpos}{$offset}++;
-	    while(<IDX>)
-	    {
-		($offset) = split(/\s+/, $_, 2);
-		$offset =~ s/^0*//;
-		$offsetFreq{$localpos}{$offset}++;
-	    }
-	    close(IDX);
-	}
-	print STDERR "done.\n";
+      my $localpos = $pos;
+      if(!open(IDX, $wnUnixPath."/data.$pos"))
+      {
+        if(!open(IDX, $wnPCPath."/$pos.dat"))
+        {
+          print STDERR "Unable to open WordNet data files.\n";
+          exit;
+        }
+      }
+      $localpos =~ s/(^[nv]).*/$1/;
+      while(<IDX>)
+      {
+        last if(/^\S/);
+      }
+      my ($offset) = split(/\s+/, $_, 2);
+      $offset =~ s/^0*//;
+      $offsetFreq{$localpos}{$offset}++;
+      while(<IDX>)
+      {
+        ($offset) = split(/\s+/, $_, 2);
+        $offset =~ s/^0*//;
+        $offsetFreq{$localpos}{$offset}++;
+      }
+      close(IDX);
     }
-    else
-    {
-	print STDERR "\nWarning: Unknown smoothing '$opt_smooth'.\n";
-	print STDERR "Use --help for details.\n";
-	print STDERR "Continuing without smoothing.\n";
-    }
+    print STDERR "done.\n";
+  }
+  else
+  {
+    print STDERR "\nWarning: Unknown smoothing '$opt_smooth'.\n";
+    print STDERR "Use --help for details.\n";
+    print STDERR "Continuing without smoothing.\n";
+  }
 }
 
-# Propagating frequencies up the WordNet hierarchies... 
+# Propagating frequencies up the WordNet hierarchies...
 print STDERR "Propagating frequencies up through WordNet... ";
-$offsetFreq{"n"}{0} = 0;
-$offsetFreq{"v"}{0} = 0;
-&propagateFrequency(0, "n");
-&propagateFrequency(0, "v");
-delete $newFreq{"n"}{0};
-delete $newFreq{"v"}{0};
+my $newFreq = WordNet::Similarity::FrequencyCounter::propagateFrequency(\%offsetFreq, $wn, $topHash);
 print STDERR "done.\n";
 
 # Print the output to file
 print STDERR "Writing output file... ";
-open(OUT, ">$outfile") || die "Unable to open $outfile for writing.\n";
+open(OUT, ">$opt_outfile") || die "Unable to open $opt_outfile for writing.\n";
 print OUT "wnver::".$wntools->hashCode()."\n";
 foreach my $pos ("n", "v")
 {
-    foreach my $offset (sort {$a <=> $b} keys %{$newFreq{$pos}})
-    {
-	print OUT "$offset$pos $newFreq{$pos}{$offset}";
-	print OUT " ROOT" if($topHash{$pos}{$offset});
-	print OUT "\n";
-    }
+  foreach my $offset (sort {$a <=> $b} keys %{$newFreq->{$pos}})
+  {
+    print OUT "$offset$pos $newFreq->{$pos}->{$offset}";
+    print OUT " ROOT" if($topHash->{$pos}->{$offset});
+    print OUT "\n";
+  }
 }
 close(OUT);
 print "done.\n";
 
 # ----------------- Subroutines start Here ----------------------
-
 # Open one of the data files and get each line of the file
-# for processing... preprocess it and send it to the process 
+# for processing... preprocess it and send it to the process
 # function.
 sub lineProcess
 {
-    my $fname;
-    
-    $fname = shift;
-    if(open(DATFILE, $fname))
+  my $fname = shift;
+  if(open(DATFILE, $fname))
+  {
+    print STDERR "$fname\n";
+    my $sentence = "";
+    my $line = "";
+    my $firstFlag = 0;
+    while($line = <DATFILE>)
     {
-	print STDERR "$fname\n";
-	$sentence = "";
-	while($line = <DATFILE>)
-	{
-	    $line =~ s/[\r\f\n]//g;
-	    $line =~ s/&([a-z0-9]*?;)+//g;
-	    $line =~ s/\[.*?\]//g;
-	    @parts = split(/<\/?s\s+[^>]+>|<\/?s>/, $line);
-	    foreach (1..$#parts)
-	    {
-		$sentence .= shift(@parts)." ";
-		&process($sentence);
-		$sentence = "";
-	    }
-	    $sentence .= shift(@parts)." " if(@parts);
-	}
-	&process($sentence);
-	close(DATFILE);
+      $line =~ s/[\r\f\n]//g;
+      $line =~ s/&([a-z0-9]*?;)+//g;
+      $line =~ s/\[.*?\]//g;
+      next if($firstFlag == 0 and $line !~ /(<\/?s\s+)|(<\/?s>)/);
+      $firstFlag = 1;
+      my @parts = split(/<\/?s(?:\s+[^>]+)?>/, $line);
+      foreach (1..$#parts)
+      {
+        $sentence .= shift(@parts)." ";
+        &process($sentence);
+        $sentence = "";
+      }
+      $sentence .= shift(@parts)." " if(@parts);
     }
+    &process($sentence);
+    close(DATFILE);
+  }
 }
 
 # Processing of each sentence
@@ -271,215 +254,70 @@ sub lineProcess
 # (6) Get the frequency counts
 sub process
 {
-    my $block;
-    
-    $block = lc(shift);
-    $block =~ s/(<.*?>)+/ /g;
-    $block =~ s/\'//g;
-    $block =~ s/[^a-z0-9]+/ /g;
-    while($block =~ s/([0-9]+)\s+([0-9]+)/$1$2/g){}
-    $block =~ s/^\s+//;
-    $block =~ s/\s+$//;
-    $block = $wntools->compoundify($block);
-    while($block =~ /([\w_]+)/g)
-    {
-	&updateFrequency($1) if(!defined $stopWords{$1});
-    }
-}
+  my $block;
+  $block = lc(shift);
+  $block =~ s/(<.*?>)+/ /g;
+  $block =~ s/\'//g;
+  $block =~ s/[^a-z0-9]+/ /g;
+  while($block =~ s/([0-9]+)\s+([0-9]+)/$1$2/g){}
+  $block =~ s/^\s+//;
+  $block =~ s/\s+$//;
+  $block = $wntools->compoundify($block);
 
-# Subroutine to update frequency tokens on "seeing" a 
-# word in text
-sub updateFrequency
-{
-    my $word;
-    my $pos;
-    my $form;
-    my @senses;
-    my @forms;
-
-    $word = shift;
-    foreach $pos ("n", "v")
-    {
-	@forms = $wn->validForms($word."\#".$pos);
-	foreach $form (@forms)
-	{
-	    push @senses, $wn->querySense($form);
-	}
-	foreach (@senses)
-	{
-	    if(defined $opt_resnik)
-	    {
-		$offsetFreq{$pos}{$wn->offset($_)} += (1/($#senses + 1));
-	    }
-	    else
-	    {
-		$offsetFreq{$pos}{$wn->offset($_)}++;
-	    }
-	}
-    }
-}
-
-# Recursive subroutine that propagates the frequencies up
-# the WordNet hierarchy
-sub propagateFrequency
-{
-    my $node;
-    my $pos;
-    my $sum;
-    my $retValue;
-    my $hyponym;
-    my @hyponyms;
-
-    $node = shift;
-    $pos = shift;
-    if($newFreq{$pos}{$node})
-    {
-	return $newFreq{$pos}{$node};
-    }
-    $retValue = &getHyponymOffsets($node, $pos);
-    if($retValue)
-    {
-	@hyponyms = @{$retValue};
-    }
-    else
-    {
-	$newFreq{$pos}{$node} = ($offsetFreq{$pos}{$node})?$offsetFreq{$pos}{$node}:0;
-	return ($offsetFreq{$pos}{$node})?$offsetFreq{$pos}{$node}:0;
-    }
-    $sum = 0;
-    if($#{$retValue} >= 0)
-    {
-	foreach $hyponym (@hyponyms)
-	{
-	    $sum += &propagateFrequency($hyponym, $pos);
-	}
-    }
-    $newFreq{$pos}{$node} = (($offsetFreq{$pos}{$node})?$offsetFreq{$pos}{$node}:0) + $sum;
-    return (($offsetFreq{$pos}{$node})?$offsetFreq{$pos}{$node}:0) + $sum;
-}
-
-# Subroutine that returns the hyponyms of a given synset.
-sub getHyponymOffsets
-{
-    my $wordForm;
-    my $hyponym;
-    my @hyponyms;
-    my @retVal;
-
-    my $offset = shift;
-    my $pos = shift;
-    if($offset == 0)
-    {
-	@retVal = keys %{$topHash{$pos}};
-	return [@retVal];
-    }
-    $wordForm = $wn->getSense($offset, $pos);
-    @hyponyms = $wn->querySense($wordForm, "hypos");
-    if(!@hyponyms || $#hyponyms < 0)
-    {
-	return undef;
-    }
-    @retVal = ();
-    foreach $hyponym (@hyponyms)
-    {
-	$offset = $wn->offset($hyponym);
-	push @retVal, $offset;
-    }
-    return [@retVal];
-}
-
-# Creates and loads the topmost nodes hash.
-sub createTopHash
-{
-    my $word;
-    my $wps;
-    my $upper;
-    my $fileIsGood;
-    my %wpsOffset;
-
-    undef %wpsOffset;
-    foreach $word ($wn->listAllWords("n"))
-    {
-	foreach $wps ($wn->querySense($word."\#n"))
-	{
-	    if(!$wpsOffset{$wn->offset($wps)})
-	    {
-		($upper) = $wn->querySense($wps, "hypes");
-		if(!$upper)
-		{
-		    $topHash{"n"}{$wn->offset($wps)} = 1;	
-		}
-		$wpsOffset{$wn->offset($wps)} = 1;
-	    }
-	}
-    }
-    undef %wpsOffset;
-    foreach $word ($wn->listAllWords("v"))
-    {
-	foreach $wps ($wn->querySense($word."\#v"))
-	{
-	    if(!$wpsOffset{$wn->offset($wps)})
-	    {
-		($upper) = $wn->querySense($wps, "hypes");
-		if(!$upper)
-		{
-		    $topHash{"v"}{$wn->offset($wps)} = 1;
-		}
-		$wpsOffset{$wn->offset($wps)} = 1;
-	    }
-	}
-    }
+  while($block =~ /([\w_]+)/g)
+  {
+    WordNet::Similarity::FrequencyCounter::updateWordFrequency($1, \%offsetFreq, $wn, $opt_resnik) if(!defined $stopWords{$1});
+  }
 }
 
 # Subroutine to print detailed help
 sub printHelp
 {
-    &printUsage();
-    print "\nThis program computes the information content of concepts, by\n";
-    print "counting the frequency of their occurrence in the British\n";
-    print "National Corpus. PATH specifies the root of the directory tree\n";
-    print "containing the text of the BNC.\n";
-    print "Options: \n";
-    print "--outfile        Specifies the output file OUTFILE.\n";
-    print "--stopfile       STOPFILE is a list of stop listed words that will\n";
-    print "                 not be considered in the frequency count.\n";
-    print "--wnpath         Option to specify WNPATH as the location of WordNet data\n";
-    print "                 files. If this option is not specified, the program tries\n";
-    print "                 to determine the path to the WordNet data files using the\n";
-    print "                 WNHOME environment variable.\n";
-    print "--resnik         Option to specify that the frequency counting should\n";
-    print "                 be performed according to the method described by\n";
-    print "                 Resnik (1995).\n";
-    print "--smooth         Specifies the smoothing to be used on the probabilities\n"; 
-    print "                 computed. SCHEME specifies the type of smoothing to\n";
-    print "                 perform. It is a string, which can be only be 'ADD1'\n";
-    print "                 as of now. Other smoothing schemes will be added in\n";
-    print "                 future releases.\n";
-    print "--help           Displays this help screen.\n";
-    print "--version        Displays version information.\n\n";
+  &printUsage();
+  print "\nThis program computes the information content of concepts, by\n";
+  print "counting the frequency of their occurrence in the British\n";
+  print "National Corpus. PATH specifies the root of the directory tree\n";
+  print "containing the text of the BNC.\n";
+  print "Options: \n";
+  print "--outfile        Specifies the output file OUTFILE.\n";
+  print "--stopfile       STOPFILE is a list of stop listed words that will\n";
+  print "                 not be considered in the frequency count.\n";
+  print "--wnpath         Option to specify WNPATH as the location of WordNet data\n";
+  print "                 files. If this option is not specified, the program tries\n";
+  print "                 to determine the path to the WordNet data files using the\n";
+  print "                 WNHOME environment variable.\n";
+  print "--resnik         Option to specify that the frequency counting should\n";
+  print "                 be performed according to the method described by\n";
+  print "                 Resnik (1995).\n";
+  print "--smooth         Specifies the smoothing to be used on the probabilities\n";
+  print "                 computed. SCHEME specifies the type of smoothing to\n";
+  print "                 perform. It is a string, which can be only be 'ADD1'\n";
+  print "                 as of now. Other smoothing schemes will be added in\n";
+  print "                 future releases.\n";
+  print "--help           Displays this help screen.\n";
+  print "--version        Displays version information.\n\n";
 }
 
 # Subroutine to print minimal usage notes
 sub minimalUsageNotes
 {
-    &printUsage();
-    print "Type BNCFreq.pl --help for detailed help.\n";
+  &printUsage();
+  print "Type BNCFreq.pl --help for detailed help.\n";
 }
 
 # Subroutine that prints the usage
 sub printUsage
 {
-    print "BNCFreq.pl [{--outfile OUTFILE [--stopfile STOPFILE]";
-    print " [--wnpath WNPATH] [--resnik] [--smooth SCHEME] PATH | --help | --version }]\n"
+  print "BNCFreq.pl [{--outfile OUTFILE [--stopfile STOPFILE]";
+  print " [--wnpath WNPATH] [--resnik] [--smooth SCHEME] PATH | --help | --version }]\n";
 }
 
 # Subroutine to print the version information
 sub printVersion
 {
-    print "BNCFreq.pl version 2.04\n";
-    print "Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan.\n";
+  print "BNCFreq.pl version 2.05\n";
+  print "Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee and Siddharth Patwardhan.\n";
 }
-
 __END__
 
 =head1 NAME

@@ -2,6 +2,34 @@ NAME
     CHANGES - Revision history for WordNet::Similarity
 
 DESCRIPTION
+  Version 2.05 (Released 06/16/2008)
+    *   05/30/08
+
+        (1) Created new module WordNet::Similarity::FrequencyCounter
+            containing common support code for information content programs.
+            (Sid)
+
+        (2) Updated all the frequency counting programs in /utils (*Freq.pl)
+            to use the common code in WordNet::Similarity::FrequencyCounter.
+            (Sid)
+
+        (3) Changed the default path to Perl from /usr/local/bin to /usr/bin
+            in all scripts and tests in the package. (Sid)
+
+        (4) Fixed incorrect handling of BNC header information. (Sid)
+
+        (5) Modified the compoundify() method in WordNet::Tools to include
+            compounds containing special characters (period, hyphen,
+            forward-slash, single-quote). (Sid)
+
+        (6) Updated compoundify() to handle larger compounds. (Sid)
+
+    *   04/23/08
+
+        (1) Fixed the "excessive ROOTs" bug in *Freq.pl. (Sid)
+
+        (2) Fixed the extra verb concept counts in *Freq.pl. (Sid)
+
   Version 2.04 (Released 04/19/2008)
     *   04/17/08
 

@@ -1,7 +1,7 @@
-#! /usr/local/bin/perl -w
+#! /usr/bin/perl -w
 #
-# compounds.pl version 2.04
-# (Last updated $Id: compounds.pl,v 1.12 2008/04/13 09:27:52 sidz1979 Exp $)
+# compounds.pl version 2.05
+# (Last updated $Id: compounds.pl,v 1.13 2008/05/30 23:12:44 sidz1979 Exp $)
 #
 # -----------------------------------------------------------------------------
 
@@ -15,97 +15,81 @@ our ($opt_version, $opt_help, $opt_wnpath);
 # If the version information has been requested
 if(defined $opt_version)
 {
-    &printVersion();
-    exit;
+  &printVersion();
+  exit;
 }
 
 # If detailed help has been requested
 if(defined $opt_help)
 {
-    &printHelp();
-    exit;
+  &printHelp();
+  exit;
 }
 
 # Check if path to WordNet Data files has been provided ... If so ... save it.
 my ($wnPCPath, $wnUnixPath);
 if(defined $opt_wnpath)
 {
-    $wnPCPath = $opt_wnpath;
-    $wnUnixPath = $opt_wnpath;
+  $wnPCPath = $opt_wnpath;
+  $wnUnixPath = $opt_wnpath;
 }
 elsif (defined $ENV{WNSEARCHDIR})
 {
-    $wnPCPath = $ENV{WNSEARCHDIR};
-    $wnUnixPath = $ENV{WNSEARCHDIR};
+  $wnPCPath = $ENV{WNSEARCHDIR};
+  $wnUnixPath = $ENV{WNSEARCHDIR};
 }
 elsif (defined $ENV{WNHOME})
 {
-    $wnPCPath = $ENV{WNHOME} . "\\dict";
-    $wnUnixPath = $ENV{WNHOME} . "/dict";
+  $wnPCPath = $ENV{WNHOME} . "\\dict";
+  $wnUnixPath = $ENV{WNHOME} . "/dict";
 }
 else
 {
-    $wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
-    $wnUnixPath = "/usr/local/WordNet-3.0/dict";
+  $wnPCPath = "C:\\Program Files\\WordNet\\3.0\\dict";
+  $wnUnixPath = "/usr/local/WordNet-3.0/dict";
 }
 
-my $line;
 open(NIDX, $wnUnixPath."/index.noun") || open(NIDX, $wnPCPath."\\noun.idx") || die "Unable to open index file.\n";
 open(VIDX, $wnUnixPath."/index.verb") || open(VIDX, $wnPCPath."\\verb.idx") || die "Unable to open index file.\n";
 open(AIDX, $wnUnixPath."/index.adj") || open(AIDX, $wnPCPath."\\adj.idx") || die "Unable to open index file.\n";
 open(RIDX, $wnUnixPath."/index.adv") || open(RIDX, $wnPCPath."\\adv.idx") || die "Unable to open index file.\n";
-foreach(1 .. 29)
-{
-    $line = <NIDX>;
-}
+my $line = "";
 while($line = <NIDX>)
 {
-    $line =~ s/[\r\f\n]//g;
-    $line =~ s/^\s+//;
-    $line =~ s/\s+$//;
-    my ($word) = split(/\s+/, $line, 2);
-    print "$word\n" if($word =~ /_/);
-}
-
-foreach(1 .. 29)
-{
-    $line = <VIDX>;
+  next if "  " eq substr $line, 0, 2;
+  $line =~ s/[\r\f\n]//g;
+  $line =~ s/^\s+//;
+  $line =~ s/\s+$//;
+  my ($word) = split(/\s+/, $line, 2);
+  print "$word\n" if($word =~ /_/);
 }
 while($line = <VIDX>)
 {
-    $line =~ s/[\r\f\n]//g;
-    $line =~ s/^\s+//;
-    $line =~ s/\s+$//;
-    my ($word) = split(/\s+/, $line, 2);
-    print "$word\n" if($word =~ /_/);
-}
-
-foreach(1 .. 29)
-{
-    $line = <AIDX>;
+  next if "  " eq substr $line, 0, 2;
+  $line =~ s/[\r\f\n]//g;
+  $line =~ s/^\s+//;
+  $line =~ s/\s+$//;
+  my ($word) = split(/\s+/, $line, 2);
+  print "$word\n" if($word =~ /_/);
 }
 while($line = <AIDX>)
 {
-    $line =~ s/[\r\f\n]//g;
-    $line =~ s/^\s+//;
-    $line =~ s/\s+$//;
-    my ($word) = split(/\s+/, $line, 2);
-    print "$word\n" if($word =~ /_/);
-}
-
-foreach(1 .. 29)
-{
-    $line = <RIDX>;
+  next if "  " eq substr $line, 0, 2;
+  $line =~ s/[\r\f\n]//g;
+  $line =~ s/^\s+//;
+  $line =~ s/\s+$//;
+  my ($word) = split(/\s+/, $line, 2);
+  print "$word\n" if($word =~ /_/);
 }
 while($line = <RIDX>)
 {
-    $line =~ s/[\r\f\n]//g;
-    $line =~ s/^\s+//;
-    $line =~ s/\s+$//;
-    my ($word) = split(/\s+/, $line, 2);
-    print "$word\n" if($word =~ /_/);
+  next if "  " eq substr $line, 0, 2;
+  $line =~ s/[\r\f\n]//g;
+  $line =~ s/^\s+//;
+  $line =~ s/\s+$//;
+  my ($word) = split(/\s+/, $line, 2);
+  print "$word\n" if($word =~ /_/);
 }
-
 close(NIDX);
 close(VIDX);
 close(AIDX);
@@ -114,36 +98,36 @@ close(RIDX);
 # Subroutine to print detailed help
 sub printHelp
 {
-    &printUsage();
-    print "\nThis program generates a list of all compound words found\n";
-    print "in WordNet\n";
-    print "Options: \n";
-    print "--wnpath         WNPATH specifies the path of the WordNet data files.\n";
-    print "                 Ordinarily, this path is determined from the \$WNHOME\n";
-    print "                 environment variable. But this option overides this\n";
-    print "                 behavior.\n";
-    print "--help           Displays this help screen.\n";
-    print "--version        Displays version information.\n\n";
+  &printUsage();
+  print "\nThis program generates a list of all compound words found\n";
+  print "in WordNet\n";
+  print "Options: \n";
+  print "--wnpath         WNPATH specifies the path of the WordNet data files.\n";
+  print "                 Ordinarily, this path is determined from the \$WNHOME\n";
+  print "                 environment variable. But this option overides this\n";
+  print "                 behavior.\n";
+  print "--help           Displays this help screen.\n";
+  print "--version        Displays version information.\n\n";
 }
 
 # Subroutine to print minimal usage notes
 sub minimalUsageNotes
 {
-    &printUsage();
-    print "Type compounds.pl --help for detailed help.\n";
+  &printUsage();
+  print "Type compounds.pl --help for detailed help.\n";
 }
 
 # Subroutine that prints the usage
 sub printUsage
 {
-    print "compounds.pl [{ --wnpath WNPATH | --help | --version }]\n"
+  print "compounds.pl [{ --wnpath WNPATH | --help | --version }]\n";
 }
 
 # Subroutine to print the version information
 sub printVersion
 {
-    print "compounds.pl version 2.04\n";
-    print "Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.\n";
+  print "compounds.pl version 2.05\n";
+  print "Copyright (c) 2005-2008, Ted Pedersen, Satanjeev Banerjee, Siddharth Patwardhan and Jason Michelizzi.\n";
 }
 
 __END__

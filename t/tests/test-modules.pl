@@ -1,4 +1,4 @@
-#! /usr/local/bin/perl -w
+#! /usr/bin/perl -w
 
 use strict;
 use warnings;
@@ -37,7 +37,7 @@ if ($opt_help) {
 }
 
 if ($opt_version) {
-  print "".SCRIPT_NAME." version 0.07\n";
+  print "".SCRIPT_NAME." version 2.05\n";
   print "Copyright (C) 2003, Jason Michelizzi and Ted Pedersen\n";
   exit (0);
 }

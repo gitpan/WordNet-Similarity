@@ -1,5 +1,5 @@
-# WordNet::Similarity.pm version 2.04
-# (Last updated $Id: Similarity.pm,v 1.49 2008/03/27 06:21:17 sidz1979 Exp $)
+# WordNet::Similarity.pm version 2.05
+# (Last updated $Id: Similarity.pm,v 1.50 2008/05/30 10:16:38 sidz1979 Exp $)
 #
 # Module containing the version information and pod
 # for the WordNet::Similarity package, and all measures are
@@ -148,7 +148,7 @@ our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
 @EXPORT = ();
 
-$VERSION = '2.04';
+$VERSION = '2.05';
 
 # a hash to contain the module-specific configuration options.
 our %config_options;

@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#! /usr/bin/perl -w
 
 # Before 'make install' is run this script should be runnable with
 # 'make test'.  After 'make install' it should work as 'perl t/config/invalid.t'

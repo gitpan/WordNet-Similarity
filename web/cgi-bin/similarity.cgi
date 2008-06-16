@@ -1,11 +1,11 @@
-#!/usr/local/bin/perl -wT
+#!/usr/bin/perl -wT
 
 use strict;
 
 # where do we connect to the Similarity server?  Here:
 my $remote_host = '127.0.0.1';
 my $remote_port = '31134';
-my $doc_base = '../docs';
+my $doc_base = '../../similarity';
 
 use CGI;
 use Socket;
@@ -612,18 +612,18 @@ EOT
     print '<label for="measurepull" class="leftlabel">Measure:</label>', "\n";
     print '<select name="measure" id="measurepull" ',
       'onchange="measureChanged();">', "\n";
-    my @measures = (['all', 'Use all measures'],
-		    ['hso', 'Hirst &amp; St-Onge'],
+    my @measures = (['all', 'Use All Measures'],
+		    ['path', 'Path Length'],
 		    ['lch', 'Leacock &amp; Chodorow'],
-		    ['lesk', 'Extended Gloss Overlaps'],
-		    ['lin', 'Lin'],
-		    ['jcn', 'Jiang &amp; Conrath'],
-		    ['path', 'Path length'],
-		    ['random', 'Random numbers'],
+		    ['wup', 'Wu &amp; Palmer'], 
 		    ['res', 'Resnik'],
-                    ['vector', 'Gloss Vector'],
-		    ['vector_pairs', 'Gloss Vector (pairwise)'],
-		    ['wup', 'Wu &amp; Palmer']);
+		    ['jcn', 'Jiang &amp; Conrath'],
+		    ['lin', 'Lin'],
+		    ['lesk', 'Adapted Lesk (Extended Gloss Overlaps)'],
+                    ['vector', 'Gloss Vectors'],
+		    ['vector_pairs', 'Gloss Vectors (pairwise)'],
+		    ['hso', 'Hirst &amp; St-Onge'],
+		    ['random', 'Random Measure']);
 
     foreach (@measures) {
 	my $selected = $_->[0] eq $arg3 ? 'selected="selected"' : '';
@@ -679,7 +679,6 @@ sub showPageEnd
 <div class="footer">
 Created by Ted Pedersen and Jason Michelizzi
 <br />E-mail: tpederse (at) d (dot) umn (dot) edu 
- or mich0212 (at) d (dot) umn (dot) edu
 </div>
 </body>
 </html>
@@ -705,8 +704,7 @@ script and that one.
  Ted Pedersen, University of Minnesota Duluth
  tpederse at d.umn.edu
 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
+ Jason Michelizzi
 
 =head1 BUGS
 
@@ -714,7 +712,7 @@ None known.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, Ted Pedersen and Jason Michelizzi
+Copyright (c) 2005-2008, Ted Pedersen and Jason Michelizzi
 
 This program is free software; you may redistribute and/or modify it under
 the terms of the GNU General Public License version 2 or, at your option, any

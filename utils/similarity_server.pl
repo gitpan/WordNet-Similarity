@@ -1,10 +1,11 @@
-#!/usr/local/bin/perl -wT
+#!/usr/bin/perl -wT
 #
-# similarity_server.pl version 2.04
-# (Last updated $Id: similarity_server.pl,v 1.6 2008/04/17 08:32:00 sidz1979 Exp $)
+# similarity_server.pl version 2.05
+# (Last updated $Id: similarity_server.pl,v 1.7 2008/05/30 23:12:44 sidz1979 Exp $)
 #
 # ---------------------------------------------------------------------
 
+# Include external packages
 use strict;
 use Getopt::Long;
 use File::Temp;
@@ -13,13 +14,14 @@ use WordNet::Similarity;
 use POSIX ':sys_wait_h';  # for waitpid() and friends; used by reaper()
 use POSIX qw(setsid);     # to daemonize
 
+# Get the command-line options
 our($opt_wnhome, $opt_port, $opt_logfile, $opt_maxchild, $opt_stoplist, $opt_version, $opt_help);
 &GetOptions("wnhome=s", "port=i", "logfile=s", "maxchild=i", "stoplist=s", "version",  "help");
 
 # Check for version
 if(defined($opt_version))
 {
-  print "similarity_server.pl version 2.04\n";
+  print "similarity_server.pl version 2.05\n";
   print "WordNet::Similarity version ".($WordNet::Similarity::VERSION)."\n";
   print "Copyright (c) 2005-2008, Ted Pedersen, Siddharth Patwardhan and Jason Michelizzi.\n";
   exit;
@@ -69,6 +71,7 @@ print STDERR "Local port = $localport\n";
 $maxchild = $opt_maxchild if(defined($opt_maxchild));
 print STDERR "Maxchild = $maxchild\n";
 
+# Create the temporary lock file
 my $lockfh = File::Temp->new();
 my $lock_file = $lockfh->filename();
 die "Error: Unable to create temporary lock file.\n" if(!$lockfh);
@@ -245,8 +248,7 @@ while((my $client = $socket->accept) or $interrupted)
     }
     if($type eq 'v')
     {
-      eval
-      {
+      eval{
         # get version information
         my $qdver = $wn->VERSION();
         my $wnver = $wntools->hashCode();
@@ -274,8 +276,7 @@ while((my $client = $socket->accept) or $interrupted)
       getlock;
       foreach my $wps (@senses)
       {
-        eval
-        {
+        eval{
           my @synset = $wn->querySense($wps, "syns");
           print $client "$rnum $wps ", join(" ", @synset), "\015\012";
         };
@@ -301,8 +302,7 @@ while((my $client = $socket->accept) or $interrupted)
       getlock;
       foreach my $wps (@senses)
       {
-        eval
-        {
+        eval{
           my ($gloss) = $wn->querySense($wps, "glos");
           print $client "$rnum $wps ${gloss}\015\012";
         };
@@ -361,8 +361,7 @@ while((my $client = $socket->accept) or $interrupted)
         {
           if(defined($gloss) and $gloss eq 'yes')
           {
-            eval
-            {
+            eval{
               my ($gls) = $wn->querySense($wps, 'glos');
               print $client "g $wps $gls\015\012";
             };
@@ -370,8 +369,7 @@ while((my $client = $socket->accept) or $interrupted)
           }
           if(defined($syns) and $syns eq 'yes')
           {
-            eval
-            {
+            eval{
               my @syns = $wn->querySense($wps, 'syns');
               print $client "s ", join(" ", @syns), "\015\012";
             };
@@ -385,8 +383,7 @@ while((my $client = $socket->accept) or $interrupted)
       {
         foreach my $wps2 (@wps2)
         {
-          eval
-          {
+          eval{
             my $score = $module->getRelatedness($wps1, $wps2);
             my ($err, $errstr) = $module->getError();
             if($err)
@@ -441,10 +438,7 @@ sub getAllForms ($)
   # it must be a type I or II, so let's get all valid forms
   getlock;
   my @forms = ();
-  eval
-  {
-    @forms = $wn->validForms($word);
-  };
+  eval{@forms = $wn->validForms($word);};
   print(STDERR &timestamp("$@\n")) if($@);
   releaselock;
   return () unless scalar @forms;
@@ -456,10 +450,7 @@ sub getAllForms ($)
     # form is a type II string
     getlock;
     my @strings = ();
-    eval
-    {
-      @strings = $wn->querySense($form);
-    };
+    eval{@strings = $wn->querySense($form);};
     print(STDERR &timestamp("$@\n")) if($@);
     releaselock;
     next unless scalar @strings;
@@ -492,8 +483,7 @@ sub getlock ()
 # releases a lock on $lockfh.  The return value is that of flock.
 sub releaselock ()
 {
-  eval
-  {
+  eval{
     flock $lockfh, LOCK_UN;
     close $lockfh;
   };
@@ -526,6 +516,7 @@ sub reaper
   $interrupted = 1;
   $SIG{CHLD} = \&reaper; # cursed be SysV
 }
+
 __END__
 
 =head1 NAME

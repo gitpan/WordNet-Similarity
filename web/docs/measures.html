@@ -11,7 +11,7 @@
     <h1>Measures</h1>
 
     <h2>Path length</h2>
-    <p>A simple node-counting scheme.  The relatedness score is inversely
+    <p>A simple node-counting scheme (path).  The relatedness score is inversely
       proportional to the number of nodes along the shortest path between
       the synsets.  The shortest possible path occurs when the two synsets
       are the same, in which case the length is 1.  Thus, the maximum
@@ -19,7 +19,7 @@
     </p>
 
     <h2>Leacock &amp; Chodorow</h2>
-    <p>The relatedness measure proposed by Leacock and Chodorow is
+    <p>The relatedness measure proposed by Leacock and Chodorow (lch) is
       -log (length / (2 * D)), where length is the length of the shortest
       path between the two synsets (using node-counting) and D is the
       maximum depth of the taxonomy.
@@ -48,7 +48,7 @@
     </p>
 
     <h2>Wu &amp; Palmer</h2>
-    <p>The Wu & Palmer measure calculates relatedness by considering the
+    <p>The Wu & Palmer measure (wup) calculates relatedness by considering the
        depths of the two synsets in the WordNet taxonomies, along with the
        depth of the LCS.  The formula is
        score = 2*depth(lcs) / (depth(s1) + depth(s2)).  This means that
@@ -65,13 +65,6 @@
       upon the size of the corpus used to determine information content values.
       To be precise, the upper bound should be ln (N) where N is the number of
       words in the corpus.</p>
-
-    <h2>Hirst &amp; St-Onge</h2>
-    <p>This measure works by finding lexical chains linking the two word
-      senses.  There are three classes of relations that are considered:
-      extra-strong, strong, and medium-strong.  The maximum relatedness
-      score is 16.
-    </p>
 
     <h2>Jiang &amp; Conrath</h2>
     <p>The relatedness value returned by the jcn measure is equal to
@@ -97,15 +90,6 @@
       greater than zero and return the multiplicative inverse of that distance.
     </p>
 
-    <h2>Extended Gloss Overlaps</h2>
-    <p>The Extended Gloss Overlaps measure works by finding overlaps in the 
-      glosses of the two synsets.  The relatedness score is the sum of the
-      squares of the overlap lengths.  For example, a single word overlap
-      results in a score of 1.  Two single word overlaps results in a score of
-      2. A two word overlap (i.e., two consecutive words) results in a score of
-      4. A three word overlap results in a score of 9.    
-    </p>
-
     <h2>Lin</h2>
     <p>The relatedness value returned by the lin measure is a number equal
       to 2 * IC(lcs) / (IC(synset1) + IC(synset2)). Where IC(x) is the
@@ -122,8 +106,17 @@
       of a lack of better alternatives.
     </p>
 
+    <h2>Adapted Lesk (Extended Gloss Overlaps) </h2>
+    <p>The Extended Gloss Overlaps measure (lesk) works by finding overlaps in the 
+      glosses of the two synsets.  The relatedness score is the sum of the
+      squares of the overlap lengths.  For example, a single word overlap
+      results in a score of 1.  Two single word overlaps results in a score of
+      2. A two word overlap (i.e., two consecutive words) results in a score of
+      4. A three word overlap results in a score of 9.    
+    </p>
+
     <h2>Gloss Vector</h2>
-    <p>The Gloss Vector measure works by forming second-order co-occurrence
+    <p>The Gloss Vector measure (vector) works by forming second-order co-occurrence
       vectors from the glosses or WordNet definitions of concepts. The 
       relatedness of two concepts is determined as the cosine of the angle
       between their gloss vectors. In order to get around the data sparsity 
@@ -133,7 +126,7 @@
     </p>
       
     <h2>Gloss Vector (pairwise)</h2>
-    <p>The Gloss Vector (pairwise) measure is very similar to the "regular" Gloss
+    <p>The Gloss Vector (pairwise) measure (vector_pairs) is very similar to the "regular" Gloss
       Vector measure, except in the way it augments the glosses of concepts with
       adjacent glosses. The regular Gloss Vector measure first combines the 
       adjacent glosses to form one large "super-gloss" and creates a single vector
@@ -148,10 +141,18 @@
       found that the regular Gloss Vector measure performs better than the pairwise
       Gloss Vector measure.
     </p>
+
+    <h2>Hirst &amp; St-Onge</h2>
+    <p>This measure (hso) works by finding lexical chains linking the two word
+      senses.  There are three classes of relations that are considered:
+      extra-strong, strong, and medium-strong.  The maximum relatedness
+      score is 16.
+    </p>
       
     <h2>Random</h2>
-    <p>The relatedness values are simply randomly generated numbers.</p>
-
+    <p>The relatedness values are simply randomly generated numbers. 
+     This is intended only to be used as a baseline. 
+    </p>
   
   </body>
 </html>

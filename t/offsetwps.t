@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#! /usr/bin/perl -w
 
 # offsetwps.t version 2.01
 # (Updated 2/10/2004 -- Jason)

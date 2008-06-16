@@ -1,7 +1,7 @@
-#! /usr/local/bin/perl -w
+#! /usr/bin/perl -w
 #
-# rankFormat.pl version 2.04
-# (Last updated $Id: rankFormat.pl,v 1.5 2008/04/13 09:27:52 sidz1979 Exp $)
+# rankFormat.pl version 2.05
+# (Last updated $Id: rankFormat.pl,v 1.6 2008/05/30 23:12:43 sidz1979 Exp $)
 #
 # -----------------------------------------------------------------------------
 
@@ -18,77 +18,72 @@ my (@parts, %hash);
 # If the version information has been requested...
 if(defined $opt_version)
 {
-    $opt_version = 1;     # Hack to prevent "Single occurrence of variable" warning.
-    &printVersion();
-    exit;
+  &printVersion();
+  exit;
 }
 
 # If detailed help has been requested...
 if(defined $opt_help)
 {
-    $opt_help = 1;        # Hack to prevent "Single occurrence of variable" warning.
-    &printHelp();
-    exit;
+  &printHelp();
+  exit;
 }
-
 while(<>)
 {
-    s/[\r\f\n]//;
-    s/^\s+//;
-    s/\s+$//;
-    @parts = split(/\s+/);
-    $hash{"$parts[0]<>$parts[1]<>"} = sprintf("%.2f", $parts[2]) if(@parts);
+  s/[\r\f\n]//;
+  s/^\s+//;
+  s/\s+$//;
+  @parts = split(/\s+/);
+  $hash{"$parts[0]<>$parts[1]<>"} = sprintf("%.2f", $parts[2]) if(@parts);
 }
-
 print "0\n";
 my $lastRank = 1;
 my $rank = 1;
 my $last;
 foreach my $key (sort {$hash{$b} <=> $hash{$a}} keys %hash)
 {
-    $lastRank = $rank if(defined $last && $hash{$key} != $last);
-    print "$key$lastRank $hash{$key} 0 0 0\n";
-    $rank++;
-    $last = $hash{$key};
+  $lastRank = $rank if(defined $last && $hash{$key} != $last);
+  print "$key$lastRank $hash{$key} 0 0 0\n";
+  $rank++;
+  $last = $hash{$key};
 }
 
 # ----------------- Subroutines Start Here ----------------------
-
 # Subroutine to print detailed help
 sub printHelp
 {
-    &printUsage();
-    print "\nProgram to rank the output of similarity.pl based on the semantic\n";
-    print "relatedness of the word pairs. The output is in a format that can\n";
-    print "processed by the rank.pl program of the Text::NSP package. The rank.pl\n";
-    print "program takes two lists of ranked pairs of words and computes the\n";
-    print "correlation between them according to Spearman's correlation\n";
-    print "coefficient. The input can be specified in file(s) on the command line,\n";
-    print "or if no file(s) are specified, then STDIN is assumed. Output is written\n";
-    print "to STDOUT.\n\n";
-    print "Options: \n";
-    print "--help           Displays this help screen.\n";
-    print "--version        Displays version information.\n\n";
+  &printUsage();
+  print "\nProgram to rank the output of similarity.pl based on the semantic\n";
+  print "relatedness of the word pairs. The output is in a format that can\n";
+  print "processed by the rank.pl program of the Text::NSP package. The rank.pl\n";
+  print "program takes two lists of ranked pairs of words and computes the\n";
+  print "correlation between them according to Spearman's correlation\n";
+  print "coefficient. The input can be specified in file(s) on the command line,\n";
+  print "or if no file(s) are specified, then STDIN is assumed. Output is written\n";
+  print "to STDOUT.\n\n";
+  print "Options: \n";
+  print "--help           Displays this help screen.\n";
+  print "--version        Displays version information.\n\n";
 }
 
 # Subroutine to print minimal usage notes
 sub minimalUsageNotes
 {
-    &printUsage();
-    print "Type rankFormat.pl --help for detailed help.\n";
+  &printUsage();
+  print "Type rankFormat.pl --help for detailed help.\n";
 }
 
 # Subroutine that prints the usage
 sub printUsage
 {
-    print "Usage: rankFormat.pl [FILE... |--help | --version]\n";
+  print "Usage: rankFormat.pl [FILE... |--help | --version]\n";
 }
 
 # Subroutine to print the version information
 sub printVersion
 {
-    print "rankFormat.pl version 2.04\n";
-    print "Copyright (c) 2006-2008, Ted Pedersen and Siddharth Patwardhan.\n";
+  print "rankFormat.pl version 2.05\n";
+  print "Copyright (c) 2006-2008, Ted Pedersen and Siddharth Patwardhan.\n";
 }
 
 __END__

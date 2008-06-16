@@ -1,7 +1,7 @@
-#!/usr/local/bin/perl
+#! /usr/bin/perl -w
 
-# sim.t version 2.01
-# (Updated 1/12/2004 -- Jason)
+# sim.t version 2.05
+# ($Id: sim.t,v 1.8 2008/05/30 23:12:43 sidz1979 Exp $)
 #
 # Copyright (C) 2004
 #

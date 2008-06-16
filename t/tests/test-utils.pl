@@ -1,4 +1,4 @@
-#! /usr/local/bin/perl -w
+#! /usr/bin/perl -w
 
 use strict;
 use warnings;
@@ -67,7 +67,7 @@ sub showHelp {
 }
 
 sub showVersion {
-  print "test-utils.pl version 0.07\n";
+  print "test-utils.pl version 2.05\n";
   print "Copyright (C) 2003, Jason Michelizzi and Ted Pedersen\n";
   print "\nThis program is free software; you may redistribute it and/or\n";
   print "modify it under the same terms as Perl itself.\n";

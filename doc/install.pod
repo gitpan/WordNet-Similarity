@@ -127,7 +127,7 @@ http://search.cpan.org/dist/Test-Simple/lib/Test/Builder.pm#EXIT_CODES
 
 Perl version 5.6 or later.  This package has been written in Perl, which is
 freely available from www.perl.org. This package assumes that perl is
-installed in the directory /usr/local/bin.  If this is where perl is on
+installed in the directory /usr/bin.  If this is where perl is on
 your computer, then the support programs can be run directly at the
 command line as 'similarity.pl ...' or 'semCorFreq.pl...',
 etc. However, if Perl is not installed at this location,

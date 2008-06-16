@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -wT
+#!/usr/bin/perl -wT
 
 use strict;
 
@@ -93,8 +93,7 @@ word sense belongs.
  Ted Pedersen, University of Minnesota Duluth
  tpederse at d.umn.edu
 
- Jason Michelizzi, University of Minnesota Duluth
- mich0212 at d.umn.edu
+ Jason Michelizzi
 
 =head1 BUGS
 
@@ -102,7 +101,7 @@ None known.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, Ted Pedersen and Jason Michelizzi
+Copyright (c) 2005-2008, Ted Pedersen and Jason Michelizzi
 
 This program is free software; you may redistribute and/or modify it under the
 terms of the GNU General Public License, version 2 or, at your option, any

@@ -1,7 +1,7 @@
-#!/usr/local/bin/perl
+#! /usr/bin/perl -w
 
-# all.t version 2.01
-# (Updated 1/12/2004 -- Jason)
+# all.t version 2.05
+# ($Id: all.t,v 1.10 2008/05/30 23:12:42 sidz1979 Exp $)
 #
 # Copyright (C) 2004
 #

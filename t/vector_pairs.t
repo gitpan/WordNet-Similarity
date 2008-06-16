@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#! /usr/bin/perl -w
 
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl t/vector_pairs.t'

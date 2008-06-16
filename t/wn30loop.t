@@ -1,7 +1,7 @@
-#!/usr/local/bin/perl
+#! /usr/bin/perl -w
 
-# wn30loop.t version 2.01
-# (Updated 10/10/2007 --Sid)
+# wn30loop.t version 2.05
+# ($Id: wn30loop.t,v 1.3 2008/05/30 23:12:40 sidz1979 Exp $)
 #
 # Copyright (C) 2007
 #

@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#! /usr/bin/perl -w
 
 # ICFinder.t version 2.01
 # (Updated 2/12/2004 -- Jason)
